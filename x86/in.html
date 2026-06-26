@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns:x86="http://www.felixcloutier.com/x86">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>IN — 从端口输入</title>
+</head>
+
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>IN — 从端口输入</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>E4 ib</td>
+			<td>IN AL, imm8</td>
+			<td>I</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>从立即数 imm8 指定的 I/O 端口地址输入字节到 AL。</td>
+		</tr>
+		<tr>
+			<td>E5 ib</td>
+			<td>IN AX, imm8</td>
+			<td>I</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>从立即数 imm8 指定的 I/O 端口地址输入字到 AX。</td>
+		</tr>
+		<tr>
+			<td>E5 ib</td>
+			<td>IN EAX, imm8</td>
+			<td>I</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>从立即数 imm8 指定的 I/O 端口地址输入双字到 EAX。</td>
+		</tr>
+		<tr>
+			<td>EC</td>
+			<td>IN AL, DX</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>从 DX 中指定的 I/O 端口输入字节到 AL。</td>
+		</tr>
+		<tr>
+			<td>ED</td>
+			<td>IN AX, DX</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>从 DX 中指定的 I/O 端口输入字到 AX。</td>
+		</tr>
+		<tr>
+			<td>ED</td>
+			<td>IN EAX, DX</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>从 DX 中指定的 I/O 端口输入双字到 EAX。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>I</td>
+			<td>imm8</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将第二个操作数（源操作数）指定的 I/O 端口中的值复制到目标操作数（第一个操作数）。源操作数可以是 8 位立即数或 DX 寄存器；目标操作数可以是 AL、AX 或 EAX 寄存器，具体取决于所访问的端口大小（分别为 8 位、16 位或 32 位）。使用 DX 寄存器作为源操作数允许访问 0 到 65,535 的 I/O 端口地址；使用 8 位立即数允许访问 0 到 255 的 I/O 端口地址。</p>
+	<p>访问 8 位 I/O 端口时，操作码决定端口大小；访问 16 位和 32 位 I/O 端口时，操作数大小属性决定端口大小。在机器码级别，访问 8 位 I/O 端口时的 I/O 指令更短。此时，端口地址的高 8 位将为 0。</p>
+	<p>此指令仅用于访问位于处理器 I/O 地址空间中的 I/O 端口。有关在 I/O 地址空间中访问 I/O 端口的更多信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷中的第 19 章“输入/输出”。</p>
+	<p>此指令在非 64 位模式和 64 位模式下的操作相同。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF ((PE = 1) and ((CPL &gt; IOPL) or (VM = 1)))
+    THEN (* Protected mode with CPL &gt; IOPL or virtual-8086 mode *)
+        IF (Any I/O Permission Bit for I/O port being accessed = 1)
+            THEN (* I/O operation is not allowed *)
+                #GP(0);
+            ELSE ( * I/O operation is allowed *)
+                DEST := SRC; (* Read from selected I/O port *)
+        FI;
+    ELSE (Real Mode or Protected Mode with CPL ≤ IOPL *)
+        DEST := SRC; (* Read from selected I/O port *)
+FI;
+</pre>
+
+	<h2 id="flags-affected">影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果 CPL 大于（特权级较低）I/O 特权级别（IOPL），并且正在访问的 I/O 端口在 TSS 中对应的任意 I/O 许可位为 1。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟 8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果所访问的 I/O 端口在 TSS 中的任意 I/O 许可位为 1。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果 CPL 大于（特权级较低）I/O 特权级别（IOPL），并且正在访问的 I/O 端口在 TSS 中对应的任意 I/O 许可位为 1。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+	<footer>
+		<p>
+			本非官方、机械拆分、未经校验的参考文档仅为方便提供，可能存在各种明显或不明显的缺失或错误。任何严肃用途请参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+
+</html>

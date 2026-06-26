@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>AESENC256KL — 使用 256 位密钥配合 Key Locker 执行十四轮 AES 加密流程</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>AESENC256KL — 使用 256 位密钥配合 Key Locker 执行十四轮 AES 加密流程</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64/32位模式</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>F3 0F 38 DE !(11):rrr:bbb AESENC256KL xmm, m512</td>
+			<td>A</td>
+			<td>V/V</td>
+			<td>AESKLE</td>
+			<td>使用由 m512 处的句柄指示的 256 位 AES 密钥对 xmm 进行加密并将结果存入 xmm。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>元组</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>A</td>
+			<td>N/A</td>
+			<td>ModRM:reg (r, w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>AESENC256KL<sup>1</sup> 指令执行 14 轮 AES，使用由第二操作数的句柄指示的 256 位密钥对第一操作数进行加密。如果操作成功（例如，未遇到句柄违规故障），它将结果存入第一操作数。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<h4 id="aesenc256kl">AESENC256KL</h4>
+	<pre>Handle := UnalignedLoad of 512 bit (SRC); // Load is not guaranteed to be atomic.
+Illegal Handle = (
+                HandleReservedBitSet (Handle) ||
+                (Handle[0] AND (CPL &gt; 0)) ||
+                Handle [1] ||
+                HandleKeyType (Handle) != HANDLE_KEY_TYPE_AES256
+                );
+IF (Illegal Handle)
+    THEN RFLAGS.ZF := 1;
+    ELSE
+        (UnwrappedKey, Authentic) := UnwrapKeyAndAuthenticate512 (Handle[511:0], IWKey);
+        IF (Authentic == 0)
+            THEN RFLAGS.ZF := 1;
+            ELSE
+                    DEST := AES256Encrypt (DEST, UnwrappedKey) ;
+                    RFLAGS.ZF := 0;
+        FI;
+FI;
+RFLAGS.OF, SF, AF, PF, CF := 0;
+</pre>
+
+	<h2 id="flags-affected">影响的标志<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>如果操作成功，ZF 设置为 0；如果因为句柄违规导致操作失败，ZF 设置为 1。其他算术标志（OF、SF、AF、PF、CF）清零。</p>
+	<p>1. 有关 Key Locker 的更多详细信息以及此指令的用法可以在此处找到：</p>
+	<h3 id="https---software-intel-com-content-www-us-en-develop-download-intel-key-locker-specification-html-"><a href="https://software.intel.com/content/www/us/en/develop/download/intel-key-locker-specification.html">https://software.intel.com/content/www/us/en/develop/download/intel-key-locker-specification.html</a><a class="anchor" href="#https---software-intel-com-content-www-us-en-develop-download-intel-key-locker-specification-html-">¶</a></h3>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>AESENC256KL unsigned char _mm_aesenc256kl_u8(__m128i* odata, __m128i idata, const void* h);
+</pre>
+
+	<h2 id="exceptions--all-operating-modes-">异常（所有工作模式）<a class="anchor" href="#exceptions--all-operating-modes-">¶</a></h2>
+	<p>#UD 如果使用了 LOCK 前缀。</p>
+	<p>如果 CPUID.07H:ECX.KL[bit 23] = 0。</p>
+	<p>如果 CR4.KL = 0。</p>
+	<p>如果 CPUID.19H:EBX.AESKLE[bit 0] = 0。</p>
+	<p>如果 CR0.EM = 1。</p>
+	<p>如果 CR4.OSFXSR = 0。</p>
+	<p>#NM 如果 CR0.TS = 1。</p>
+	<p>#PF 如果发生缺页异常。</p>
+	<p>#GP(0) 如果内存操作数有效地址超出了 CS、DS、ES、FS 或 GS 段界限。</p>
+	<p>如果使用 DS、ES、FS 或 GS 寄存器访问内存，且它包含空段选择子。</p>
+	<p>如果内存地址处于非规范形式。</p>
+	<p>#SS(0) 如果内存操作数有效地址超出了 SS 段界限。</p>
+	<p>如果引用 SS 段 of 内存地址处于非规范形式。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

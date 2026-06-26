@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns:x86="http://www.felixcloutier.com/x86">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>Jcc — 条件跳转</title>
+</head>
+
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>Jcc — 条件跳转</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>77 cb</td>
+			<td>JA rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果高于则短跳转 (CF=0 且 ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>73 cb</td>
+			<td>JAE rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果高于或等于则短跳转 (CF=0)。</td>
+		</tr>
+		<tr>
+			<td>72 cb</td>
+			<td>JB rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果低于则短跳转 (CF=1)。</td>
+		</tr>
+		<tr>
+			<td>76 cb</td>
+			<td>JBE rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果低于或等于则短跳转 (CF=1 或 ZF=1)。</td>
+		</tr>
+		<tr>
+			<td>72 cb</td>
+			<td>JC rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果进位则短跳转 (CF=1)。</td>
+		</tr>
+		<tr>
+			<td>E3 cb</td>
+			<td>JCXZ rel8</td>
+			<td>D</td>
+			<td>N.E.</td>
+			<td>Valid</td>
+			<td>如果 CX 寄存器为 0 则短跳转。</td>
+		</tr>
+		<tr>
+			<td>E3 cb</td>
+			<td>JECXZ rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果 ECX 寄存器为 0 则短跳转。</td>
+		</tr>
+		<tr>
+			<td>E3 cb</td>
+			<td>JRCXZ rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果 RCX 寄存器为 0 则短跳转。</td>
+		</tr>
+		<tr>
+			<td>74 cb</td>
+			<td>JE rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果相等则短跳转 (ZF=1)。</td>
+		</tr>
+		<tr>
+			<td>7F cb</td>
+			<td>JG rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果大于则短跳转 (ZF=0 且 SF=OF)。</td>
+		</tr>
+		<tr>
+			<td>7D cb</td>
+			<td>JGE rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果大于或等于则短跳转 (SF=OF)。</td>
+		</tr>
+		<tr>
+			<td>7C cb</td>
+			<td>JL rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果小于则短跳转 (SF≠OF)。</td>
+		</tr>
+		<tr>
+			<td>7E cb</td>
+			<td>JLE rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果小于或等于则短跳转 (ZF=1 或 SF≠OF)。</td>
+		</tr>
+		<tr>
+			<td>76 cb</td>
+			<td>JNA rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非高于则短跳转 (CF=1 或 ZF=1)。</td>
+		</tr>
+		<tr>
+			<td>72 cb</td>
+			<td>JNAE rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非高于或等于则短跳转 (CF=1)。</td>
+		</tr>
+		<tr>
+			<td>73 cb</td>
+			<td>JNB rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非低于则短跳转 (CF=0)。</td>
+		</tr>
+		<tr>
+			<td>77 cb</td>
+			<td>JNBE rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非低于或等于则短跳转 (CF=0 且 ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>73 cb</td>
+			<td>JNC rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非进位则短跳转 (CF=0)。</td>
+		</tr>
+		<tr>
+			<td>75 cb</td>
+			<td>JNE rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非相等则短跳转 (ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>7E cb</td>
+			<td>JNG rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非大于则短跳转 (ZF=1 或 SF≠OF)。</td>
+		</tr>
+		<tr>
+			<td>7C cb</td>
+			<td>JNGE rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非大于或等于则短跳转 (SF≠OF)。</td>
+		</tr>
+		<tr>
+			<td>7D cb</td>
+			<td>JNL rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非小于则短跳转 (SF=OF)。</td>
+		</tr>
+		<tr>
+			<td>7F cb</td>
+			<td>JNLE rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非小于或等于则短跳转 (ZF=0 且 SF=OF)。</td>
+		</tr>
+		<tr>
+			<td>71 cb</td>
+			<td>JNO rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非溢出则短跳转 (OF=0)。</td>
+		</tr>
+		<tr>
+			<td>7B cb</td>
+			<td>JNP rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非奇偶校验则短跳转 (PF=0)。</td>
+		</tr>
+		<tr>
+			<td>79 cb</td>
+			<td>JNS rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非符号则短跳转 (SF=0)。</td>
+		</tr>
+		<tr>
+			<td>75 cb</td>
+			<td>JNZ rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非零则短跳转 (ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>70 cb</td>
+			<td>JO rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果溢出则短跳转 (OF=1)。</td>
+		</tr>
+		<tr>
+			<td>7A cb</td>
+			<td>JP rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果奇偶校验则短跳转 (PF=1)。</td>
+		</tr>
+		<tr>
+			<td>7A cb</td>
+			<td>JPE rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果偶校验则短跳转 (PF=1)。</td>
+		</tr>
+		<tr>
+			<td>7B cb</td>
+			<td>JPO rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果奇校验则短跳转 (PF=0)。</td>
+		</tr>
+		<tr>
+			<td>78 cb</td>
+			<td>JS rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果符号则短跳转 (SF=1)。</td>
+		</tr>
+		<tr>
+			<td>74 cb</td>
+			<td>JZ rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果零则短跳转 (ZF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 87 cw</td>
+			<td>JA rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果高于则近跳转 (CF=0 且 ZF=0)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 87 cd</td>
+			<td>JA rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果高于则近跳转 (CF=0 且 ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 83 cw</td>
+			<td>JAE rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果高于或等于则近跳转 (CF=0)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 83 cd</td>
+			<td>JAE rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果高于或等于则近跳转 (CF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 82 cw</td>
+			<td>JB rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果低于则近跳转 (CF=1)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 82 cd</td>
+			<td>JB rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果低于则近跳转 (CF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 86 cw</td>
+			<td>JBE rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果低于或等于则近跳转 (CF=1 或 ZF=1)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 86 cd</td>
+			<td>JBE rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果低于或等于则近跳转 (CF=1 或 ZF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 82 cw</td>
+			<td>JC rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果进位则近跳转 (CF=1)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 82 cd</td>
+			<td>JC rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果进位则近跳转 (CF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 84 cw</td>
+			<td>JE rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果相等则近跳转 (ZF=1)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 84 cd</td>
+			<td>JE rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果相等则近跳转 (ZF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 84 cw</td>
+			<td>JZ rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果零则近跳转 (ZF=1)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 84 cd</td>
+			<td>JZ rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果零则近跳转 (ZF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 8F cw</td>
+			<td>JG rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果大于则近跳转 (ZF=0 且 SF=OF)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 8F cd</td>
+			<td>JG rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果大于则近跳转 (ZF=0 且 SF=OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 8D cw</td>
+			<td>JGE rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果大于或等于则近跳转 (SF=OF)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 8D cd</td>
+			<td>JGE rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果大于或等于则近跳转 (SF=OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 8C cw</td>
+			<td>JL rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果小于则近跳转 (SF≠OF)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 8C cd</td>
+			<td>JL rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果小于则近跳转 (SF≠OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 8E cw</td>
+			<td>JLE rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果小于或等于则近跳转 (ZF=1 或 SF≠OF)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 8E cd</td>
+			<td>JLE rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果小于或等于则近跳转 (ZF=1 或 SF≠OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 86 cw</td>
+			<td>JNA rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果非高于则近跳转 (CF=1 或 ZF=1)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 86 cd</td>
+			<td>JNA rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非高于则近跳转 (CF=1 或 ZF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 82 cw</td>
+			<td>JNAE rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果非高于或等于则近跳转 (CF=1)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 82 cd</td>
+			<td>JNAE rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非高于或等于则近跳转 (CF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 83 cw</td>
+			<td>JNB rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果非低于则近跳转 (CF=0)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 83 cd</td>
+			<td>JNB rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非低于则近跳转 (CF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 87 cw</td>
+			<td>JNBE rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果非低于或等于则近跳转 (CF=0 且 ZF=0)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 87 cd</td>
+			<td>JNBE rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非低于或等于则近跳转 (CF=0 且 ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 83 cw</td>
+			<td>JNC rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果非进位则近跳转 (CF=0)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 83 cd</td>
+			<td>JNC rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非进位则近跳转 (CF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 85 cw</td>
+			<td>JNE rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果非相等则近跳转 (ZF=0)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 85 cd</td>
+			<td>JNE rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非相等则近跳转 (ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 8E cw</td>
+			<td>JNG rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果非大于则近跳转 (ZF=1 或 SF≠OF)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 8E cd</td>
+			<td>JNG rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非大于则近跳转 (ZF=1 或 SF≠OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 8C cw</td>
+			<td>JNGE rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果非大于或等于则近跳转 (SF≠OF)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 8C cd</td>
+			<td>JNGE rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非大于或等于则近跳转 (SF≠OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 8D cw</td>
+			<td>JNL rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果非小于则近跳转 (SF=OF)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 8D cd</td>
+			<td>JNL rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非小于则近跳转 (SF=OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 8F cw</td>
+			<td>JNLE rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果非小于或等于则近跳转 (ZF=0 且 SF=OF)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 8F cd</td>
+			<td>JNLE rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非小于或等于则近跳转 (ZF=0 且 SF=OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 81 cw</td>
+			<td>JNO rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果非溢出则近跳转 (OF=0)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 81 cd</td>
+			<td>JNO rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非溢出则近跳转 (OF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 8B cw</td>
+			<td>JNP rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果非奇偶校验则近跳转 (PF=0)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 8B cd</td>
+			<td>JNP rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非奇偶校验则近跳转 (PF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 89 cw</td>
+			<td>JNS rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果非符号则近跳转 (SF=0)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 89 cd</td>
+			<td>JNS rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非符号则近跳转 (SF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 85 cw</td>
+			<td>JNZ rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果非零则近跳转 (ZF=0)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 85 cd</td>
+			<td>JNZ rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非零则近跳转 (ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 80 cw</td>
+			<td>JO rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果溢出则近跳转 (OF=1)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 80 cd</td>
+			<td>JO rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果溢出则近跳转 (OF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 8A cw</td>
+			<td>JP rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果奇偶校验则近跳转 (PF=1)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 8A cd</td>
+			<td>JP rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果奇偶校验则近跳转 (PF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 8A cw</td>
+			<td>JPE rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果偶校验则近跳转 (PF=1)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 8A cd</td>
+			<td>JPE rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果偶校验则近跳转 (PF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 8B cw</td>
+			<td>JPO rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果奇校验则近跳转 (PF=0)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 8B cd</td>
+			<td>JPO rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果奇校验则近跳转 (PF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 88 cw</td>
+			<td>JS rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果符号则近跳转 (SF=1)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 88 cd</td>
+			<td>JS rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果符号则近跳转 (SF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 84 cw</td>
+			<td>JZ rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>如果零则近跳转 (ZF=1)。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>0F 84 cd</td>
+			<td>JZ rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果零则近跳转 (ZF=1)。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>D</td>
+			<td>偏移量</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">
+			¶
+		</a></h2>
+	<p>检查 EFLAGS 寄存器中一个或多个状态标志位的状态（CF、OF、PF、SF 和 ZF），如果标志位处于指定的状态（条件满足），则执行跳转到目的操作数指定的目标指令。每个指令都关联一个条件码（<em>cc</em>）以指示所测试的条件。如果条件不满足，则不执行跳转，程序继续执行 J<em>cc</em> 指令之后的下一条指令。</p>
+	<p>目标指令是通过相对偏移量（相对于 EIP 寄存器中当前指令指针值的有符号偏移量）指定的。相对偏移量（<em>rel8</em>、<em>rel16</em> 或 <em>rel32</em>）在汇编代码中通常指定为标签，但在机器码级别，它被编码为有符号的 8 位或 32 位立即数，并被加到指令指针上。对于 –128 到 +127 的偏移量，指令编码最有效。如果操作数大小属性为 16，则清除 EIP 寄存器的高两个字节，从而使最大指令指针大小为 16 位。</p>
+	<p>每个 J<em>cc</em> 助记符的条件在上一页表格的“描述”列中给出。术语“大于（greater）”和“小于（less）”用于有符号整数的比较，而“高于（above）”和“低于（below）”用于无符号整数的比较。</p>
+	<p>由于状态标志位的特定状态有时可以有两种解释方式，因此为某些操作码定义了两个助记符。例如，JA（如果高于则跳转）指令和 JNBE（如果非低于或等于则跳转）指令是操作码 77H 的备用助记符。</p>
+	<p>J<em>cc</em> 指令不支持远跳转（跳转到其他代码段）。当条件跳转的目标位于不同的段中时，请使用与 J<em>cc</em> 指令测试的条件相反的条件，然后使用无条件远跳转（JMP 指令）访问其他段中的目标。例如，以下条件远跳转是非法的：</p>
+	<p>JZ FARLABEL;</p>
+	<p>要实现此远跳转，请使用以下两条指令：</p>
+	<p>JNZ BEYOND;</p>
+	<p>JMP FARLABEL;</p>
+	<p>BEYOND:</p>
+	<p>JRCXZ、JECXZ 和 JCXZ 指令与其他 J<em>cc</em> 指令不同，因为它们不检查状态标志位。相反，它们检查 RCX、ECX 或 CX 是否为 0。具体检查哪个寄存器由地址大小属性决定。当在以条件循环指令（如 LOOPNE）结束的循环开头使用这些指令时，它们非常有用。它们可用于在 RCX、ECX 或 CX 为 0 时防止指令序列进入循环。否则，循环将执行 2<sup>64</sup>、2<sup>32</sup> 或 64K 次（而不是零次）。</p>
+	<p>无论跳转地址或是否可缓存，所有条件跳转都会转换为一个或两个缓存行的代码提取。</p>
+	<p>在 64 位模式下，操作数大小固定为 64 位。短跳转是 RIP = RIP + 符号扩展至 64 位的 8 位偏移量。近跳转是 RIP = RIP + 符号扩展至 64 位的 32 位偏移量。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">
+			¶
+		</a></h2>
+	<pre>IF condition
+    THEN
+        tempEIP := EIP + SignExtend(DEST);
+        IF OperandSize = 16
+            THEN tempEIP := tempEIP AND 0000FFFFH;
+        FI;
+    IF tempEIP is not within code segment limit
+        THEN #GP(0);
+        ELSE EIP := tempEIP
+    FI;
+FI;
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">
+			¶
+		</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果跳转的目标偏移量超出了 CS 段的限制。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>如果跳转的目标偏移量超出 CS 段的限制，或者在 0 到 FFFFH 的有效地址空间之外。如果使用了 32 位地址大小覆盖前缀，则可能会发生这种情况。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">
+			¶
+		</a></h2>
+	<p>与实地址模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">
+			¶
+		</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span
+				style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a
+				href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+				64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>AAD — 除法前的 ASCII 调整</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>AAD — 除法前的 ASCII 调整</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>D5 0A</td>
+			<td>AAD</td>
+			<td>ZO</td>
+			<td>Invalid</td>
+			<td>Valid</td>
+			<td>在除法前进行 ASCII 调整 AX。</td>
+		</tr>
+		<tr>
+			<td>D5 ib</td>
+			<td>AAD imm8</td>
+			<td>ZO</td>
+			<td>Invalid</td>
+			<td>Valid</td>
+			<td>在除法前将 AX 调整为以 imm8 为底的数。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>调整两个非组合 BCD 位（AL 寄存器中的最低有效位和 AH 寄存器中的最高有效位），以便对结果执行的除法操作将产生正确的非组合 BCD 值。仅当 AAD 指令在 DIV 指令之前时才有用，该 DIV 指令将 AX 寄存器中调整后的值除以（二进制除法）非组合 BCD 值。</p>
+	<p>AAD 指令将 AL 寄存器中的值设置为 (AL + (10 * AH))，然后将 AH 寄存器清除为 00H。随后，AX 寄存器中的值等于 AH 和 AL 寄存器中原始非组合两位（以 10 为底）数字的二进制等价值。</p>
+	<p>该指令的通用版本允许通过将 <em>imm8</em> 字节设置为所选的数制基数（例如，八进制为 08H，十进制为 0AH，或 12 进制数为 0CH），来调整任何数制基数的两个非组合位（参见下面的“操作”部分）。所有汇编器都将 AAD 助记符解释为调整 ASCII（以 10 为底）值。要调整其他数制基数的值，必须以机器码（D5 <em>imm8</em>）手工编码该指令。</p>
+	<p>此指令在兼容模式和传统模式下如上所述执行。在 64 位模式下无效。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF 64-Bit Mode
+    THEN
+        #UD;
+    ELSE
+        tempAL := AL;
+        tempAH := AH;
+        AL := (tempAL + (tempAH ∗ <em>imm8</em>)) AND FFH;
+        (* <em>imm8</em> is set to 0AH for the AAD mnemonic.*)
+        AH := 0;
+FI;
+The immediate value (<em>imm8</em>) is taken from the second byte of the instruction.
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>SF、ZF 和 PF 标志根据 AL 寄存器中产生的二进制值进行设置；OF、AF 和 CF 标志是未定义的。</p>
+
+	<h2 id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 id="virtual-8086-mode-exceptions">虚拟 8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果处于 64 位模式。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>GETSEC[EXITAC] — 退出已认证代码执行模式</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+
+	<h1>GETSEC[EXITAC] — 退出已认证代码执行模式</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>NP 0F 37 (EAX=3)</td>
+			<td>GETSEC[EXITAC]</td>
+			<td>退出已认证代码执行模式。RBX 保存近绝对间接跳转目标，EDX 保存退出参数标志。</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>GETSEC[EXITAC] 叶函数使逻辑处理器（ILP）退出由 GETSEC[ENTERACCS] 或 GETSEC[SENTER] 建立的已认证代码执行模式。在进入时，通过将 EAX 设置为 3 来选择 GETSEC 的 EXITAC 叶。EBX（如果在 64 位模式下，则为 RBX）保存退出已认证代码执行模式后处理器恢复执行的近跳转目标偏移量。EDX 包含附加的参数控制信息。目前仅支持 EDX 中的输入值为 0。所有其他 EDX 设置都被视为保留，并会导致一般保护性异常（#GP）。</p>
+	<p>GETSEC[EXITAC] 只能在处理器处于保护模式且 CPL = 0 且 EFLAGS.VM = 0 时执行。处理器还必须处于已认证代码执行模式。为了避免模式之间潜在的操作冲突，如果处理器处于 SMM 或 VMX 操作中，则不允许执行此指令。违反这些条件会导致一般保护性异常（#GP）。</p>
+	<p>在 GETSEC[EXITAC] 操作完成后，处理器将取消对外部事件信号 INIT#、NMI# 和 SMI# 响应的屏蔽。此取消屏蔽是条件性执行的，基于已认证代码执行模式是通过执行 GETSEC[SENTER] 还是 GETSEC[ENTERACCS] 进入的。如果处理器由于执行 GETSEC[SENTER] 而处于已认证代码执行模式，则这些外部事件信号将保持屏蔽。在这种情况下，在度量环境中，A20M 将保持禁用，直到度量环境执行 GETSEC[SEXIT]。INIT# 由 EXITAC 无条件取消屏蔽。请注意，如果在已认证代码执行模式下被阻塞的任何挂起事件，在引脚事件被取消屏蔽的情况下，将在 GETSEC[EXITAC] 指令完成时被识别。</p>
+	<p>提供可选地使引脚事件 SMI# 和 NMI# 保持屏蔽的能力，其目的是支持使用 VMX 的度量环境启动的完成。在这种设想的安全使用场景中，这些事件将保持屏蔽，直到建立起适当的虚拟机，以便以更安全的方式对这些事件进行现场服务。关于在 VMX 操作中何时以及如何屏蔽和取消屏蔽事件的详细信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 3C 卷。需要注意的是，如果 GETSEC[EXITAC] 之后不激活任何 VMX 环境，这些事件将保持屏蔽，直到使用 GETSEC[SEXIT] 退出度量环境。如果不需要这样，则在此上下文中可以使用 GETSEC 函数 SMCTRL(0) 来取消屏蔽 SMI#。可以通过执行 IRET 相应地取消屏蔽 NMI#。</p>
+	<p>成功退出已认证代码执行模式需要逻辑处理器（ILP）执行以下概述的附加步骤：</p>
+	<ul>
+		<li>使内部已认证代码执行区域的内容失效。</li>
+		<li>使处理器 TLB 失效。</li>
+		<li>清除处理器内部的 AC 模式指示标志。</li>
+		<li>重新锁定 TPM 区域 3 空间。</li>
+		<li>解锁支持 Intel® TXT 芯片组的内存和 I/O 保护，以允许其他处理器代理进行内存和 I/O 活动。</li>
+		<li>执行近绝对间接跳转到指定的指令位置。</li>
+	</ul>
+	<p>硬件使已认证代码执行区域的内容失效，以保护其免受进一步使用或可见性。在 GETSEC[EXITAC] 之后，不能再使用或依赖此处理器内部存储区域。如果要在 EXITAC 之后引用数据结构，则需要重新在已认证代码执行区域之外建立它们。由于以前映射到已认证代码执行区域的被寻址内存内容在 EXITAC 之后可能不再与外部系统内存保持一致，因此支持线性到物理地址转换的处理器 TLB 也会失效。</p>
+	<p>在 GETSEC[EXITAC] 完成后，执行一个近绝对间接转移，EIP 加载有 EBX 的内容（基于当前操作模式大小）。在 64 位模式下，如果在 GETSEC[EXITAC] 之前有 REX.W 前缀，则将 RBX 的所有 64 位加载到 RIP 中。否则，即使在 64 位模式下，RBX 也被视为 32 位。作为此控制转移的一部分，将执行常规的 CS 限制检查。作为此控制转移的一部分生成的任何异常条件将被定向到现有的 IDT；因此，如果有故障处理的需求，建议在执行 EXITAC 函数之前也建立 IDTR。此外，在 EXITAC 之前，已认证代码应重新建立或验证任何要在 EXITAC 之后使用的分段相关（和分页）数据结构。</p>
+	<p>此外，在 EXITAC 之前，已认证代码需要重新建立分段相关（和分页）的数据结构并映射到指定的已认证 RAM 区域之外。在 EXITAC 完成后，将无法再访问保存在已认证 RAM 分配区域内的任何数据结构。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>(* The state of the internal flag ACMODEFLAG and SENTERFLAG persist across instruction boundary *)
+IF (CR4.SMXE=0)
+	THEN #UD;
+ELSIF ( in VMX non-root operation)
+	THEN VM Exit (reason=”GETSEC instruction”);
+ELSIF (GETSEC leaf unsupported)
+	THEN #UD;
+ELSIF ((in VMX operation) or ( (in 64-bit mode) and ( RBX is non-canonical) )
+	(CR0.PE=0) or (CPL&gt;0) or (EFLAGS.VM=1) or
+	(ACMODEFLAG=0) or (IN_SMM=1)) or (EDX ≠ 0))
+	THEN #GP(0);
+IF (OperandSize = 32)
+	THEN tempEIP := EBX;
+ELSIF (OperandSize = 64)
+	THEN tempEIP := RBX;
+ELSE
+	tempEIP := EBX AND 0000FFFFH;
+IF (tempEIP &gt; code segment limit)
+	THEN #GP(0);
+Invalidate ACRAM contents;
+Invalidate processor TLB(s);
+Drain outgoing messages;
+SignalTXTMsg(CloseLocality3);
+SignalTXTMsg(LockSMRAM);
+SignalTXTMsg(ProcessorRelease);
+Unmask INIT;
+IF (SENTERFLAG=0)
+	THEN Unmask SMI, INIT, NMI, and A20M pin event;
+ELSEIF (IA32_SMM_MONITOR_CTL[0] = 0)
+	THEN Unmask SMI pin event;
+ACMODEFLAG := 0;
+IF IA32_EFER.LMA == 1
+	THEN CR3 := R8;
+EIP := tempEIP;
+END;
+</pre>
+
+	<h2 id="flags-affected">影响的标志寄存器<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 id="use-of-prefixes">前缀的使用<a class="anchor" href="#use-of-prefixes">¶</a></h2>
+	<p>LOCK 导致 #UD。</p>
+	<p>REP* 导致 #UD（包括 REPNE/REPNZ 和 REP/REPE/REPZ）。</p>
+	<p>操作数大小导致 #UD。</p>
+	<p>不允许使用 NP 66/F2/F3 前缀。</p>
+	<p>段覆盖被忽略。</p>
+	<p>地址大小被忽略。</p>
+	<p>REX.W 设置 64 位模式操作数大小属性。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CR4.SMXE = 0。</td>
+		</tr>
+		<tr>
+			<td>如果 GETSEC[EXITAC] 未被 GETSEC[CAPABILITIES] 报告为受支持。</td>
+		</tr>
+		<tr>
+			<td rowspan="5">#GP(0)</td>
+			<td>如果 CR0.PE = 0 或 CPL &gt; 0 或 EFLAGS.VM = 1。</td>
+		</tr>
+		<tr>
+			<td>如果处于 VMX 根操作。</td>
+		</tr>
+		<tr>
+			<td>如果处理器当前不处于已认证代码执行模式。</td>
+		</tr>
+		<tr>
+			<td>如果处理器在 SMM 中。</td>
+		</tr>
+		<tr>
+			<td>如果 EDX 参数寄存器中设置了任何保留位。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CR4.SMXE = 0。</td>
+		</tr>
+		<tr>
+			<td>如果 GETSEC[EXITAC] 未被 GETSEC[CAPABILITIES] 报告为受支持。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>GETSEC[EXITAC] 在实地址模式下无法识别。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CR4.SMXE = 0。</td>
+		</tr>
+		<tr>
+			<td>如果 GETSEC[EXITAC] 未被 GETSEC[CAPABILITIES] 报告为受支持。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>GETSEC[EXITAC] 在虚拟-8086 模式下无法识别。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>所有保护模式异常均适用。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<p>所有保护模式异常均适用。</p>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果 RBX 中的目标地址为非规范形式。</td>
+		</tr>
+	</table>
+
+	<h2 id="vm-exit-condition">VM-Exit 条件<a class="anchor" href="#vm-exit-condition">¶</a></h2>
+	<p>如果在 VMX 非根操作中，退出原因为 (GETSEC)。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete） or 出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns:x86="http://www.felixcloutier.com/x86">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>JMP — 跳转</title>
+</head>
+
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>JMP — 跳转</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>EB cb</td>
+			<td>JMP rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>短跳转，RIP = RIP + 符号扩展至 64 位的 8 位偏移量。</td>
+		</tr>
+		<tr>
+			<td>E9 cw</td>
+			<td>JMP rel16</td>
+			<td>D</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>近跳转，相对寻址，偏移量相对于下一条指令。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>E9 cd</td>
+			<td>JMP rel32</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>近跳转，相对寻址，RIP = RIP + 符号扩展至 64 位的 32 位偏移量。</td>
+		</tr>
+		<tr>
+			<td>FF /4</td>
+			<td>JMP r/m16</td>
+			<td>M</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>近跳转，绝对间接寻址，地址 = 零扩展的 r/m16。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>FF /4</td>
+			<td>JMP r/m32</td>
+			<td>M</td>
+			<td>N.S.</td>
+			<td>Valid</td>
+			<td>近跳转，绝对间接寻址，地址由 r/m32 给出。在 64 位模式下不支持。</td>
+		</tr>
+		<tr>
+			<td>FF /4</td>
+			<td>JMP r/m64</td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>近跳转，绝对间接寻址，RIP = 寄存器或内存中的 64 位偏移量。</td>
+		</tr>
+		<tr>
+			<td>EA cd</td>
+			<td>JMP ptr16:16</td>
+			<td>S</td>
+			<td>Inv.</td>
+			<td>Valid</td>
+			<td>远跳转，绝对寻址，地址由操作数给出。</td>
+		</tr>
+		<tr>
+			<td>EA cp</td>
+			<td>JMP ptr16:32</td>
+			<td>S</td>
+			<td>Inv.</td>
+			<td>Valid</td>
+			<td>远跳转，绝对寻址，地址由操作数给出。</td>
+		</tr>
+		<tr>
+			<td>FF /5</td>
+			<td>JMP m16:16</td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>远跳转，绝对间接寻址，地址由 m16:16 给出。</td>
+		</tr>
+		<tr>
+			<td>FF /5</td>
+			<td>JMP m16:32</td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>远跳转，绝对间接寻址，地址由 m16:32 给出。</td>
+		</tr>
+		<tr>
+			<td>REX.W FF /5</td>
+			<td>JMP m16:64</td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>远跳转，绝对间接寻址，地址由 m16:64 给出。</td>
+		</tr>
+	</table>
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>S</td>
+			<td>段 + 绝对地址</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>D</td>
+			<td>偏移量</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>M</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+	<h2 id="description">描述<a class="anchor" href="#description">
+			¶
+		</a></h2>
+	<p>将程序控制权转移到指令流中的不同位置，而不记录返回信息。目的（目标）操作数指定要跳转到的指令的地址。该操作数可以是一个立即数、一个通用寄存器或一个内存位置。</p>
+	<p>该指令可用于执行四种不同类型的跳转：</p>
+	<ul>
+		<li>近跳转（Near jump）——跳转到当前代码段（目前由 CS 寄存器指向的段）内的指令，有时称为段内跳转。</li>
+		<li>短跳转（Short jump）——跳转范围限制在距当前 EIP 值为 –128 到 +127 之间的近跳转。</li>
+		<li>远跳转（Far jump）——跳转到位于与当前代码段不同的段中但处于相同特权级别的指令，有时称为段间跳转。</li>
+		<li>任务切换（Task switch）——跳转到位于不同任务中的指令。</li>
+	</ul>
+	<p>任务切换只能在保护模式下执行（有关使用 JMP 指令执行任务切换的信息，请参阅 Intel® 64 和 IA-32 架构软件开发人员手册第 3A 卷第 8 章）。</p>
+	<p><strong>近跳转和短跳转。</strong> 执行近跳转时，处理器跳转到由目标操作数指定的地址（当前代码段内）。目标操作数可以指定绝对偏移量（即距离代码段基址的偏移量）或相对偏移量（相对于 EIP 寄存器中指令指针当前值的有符号位移）。跳转到 8 位相对偏移量（<em>rel8</em>）的近跳转被称为短跳转。在近跳转和短跳转中不改变 CS 寄存器。</p>
+	<p>绝对偏移量可以在通用寄存器或内存位置中间接指定（<em>r/m16</em> 或 <em>r/m32</em>）。操作数大小属性决定目标操作数的大小（16 位或 32 位）。绝对偏移量直接加载到 EIP 寄存器中。如果操作数大小属性为 16，则清除 EIP 寄存器的高两个字节，从而使最大指令指针大小为 16 位。</p>
+	<p>相对偏移量（<em>rel8, rel16</em> 或 <em>rel32</em>）在汇编代码中通常指定为标签，但在机器码级别，它被编码为有符号的 8 位、16 位或 32 位立即数。此值将被加到 EIP 寄存器中的值上（这里，EIP 寄存器包含紧跟在 JMP 指令后面的指令的地址）。当使用相对偏移量时，操作码（用于区分短跳转和近跳转）和操作数大小属性（用于近相对跳转）决定目标操作数的大小（8 位、16 位或 32 位）。</p>
+	<p><strong>实地址或虚拟-8086 模式下的远跳转。</strong> 在实地址或虚拟-8086 模式下执行远跳转时，处理器跳转到由目标操作数指定的代码段和偏移量。这里目标操作数可以是通过指针（<em>ptr16:16</em> 或 <em>ptr16:32</em>）直接指定，或通过内存位置（<em>m16:16</em> 或 <em>m16:32</em>）间接指定一个绝对远地址。对于指针方法，被调用过程的段和地址编码在指令中，使用 4 字节（16 位操作数大小）或 6 字节（32 位操作数大小）的远地址立即数。对于间接方法，目标操作数指定一个包含 4 字节（16 位操作数大小）或 6 字节（32 位操作数大小）远地址的内存位置。远地址直接加载到 CS 和 EIP 寄存器中。如果操作数大小属性为 16，则清除 EIP 寄存器的高两个字节。</p>
+	<p><strong>保护模式下的远跳转。</strong> 当处理器在保护模式下运行时，JMP 指令可用于执行以下三种类型的远跳转：</p>
+	<ul>
+		<li>跳转到一致性（conforming）或非一致性（non-conforming）代码段的远跳转。</li>
+		<li>通过调用门的远跳转。</li>
+		<li>任务切换。</li>
+	</ul>
+	<p>（JMP 指令不能用于执行跨特权级别的远跳转。）</p>
+	<p>在保护模式下，处理器总是使用远地址的段选择子部分来访问 GDT 或 LDT 中对应的描述符。描述符类型（代码段、调用门、任务门或 TSS）和访问权限决定了要执行的跳转类型。</p>
+	<p>如果选定的描述符是代码段描述符，则执行向处于相同特权级别的代码段的远跳转。（如果选定的代码段处于不同的特权级别，并且该代码段是非一致性的，则会产生通用保护异常。）在保护模式下向相同特权级别执行的远跳转，与在实地址或虚拟-8086 模式下进行的远跳转非常相似。目标操作数通过直接指针（<em>ptr16:16</em> 或 <em>ptr16:32</em>）或间接内存位置（<em>m16:16</em> 或 <em>m16:32</em>）指定绝对远地址。操作数大小属性决定远地址中偏移量的大小（16 位或 32 位）。新的代码段选择子及其描述符被加载到 CS 寄存器中，指令中的偏移量被加载到 EIP 寄存器中。请注意，调用门（在下一段中描述）也可用于向相同特权级别的代码段执行远调用。使用这种机制提供了一层额外的间接寻址，是 16 位和 32 位代码段之间跳转的首选方法。</p>
+	<p>当通过调用门执行远跳转时，由目标操作数指定的段选择子标识该调用门。（目标操作数的偏移量部分被忽略。）处理器随后跳转到调用门描述符中指定的代码段，并从调用门中指定的偏移量处开始执行指令。不会发生栈切换。在这里，目标操作数同样可以直接通过指针（<em>ptr16:16</em> 或 <em>ptr16:32</em>）或间接通过内存位置（<em>m16:16</em> 或 <em>m16:32</em>）指定调用门的远地址。</p>
+	<p>使用 JMP 指令执行任务切换与通过调用门执行跳转有些类似。这里，目标操作数指定要切换到的任务的任务门段选择子（目标操作数的偏移量部分被忽略）。任务门反过来指向该任务的 TSS，TSS 包含该任务的代码段和栈段的段选择子。TSS 还包含该任务在暂停前要执行的下一条指令的 EIP 值。该指令指针值被加载到 EIP 寄存器中，从而使该任务重新开始执行此下一条指令。</p>
+	<p>JMP 指令也可以直接指定 TSS 的段选择子，从而消除了任务门的间接寻址。有关任务切换机制的详细信息，请参阅 Intel® 64 和 IA-32 架构软件开发人员手册第 3A 卷第 8 章。</p>
+	<p>请注意，当您使用 JMP 指令执行任务切换时，EFLAGS 寄存器中的嵌套任务标志（NT）不会被置位，且新 TSS 的前一任务链接字段不会被加载旧任务的 TSS 选择子。因此，不能通过执行 IRET 指令返回到前一个任务。使用 JMP 指令切换任务与 CALL 指令在这方面有所不同，CALL 指令确实会设置 NT 标志并保存前一个任务的链接信息，从而允许通过 IRET 指令返回到调用任务。</p>
+	<p>有关 CET 的详细信息，请参阅 Intel® 64 和 IA-32 架构软件开发人员手册第 1 卷中的第 6 章“过程调用、中断和异常”以及第 17 章“控制流增强技术 (CET)”。</p>
+	<p><strong>在 64 位模式下。</strong> 该指令的操作数大小固定为 64 位。如果选择子指向一个门，则 RIP 等于从该门中取得的 64 位位移；否则，RIP 等于指令中引用的远指针的零扩展偏移量。</p>
+	<p>请参阅本节开头的汇总图表以获取编码数据和限制。</p>
+	<p><strong>指令顺序。</strong> 远跳转之后的指令可能会在较早的指令完成执行之前从内存中提取，但直到远跳转之前的所有指令完成执行之前，它们才会被执行（即使是猜测执行）（较晚的指令可能会在较早指令存储的数据全局可见之前执行）。</p>
+	<p>紧跟在近间接 JMP 指令后面的顺序指令（即非目标地址的指令）可能会被猜测执行。如果软件需要防止这种情况（例如，为了防止猜测执行侧信道），可以在近间接 JMP 之后放置 INT3 或 LFENCE 指令操作码，以阻止猜测执行。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">
+			¶
+		</a></h2>
+	<pre>IF near jump
+    IF 64-bit Mode
+            THEN
+                    IF near relative jump
+                        THEN
+                            tempRIP := RIP + DEST; (* RIP is instruction following JMP instruction*)
+                        ELSE (* Near absolute jump *)
+                            tempRIP := DEST;
+                    FI;
+            ELSE
+                    IF near relative jump
+                        THEN
+                            tempEIP := EIP + DEST; (* EIP is instruction following JMP instruction*)
+                        ELSE (* Near absolute jump *)
+                            tempEIP := DEST;
+                    FI;
+    FI;
+    IF (IA32_EFER.LMA = 0 or target mode = Compatibility mode)
+    and tempEIP outside code segment limit
+            THEN #GP(0); FI
+    IF 64-bit mode and tempRIP is not canonical
+            THEN #GP(0);
+    FI;
+    IF OperandSize = 32
+                THEN
+                    EIP := tempEIP;
+                ELSE
+                    IF OperandSize = 16
+                            THEN (* OperandSize = 16 *)
+                                    EIP := tempEIP AND 0000FFFFH;
+                                ELSE (* OperandSize = 64)
+                                    RIP := tempRIP;
+                    FI;
+        FI;
+    IF (JMP near indirect, absolute indirect)
+            IF EndbranchEnabledAndNotSuppressed(CPL)
+                    IF CPL = 3
+                            THEN
+                                    IF ( no 3EH prefix OR IA32_U_CET.NO_TRACK_EN == 0 )
+                                        THEN
+                                            IA32_U_CET.TRACKER = WAIT_FOR_ENDBRANCH
+                                    FI;
+                            ELSE
+                                    IF ( no 3EH prefix OR IA32_S_CET.NO_TRACK_EN == 0 )
+                                        THEN
+                                            IA32_S_CET.TRACKER = WAIT_FOR_ENDBRANCH
+                                    FI;
+                    FI;
+            FI;
+    FI;
+FI;
+IF far jump and (PE = 0 or (PE = 1 AND VM = 1)) (* Real-address or virtual-8086 mode *)
+        THEN
+                tempEIP := DEST(Offset); (* DEST is ptr16:32 or [m16:32] *)
+                IF tempEIP is beyond code segment limit
+                    THEN #GP(0); FI;
+                CS := DEST(segment selector); (* DEST is ptr16:32 or [m16:32] *)
+                IF OperandSize = 32
+                        THEN
+                            EIP := tempEIP; (* DEST is ptr16:32 or [m16:32] *)
+                        ELSE (* OperandSize = 16 *)
+                            EIP := tempEIP AND 0000FFFFH; (* Clear upper 16 bits *)
+                FI;
+FI;
+IF far jump and (PE = 1 and VM = 0)
+(* IA-32e mode or protected mode, not virtual-8086 mode *)
+        THEN
+                IF effective address in the CS, DS, ES, FS, GS, or SS segment is illegal
+            or segment selector in target operand NULL
+                            THEN #GP(0); FI;
+                IF segment selector index not within descriptor table limits
+                    THEN #GP(new selector); FI;
+            Read type and access rights of segment descriptor;
+            IF (IA32_EFER.LMA = 0)
+                    THEN
+                            IF segment type is not a conforming or nonconforming code
+                            segment, call gate, task gate, or TSS
+                                    THEN #GP(segment selector); FI;
+                    ELSE
+                            IF segment type is not a conforming or nonconforming code segment
+                            call gate
+                                    THEN #GP(segment selector); FI;
+            FI;
+            Depending on type and access rights:
+                    GO TO CONFORMING-CODE-SEGMENT;
+                    GO TO NONCONFORMING-CODE-SEGMENT;
+                    GO TO CALL-GATE;
+                    GO TO TASK-GATE;
+                    GO TO TASK-STATE-SEGMENT;
+        ELSE
+                #GP(segment selector);
+FI;
+CONFORMING-CODE-SEGMENT:
+    IF L-Bit = 1 and D-BIT = 1 and IA32_EFER.LMA = 1
+            THEN GP(new code segment selector); FI;
+        IF DPL &gt; CPL
+            THEN #GP(segment selector); FI;
+        IF segment not present
+            THEN #NP(segment selector); FI;
+    tempEIP := DEST(Offset);
+    IF OperandSize = 16
+                THEN tempEIP := tempEIP AND 0000FFFFH;
+    FI;
+    IF (IA32_EFER.LMA = 0 or target mode = Compatibility mode) and
+    tempEIP outside code segment limit
+            THEN #GP(0); FI
+    IF tempEIP is non-canonical
+            THEN #GP(0); FI;
+    IF ShadowStackEnabled(CPL)
+            IF (IA32_EFER.LMA and DEST(segment selector).L) = 0
+                    (* If target is legacy or compatibility mode then the SSP must be in low 4GB *)
+                    IF (SSP &amp; 0xFFFFFFFF00000000 != 0)
+                            THEN #GP(0); FI;
+            FI;
+    FI;
+    CS := DEST[segment selector]; (* Segment descriptor information also loaded *)
+    CS(RPL) := CPL
+    EIP := tempEIP;
+    IF EndbranchEnabled(CPL)
+            IF CPL = 3
+                    THEN
+                            IA32_U_CET.TRACKER = WAIT_FOR_ENDBRANCH
+                            IA32_U_CET.SUPPRESS = 0
+                    ELSE
+                            IA32_S_CET.TRACKER = WAIT_FOR_ENDBRANCH
+                            IA32_S_CET.SUPPRESS = 0
+            FI;
+    FI;
+END;
+NONCONFORMING-CODE-SEGMENT:
+    IF L-Bit = 1 and D-BIT = 1 and IA32_EFER.LMA = 1
+            THEN GP(new code segment selector); FI;
+    IF (RPL &gt; CPL) OR (DPL ≠ CPL)
+            THEN #GP(code segment selector); FI;
+    IF segment not present
+            THEN #NP(segment selector); FI;
+    tempEIP := DEST(Offset);
+    IF OperandSize = 16
+                THEN tempEIP := tempEIP AND 0000FFFFH; FI;
+    IF (IA32_EFER.LMA = 0 OR target mode = Compatibility mode)
+    and tempEIP outside code segment limit
+            THEN #GP(0); FI
+    IF tempEIP is non-canonical THEN #GP(0); FI;
+    IF ShadowStackEnabled(CPL)
+            IF (IA32_EFER.LMA and DEST(segment selector).L) = 0
+                    (* If target is legacy or compatibility mode then the SSP must be in low 4GB *)
+                    IF (SSP &amp; 0xFFFFFFFF00000000 != 0)
+                            THEN #GP(0); FI;
+            FI;
+    FI;
+    CS := DEST[segment selector]; (* Segment descriptor information also loaded *)
+    CS(RPL) := CPL;
+    EIP := tempEIP;
+    IF EndbranchEnabled(CPL)
+            IF CPL = 3
+                    THEN
+                            IA32_U_CET.TRACKER = WAIT_FOR_ENDBRANCH
+                            IA32_U_CET.SUPPRESS = 0
+                    ELSE
+                            IA32_S_CET.TRACKER = WAIT_FOR_ENDBRANCH
+                            IA32_S_CET.SUPPRESS = 0
+            FI;
+    FI;
+END;
+CALL-GATE:
+    IF call gate DPL &lt; CPL
+    or call gate DPL &lt; call gate segment-selector RPL
+                    THEN #GP(call gate selector); FI;
+    IF call gate not present
+            THEN #NP(call gate selector); FI;
+    IF call gate code-segment selector is NULL
+            THEN #GP(0); FI;
+    IF call gate code-segment selector index outside descriptor table limits
+            THEN #GP(code segment selector); FI;
+    Read code segment descriptor;
+    IF code-segment segment descriptor does not indicate a code segment
+    or code-segment segment descriptor is conforming and DPL &gt; CPL
+    or code-segment segment descriptor is non-conforming and DPL ≠ CPL
+                    THEN #GP(code segment selector); FI;
+    IF IA32_EFER.LMA = 1 and (code-segment descriptor is not a 64-bit code segment
+    or code-segment segment descriptor has both L-Bit and D-bit set)
+                    THEN #GP(code segment selector); FI;
+    IF code segment is not present
+            THEN #NP(code-segment selector); FI;
+        tempEIP := DEST(Offset);
+        IF GateSize = 16
+                THEN tempEIP := tempEIP AND 0000FFFFH; FI;
+    IF (IA32_EFER.LMA = 0 OR target mode = Compatibility mode) AND tempEIP
+    outside code segment limit
+            THEN #GP(0); FI
+    CS := DEST[SegmentSelector]; (* Segment descriptor information also loaded *)
+    CS(RPL) := CPL;
+    EIP := tempEIP;
+    IF EndbranchEnabled(CPL)
+            IF CPL = 3
+                    THEN
+                            IA32_U_CET.TRACKER = WAIT_FOR_ENDBRANCH;
+                            IA32_U_CET.SUPPRESS = 0
+                    ELSE
+                            IA32_S_CET.TRACKER = WAIT_FOR_ENDBRANCH;
+                            IA32_S_CET.SUPPRESS = 0
+            FI;
+    FI;
+END;
+TASK-GATE:
+    IF task gate DPL &lt; CPL
+    or task gate DPL &lt; task gate segment-selector RPL
+            THEN #GP(task gate selector); FI;
+    IF task gate not present
+            THEN #NP(gate selector); FI;
+    Read the TSS segment selector in the task-gate descriptor;
+    IF TSS segment selector local/global bit is set to local
+    or index not within GDT limits
+    or descriptor is not a TSS segment
+    or TSS descriptor specifies that the TSS is busy
+            THEN #GP(TSS selector); FI;
+        IF TSS not present
+            THEN #NP(TSS selector); FI;
+        SWITCH-TASKS to TSS;
+        IF EIP not within code segment limit
+            THEN #GP(0); FI;
+END;
+TASK-STATE-SEGMENT:
+    IF TSS DPL &lt; CPL
+    or TSS DPL &lt; TSS segment-selector RPL
+    or TSS descriptor indicates TSS not available
+            THEN #GP(TSS selector); FI;
+    IF TSS is not present
+            THEN #NP(TSS selector); FI;
+    SWITCH-TASKS to TSS;
+    IF EIP not within code segment limit
+            THEN #GP(0); FI;
+END;
+</pre>
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">
+			¶
+		</a></h2>
+	<p>如果发生任务切换，所有标志位都会受到影响；如果未发生任务切换，则没有任何标志位受到影响。</p>
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td rowspan="5">#GP(0)</td>
+			<td>如果目标操作数、调用门或 TSS 中的偏移量超出了代码段限制。</td>
+		</tr>
+		<tr>
+			<td>如果目的操作数、调用门、任务门或 TSS 中的段选择子为 NULL。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段界限。</td>
+		</tr>
+		<tr>
+			<td>如果使用 DS、ES、FS 或 GS 寄存器访问内存且它包含 NULL 段选择子。</td>
+		</tr>
+		<tr>
+			<td>如果目标模式是兼容模式且 SSP 不在低 4GB 空间内。</td>
+		</tr>
+		<tr>
+			<td rowspan="10">#GP(选择子)</td>
+			<td>如果段选择子索引超出描述符表限制。</td>
+		</tr>
+		<tr>
+			<td>如果目的操作数、调用门、任务门或 TSS 中的段选择子所指向的段描述符不是一致性代码段、非一致性代码段、调用门、任务门或任务状态段。</td>
+		</tr>
+		<tr>
+			<td>如果非一致性代码段的 DPL 不等于 CPL。</td>
+		</tr>
+		<tr>
+			<td>（不使用调用门时。）如果段选择子的 RPL 大于 CPL。</td>
+		</tr>
+		<tr>
+			<td>如果一致性代码段的 DPL 大于 CPL。</td>
+		</tr>
+		<tr>
+			<td>如果来自调用门、任务门或 TSS 段描述符的 DPL 小于 CPL，或者小于调用门、任务门或 TSS 段选择子的 RPL。</td>
+		</tr>
+		<tr>
+			<td>如果调用门中选择子的段描述符未指示其为代码段。</td>
+		</tr>
+		<tr>
+			<td>如果任务门中段选择子的段描述符未指示一个可用的 TSS。</td>
+		</tr>
+		<tr>
+			<td>如果 TSS 的段选择子的本地/全局位被设置为本地。</td>
+		</tr>
+		<tr>
+			<td>如果 TSS 段描述符指定该 TSS 处于忙碌状态或不可用。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数的有效地址超出 SS 段界限。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#NP(选择子)</td>
+			<td>如果正在访问的代码段不存在。</td>
+		</tr>
+		<tr>
+			<td>如果调用门、任务门或 TSS 不存在。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。（仅在从内存中提取目标地址时发生。）</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#GP</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段界限。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#SS</td>
+			<td>如果内存操作数的有效地址超出 SS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果目标操作数超出代码段限制。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数的有效地址超出 SS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查且进行了未对齐的内存引用。（仅在从内存中提取目标地址时发生。）</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">
+			¶
+		</a></h2>
+	<p>与 64 位模式异常相同。</p>
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td rowspan="6">#GP(0)</td>
+			<td>如果内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>如果目的操作数中的目标偏移量为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>如果目的操作数中的目标偏移量超出了新的代码段限制。</td>
+		</tr>
+		<tr>
+			<td>如果目的操作数中的段选择子为 NULL。</td>
+		</tr>
+		<tr>
+			<td>如果 64 位门中的代码段选择子为 NULL。</td>
+		</tr>
+		<tr>
+			<td>如果过渡到兼容模式且 SSP 超出 4GB。</td>
+		</tr>
+		<tr>
+			<td rowspan="14">#GP(选择子)</td>
+			<td>如果代码段或 64 位调用门超出描述符表限制。</td>
+		</tr>
+		<tr>
+			<td>如果代码段或 64 位调用门与非规范空间重叠。</td>
+		</tr>
+		<tr>
+			<td>如果来自 64 位调用门的段描述符位于非规范空间。</td>
+		</tr>
+		<tr>
+			<td>如果目的操作数中段选择子所指向的段描述符不是一致性代码段、非一致性代码段、64 位调用门。</td>
+		</tr>
+		<tr>
+			<td>如果目的操作数中段选择子所指向的段描述符是代码段，且同时设置了 D 位和 L 位。</td>
+		</tr>
+		<tr>
+			<td>如果非一致性代码段的 DPL 不等于 CPL，或者该段的段选择子的 RPL 大于 CPL。</td>
+		</tr>
+		<tr>
+			<td>如果一致性代码段的 DPL 大于 CPL。</td>
+		</tr>
+		<tr>
+			<td>如果来自 64 位调用门的 DPL 小于 CPL，或小于该 64 位调用门的 RPL。</td>
+		</tr>
+		<tr>
+			<td>如果 64 位调用门的高类型字段不为 0x0。</td>
+		</tr>
+		<tr>
+			<td>如果来自 64 位调用门的段选择子超出描述符表限制。</td>
+		</tr>
+		<tr>
+			<td>如果 64 位门中选择子所指向的代码段描述符未设置 L 位或未清除 D 位。</td>
+		</tr>
+		<tr>
+			<td>如果来自 64 位调用门的段选择子的段描述符未指示其为代码段。</td>
+		</tr>
+		<tr>
+			<td>如果代码段为非一致性且 CPL 不等于 DPL。</td>
+		</tr>
+		<tr>
+			<td>如果代码段为一致性且 CPL 小于 DPL。</td>
+		</tr>
+		<tr>
+			<td>#NP(选择子)</td>
+			<td>如果代码段或 64 位调用门不存在。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>（仅限于 64 位模式）如果远跳转是直接指向内存中的绝对地址。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+	</table>
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span
+				style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a
+				href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+				64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+
+</html>

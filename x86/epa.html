@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>EPA — 添加版本阵列</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+
+	<h1>EPA — 添加版本阵列</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>操作/编码</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID功能标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>EAX = 0AH ENCLS[EPA]</td>
+			<td>IR</td>
+			<td>V/V</td>
+			<td>SGX1</td>
+			<td>此叶函数将版本阵列 (Version Array) 添加到 EPC。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>操作/编码</th>
+			<th>EAX</th>
+			<th>RBX</th>
+			<th>RCX</th>
+		</tr>
+		<tr>
+			<td>IR</td>
+			<td>EPA (输入)</td>
+			<td>PT_VA (输入, 常数)</td>
+			<td>EPC 页面的有效地址 (输入)</td>
+		</tr>
+	</table>
+
+	<h3 id="description">描述<a class="anchor" href="#description">¶</a></h3>
+	<p>此叶函数在由 DS:RCX 给出逻辑地址的 EPC 页面中创建一个空的版本阵列 (Version Array, VA)，并为该页面设置 EPCM 属性。在执行该指令时，寄存器 RBX 必须设置为 PT_VA。</p>
+	<p>下表提供了有关 EPA 叶函数内存参数的附加信息。</p>
+
+	<h2 id="epa-memory-parameter-semantics">EPA 内存参数语义<a class="anchor" href="#epa-memory-parameter-semantics">¶</a></h2>
+	<table>
+		<tr>
+			<td>EPCPAGE</td>
+		</tr>
+		<tr>
+			<td>允许 Enclave 进行写访问</td>
+		</tr>
+	</table>
+
+	<h3 id="concurrency-restrictions">并发限制<a class="anchor" href="#concurrency-restrictions">¶</a></h3>
+	<figure id="tbl-38-37">
+		<table>
+			<tr>
+				<th rowspan="2">叶函数</th>
+				<th rowspan="2">参数</th>
+				<th colspan="3">基本并发限制</th>
+			</tr>
+			<tr>
+				<th>访问权限</th>
+				<th>冲突时</th>
+				<th>SGX_CONFLICT VM Exit 资格</th>
+			</tr>
+			<tr>
+				<td>EPA</td>
+				<td>VA [DS:RCX]</td>
+				<td>排他</td>
+				<td>#GP</td>
+				<td></td>
+			</tr>
+		</table>
+		<figcaption>表 38-37. EPA 的基本并发限制</figcaption>
+	</figure>
+
+	<figure id="tbl-38-38">
+		<table>
+			<tr>
+				<th rowspan="3">叶函数</th>
+				<th rowspan="3">参数</th>
+				<th colspan="6">附加并发限制</th>
+			</tr>
+			<tr>
+				<th colspan="2">vs. EACCEPT, EACCEPTCOPY, EMODPE, EMODPR, EMODT</th>
+				<th colspan="2">vs. EADD, EEXTEND, EINIT</th>
+				<th colspan="2">vs. ETRACK, ETRACKC</th>
+			</tr>
+			<tr>
+				<th>访问权限</th>
+				<th>冲突时</th>
+				<th>访问权限</th>
+				<th>冲突时</th>
+				<th>访问权限</th>
+				<th>冲突时</th>
+			</tr>
+			<tr>
+				<td>EPA</td>
+				<td>VA [DS:RCX]</td>
+				<td>并发</td>
+				<td></td>
+				<td>并发</td>
+				<td></td>
+				<td>并发</td>
+				<td></td>
+			</tr>
+		</table>
+		<figcaption>表 38-38. EPA 的附加并发限制</figcaption>
+	</figure>
+
+	<h3 id="operation">操作<a class="anchor" href="#operation">¶</a></h3>
+	<pre>IF (RBX ≠ PT_VA or DS:RCX is not 4KByte Aligned)
+    THEN #GP(0); FI;
+IF (DS:RCX does not resolve within an EPC)
+    THEN #PF(DS:RCX); FI;
+(* Check concurrency with other Intel SGX instructions *)
+IF (Other Intel SGX instructions accessing the page)
+    THEN
+        IF (&lt;&lt;VMX non-root operation&gt;&gt; AND &lt;&lt;ENABLE_EPC_VIRTUALIZATION_EXTENSIONS&gt;&gt;)
+            THEN
+                VMCS.Exit_reason := SGX_CONFLICT;
+                VMCS.Exit_qualification.code := EPC_PAGE_CONFLICT_EXCEPTION;
+                VMCS.Exit_qualification.error := 0;
+                VMCS.Guest-physical_address := &lt;&lt; translation of DS:RCX produced by paging &gt;&gt;;
+                VMCS.Guest-linear_address := DS:RCX;
+            Deliver VMEXIT;
+            ELSE
+                #GP(0);
+        FI;
+FI;
+(* Check EPC page must be empty *)
+IF (EPCM(DS:RCX). VALID ≠ 0)
+    THEN #PF(DS:RCX); FI;
+(* Clears EPC page *)
+DS:RCX[32767:0] := 0;
+EPCM(DS:RCX).PT := PT_VA;
+EPCM(DS:RCX).ENCLAVEADDRESS := 0;
+EPCM(DS:RCX).BLOCKED := 0;
+EPCM(DS:RCX).PENDING := 0;
+EPCM(DS:RCX).MODIFIED := 0;
+EPCM(DS:RCX).PR := 0;
+EPCM(DS:RCX).RWX := 0;
+EPCM(DS:RCX).VALID := 1;
+</pre>
+
+	<h3 id="flags-affected">影响的标志寄存器<a class="anchor" href="#flags-affected">¶</a></h3>
+	<p>无</p>
+
+	<h3 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h3>
+	<table>
+		<tr>
+			<td rowspan="4">#GP(0)</td>
+			<td>如果内存操作数有效地址超出 DS 段限制。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数未正确对齐。</td>
+		</tr>
+		<tr>
+			<td>如果另一个 Intel SGX 指令正在访问该 EPC 页面。</td>
+		</tr>
+		<tr>
+			<td>如果 RBX 未设置为 PT_VA。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#PF(错误代码)</td>
+			<td>如果访问内存操作数时发生页面错误。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数不是 EPC 页面。</td>
+		</tr>
+		<tr>
+			<td>如果 EPC 页面有效。</td>
+		</tr>
+	</table>
+
+	<h3 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h3>
+	<table>
+		<tr>
+			<td rowspan="4">#GP(0)</td>
+			<td>如果内存操作数为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数未正确对齐。</td>
+		</tr>
+		<tr>
+			<td>如果另一个 Intel SGX 指令正在访问该 EPC 页面。</td>
+		</tr>
+		<tr>
+			<td>如果 RBX 未设置为 PT_VA。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#PF(错误代码)</td>
+			<td>如果访问内存操作数时发生页面错误。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数不是 EPC 页面。</td>
+		</tr>
+		<tr>
+			<td>如果 EPC 页面有效。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

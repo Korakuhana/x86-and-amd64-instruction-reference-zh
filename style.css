@@ -1,0 +1,164 @@
+html, body {
+	padding-top: 0;
+	margin-top: 0;
+	position: relative;
+}
+
+table, th, td {
+	border-collapse: collapse;
+	border: 1px #ccc solid;
+}
+
+table {
+	margin: 10pt;
+}
+
+th, td {
+	padding: 2pt 8pt;
+}
+
+h2, h3, h4, h5, h6 {
+    border-bottom: 1px #ddd dashed;
+}
+
+header {
+	border-bottom: 1px #ddd dashed;
+	font-size: 8pt;
+}
+
+footer {
+	border-top: 1px #ddd dashed;
+	font-size: 8pt;
+}
+
+svg {
+	display: block;
+}
+
+figure {
+	margin: 1em;
+}
+
+blockquote {
+	padding: 1em;
+	margin: 0 1em;
+	background-color: rgba(0%, 0%, 0%, 0.05);
+	font-size: 10pt;
+}
+
+blockquote > p {
+	margin: 0;
+}
+
+blockquote > p + p {
+	margin-top: 1em;
+}
+
+nav > ul {
+	list-style-type: none;
+	font-size: 9pt;
+	padding: 0;
+	margin: 0.5em 0 0.2em 0;
+}
+
+nav > ul > li {
+	margin: 0;
+	width: 50%;
+	display: inline-block;
+}
+
+nav > ul > li:nth-child(2) {
+	text-align: right;
+}
+
+.anchor {
+	margin-left: 0.5em;
+	text-decoration: none;
+	color: #ddd;
+}
+
+.anchor:visited {
+	color: #ddd;
+	text-decoration: none;
+}
+
+.anchor:hover {
+	color: #00b;
+}
+
+.exceptions + table td {
+	vertical-align: top;
+}
+
+.not-imported {
+	color: #900;
+}
+
+a, a:visited {
+	color: #0000ee;
+	text-decoration: underline;
+}
+
+a:hover {
+	color: #0000ee;
+	text-decoration: underline;
+}
+
+/* 搜索栏样式 */
+#search-container {
+	position: absolute;
+	top: 15px;
+	right: 15px;
+	width: 300px;
+	margin: 0;
+}
+
+#search-input {
+	width: 100%;
+	padding: 6px 10px;
+	font-size: 10pt;
+	font-family: inherit;
+	border: 1px solid #999;
+	border-radius: 0;
+	box-sizing: border-box;
+	background-color: #fff;
+}
+
+#search-input:focus {
+	outline: none;
+	border-color: #000;
+}
+
+#search-suggestions {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	background: #fff;
+	border: 1px solid #999;
+	border-top: none;
+	border-radius: 0;
+	max-height: 250px;
+	overflow-y: auto;
+	z-index: 1000;
+	box-shadow: none;
+	display: none;
+}
+
+.suggestion-item {
+	padding: 6px 10px;
+	cursor: pointer;
+	font-size: 9.5pt;
+	border-bottom: 1px solid #eee;
+	color: #333;
+}
+
+.suggestion-item:last-child {
+	border-bottom: none;
+}
+
+.suggestion-item:hover, .suggestion-item.active {
+	background-color: #eee;
+	color: #000;
+}
+

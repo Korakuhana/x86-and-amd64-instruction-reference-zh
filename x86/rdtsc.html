@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns:x86="http://www.felixcloutier.com/x86">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>RDTSC — 读取时间戳计数器</title>
+</head>
+
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>RDTSC — 读取时间戳计数器</h1>
+
+	<table>
+		<tr>
+			<th>操作码*</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>0F 31</td>
+			<td>RDTSC</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将时间戳计数器读取到 EDX:EAX 中。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将处理器时间戳计数器（一个 64 位的 MSR）的当前值读取到 EDX:EAX 寄存器中。EDX 寄存器加载 MSR 的高 32 位，EAX 寄存器加载低 32 位。（在支持 Intel 64 架构的处理器上，RAX 和 RDX 各自的高 32 位被清除。）</p>
+	<p>处理器在每个时钟周期单调递增时间戳计数器 MSR，并在处理器复位时将其复位为 0。有关时间戳计数器行为的具体细节，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 3B 卷第 18 章中的“时间戳计数器”。</p>
+	<p>CR4 寄存器中的时间戳禁用（TSD）标志限制 RDTSC 指令的使用如下：当该标志清零时，可以在任何特权级别执行 RDTSC 指令；当该标志置位时，该指令只能在特权级别 0 执行。</p>
+	<p>在特权级别 0 执行时，也可以使用 RDMSR 指令读取时间戳计数器。</p>
+	<p>RDTSC 指令不是序列化指令。在读取计数器之前，它不一定会等待所有先前的指令执行完毕。同样，后续指令可能会在执行读取操作之前开始执行。以下项目可以指导寻求对 RDTSC 执行进行排序的软件：</p>
+	<ul>
+		<li>如果软件要求仅在所有先前指令都已执行且所有先前加载都全局可见之后才执行 RDTSC<sup>1</sup>，则它可以在 RDTSC 之前立即执行 LFENCE。</li>
+		<li>如果软件要求仅在所有先前指令都已执行且所有先前加载和存储都全局可见之后才执行 RDTSC，则它可以在 RDTSC 之前立即执行序列 MFENCE;LFENCE。</li>
+		<li>如果软件要求在执行任何后续指令（包括任何 memory 访问）之前执行 RDTSC，则它可以在 RDTSC 之后立即执行序列 LFENCE。</li>
+	</ul>
+	<p>此指令由 Pentium 处理器引入。</p>
+	<p>有关此指令在 VMX 非根操作中的行为的更多信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 3C 卷第 26 章中的“VMX 非根操作中的指令行为更改”。</p>
+	<blockquote>
+		<p>1. 当要加载的值被确定时，加载被认为是全局可见的。</p>
+	</blockquote>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF (CR4.TSD = 0) or (CPL = 0) or (CR0.PE = 0)
+    THEN EDX:EAX := TimeStampCounter;
+    ELSE (* CR4.TSD = 1 and (CPL = 1, 2, or 3) and CR0.PE = 1 *)
+        #GP(0);
+FI;
+</pre>
+
+	<h2 id="flags-affected">影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果寄存器 CR4 中的 TSD 标志置位且 CPL 大于 0。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟 8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果寄存器 CR4 中的 TSD 标志置位。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+	<footer>
+		<p>
+			本非官方、机械拆分、未经校验的参考文档仅为方便提供，可能存在各种明显或不明显的缺失或错误。任何严肃用途请参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+
+</html>

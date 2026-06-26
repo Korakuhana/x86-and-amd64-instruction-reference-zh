@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>ENDBR64 — 在 64 位模式下终止间接分支</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+
+	<h1>ENDBR64 — 在 64 位模式下终止间接分支</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>操作/编码</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID功能标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>F3 0F 1E FA ENDBR64</td>
+			<td>ZO</td>
+			<td>V/V</td>
+			<td>CET_IBT</td>
+			<td>在 64 位模式下终止间接分支。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>操作/编码</th>
+			<th>元组类型</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>无</td>
+			<td>无</td>
+			<td>无</td>
+			<td>无</td>
+			<td>无</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>在 64 位模式下终止间接分支。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF EndbranchEnabled(CPL) &amp; IA32_EFER.LMA = 1 &amp; CS.L = 1
+    IF CPL = 3
+        THEN
+            IA32_U_CET.TRACKER = IDLE
+            IA32_U_CET.SUPPRESS = 0
+        ELSE
+            IA32_S_CET.TRACKER = IDLE
+            IA32_S_CET.SUPPRESS = 0
+    FI;
+FI;
+</pre>
+
+	<h2 id="flags-affected">影响的标志寄存器<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="exceptions">异常<a class="anchor" href="#exceptions">¶</a></h2>
+	<p>无。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

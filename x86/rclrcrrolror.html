@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>RCL/RCR/ROL/ROR — 循环移位</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>RCL/RCR/ROL/ROR — 循环移位</h1>
+
+	<p><strong>操作码<sup>1</sup></strong></p>
+	<table>
+		<tr>
+			<th></th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>D0 /2</td>
+			<td>RCL r/m8, 1</td>
+			<td>M1</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 9 位（CF，r/m8）向左循环移位一次。</td>
+		</tr>
+		<tr>
+			<td>REX + D0 /2</td>
+			<td>RCL r/m8<sup>2</sup>, 1</td>
+			<td>M1</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 9 位（CF，r/m8）向左循环移位一次。</td>
+		</tr>
+		<tr>
+			<td>D2 /2</td>
+			<td>RCL r/m8, CL</td>
+			<td>MC</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 9 位（CF，r/m8）向左循环移位 CL 次。</td>
+		</tr>
+		<tr>
+			<td>REX + D2 /2</td>
+			<td>RCL r/m8<sup>2</sup>, CL</td>
+			<td>MC</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 9 位（CF，r/m8）向左循环移位 CL 次。</td>
+		</tr>
+		<tr>
+			<td>C0 /2 ib</td>
+			<td>RCL r/m8, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 9 位（CF，r/m8）向左循环移位 imm8 次。</td>
+		</tr>
+		<tr>
+			<td>REX + C0 /2 ib</td>
+			<td>RCL r/m8<sup>2</sup>, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 9 位（CF，r/m8）向左循环移位 imm8 次。</td>
+		</tr>
+		<tr>
+			<td>D1 /2</td>
+			<td>RCL r/m16, 1</td>
+			<td>M1</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 17 位（CF，r/m16）向左循环移位一次。</td>
+		</tr>
+		<tr>
+			<td>D3 /2</td>
+			<td>RCL r/m16, CL</td>
+			<td>MC</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 17 位（CF，r/m16）向左循环移位 CL 次。</td>
+		</tr>
+		<tr>
+			<td>C1 /2 ib</td>
+			<td>RCL r/m16, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 17 位（CF，r/m16）向左循环移位 imm8 次。</td>
+		</tr>
+		<tr>
+			<td>D1 /2</td>
+			<td>RCL r/m32, 1</td>
+			<td>M1</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 33 位（CF，r/m32）向左循环移位一次。</td>
+		</tr>
+		<tr>
+			<td>REX.W + D1 /2</td>
+			<td>RCL r/m64, 1</td>
+			<td>M1</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 65 位（CF，r/m64）向左循环移位一次。使用 6 位计数。</td>
+		</tr>
+		<tr>
+			<td>D3 /2</td>
+			<td>RCL r/m32, CL</td>
+			<td>MC</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 33 位（CF，r/m32）向左循环移位 CL 次。</td>
+		</tr>
+		<tr>
+			<td>REX.W + D3 /2</td>
+			<td>RCL r/m64, CL</td>
+			<td>MC</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 65 位（CF，r/m64）向左循环移位 CL 次。使用 6 位计数。</td>
+		</tr>
+		<tr>
+			<td>C1 /2 ib</td>
+			<td>RCL r/m32, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 33 位（CF，r/m32）向左循环移位 imm8 次。</td>
+		</tr>
+		<tr>
+			<td>REX.W + C1 /2 ib</td>
+			<td>RCL r/m64, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 65 位（CF，r/m64）向左循环移位 imm8 次。使用 6 位计数。</td>
+		</tr>
+		<tr>
+			<td>D0 /3</td>
+			<td>RCR r/m8, 1</td>
+			<td>M1</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 9 位（CF，r/m8）向右循环移位一次。</td>
+		</tr>
+		<tr>
+			<td>REX + D0 /3</td>
+			<td>RCR r/m8<sup>2</sup>, 1</td>
+			<td>M1</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 9 位（CF，r/m8）向右循环移位一次。</td>
+		</tr>
+		<tr>
+			<td>D2 /3</td>
+			<td>RCR r/m8, CL</td>
+			<td>MC</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 9 位（CF，r/m8）向右循环移位 CL 次。</td>
+		</tr>
+		<tr>
+			<td>REX + D2 /3</td>
+			<td>RCR r/m8<sup>2</sup>, CL</td>
+			<td>MC</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 9 位（CF，r/m8）向右循环移位 CL 次。</td>
+		</tr>
+		<tr>
+			<td>C0 /3 ib</td>
+			<td>RCR r/m8, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 9 位（CF，r/m8）向右循环移位 imm8 次。</td>
+		</tr>
+		<tr>
+			<td>REX + C0 /3 ib</td>
+			<td>RCR r/m8<sup>2</sup>, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 9 位（CF，r/m8）向右循环移位 imm8 次。</td>
+		</tr>
+		<tr>
+			<td>D1 /3</td>
+			<td>RCR r/m16, 1</td>
+			<td>M1</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 17 位（CF，r/m16）向右循环移位一次。</td>
+		</tr>
+		<tr>
+			<td>D3 /3</td>
+			<td>RCR r/m16, CL</td>
+			<td>MC</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 17 位（CF，r/m16）向右循环移位 CL 次。</td>
+		</tr>
+		<tr>
+			<td>C1 /3 ib</td>
+			<td>RCR r/m16, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 17 位（CF，r/m16）向右循环移位 imm8 次。</td>
+		</tr>
+		<tr>
+			<td>D1 /3</td>
+			<td>RCR r/m32, 1</td>
+			<td>M1</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 33 位（CF，r/m32）向右循环移位一次。使用 6 位计数。</td>
+		</tr>
+		<tr>
+			<td>REX.W + D1 /3</td>
+			<td>RCR r/m64, 1</td>
+			<td>M1</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 65 位（CF，r/m64）向右循环移位一次。使用 6 位计数。</td>
+		</tr>
+		<tr>
+			<td>D3 /3</td>
+			<td>RCR r/m32, CL</td>
+			<td>MC</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 33 位（CF，r/m32）向右循环移位 CL 次。</td>
+		</tr>
+		<tr>
+			<td>REX.W + D3 /3</td>
+			<td>RCR r/m64, CL</td>
+			<td>MC</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 65 位（CF，r/m64）向右循环移位 CL 次。使用 6 位计数。</td>
+		</tr>
+		<tr>
+			<td>C1 /3 ib</td>
+			<td>RCR r/m32, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 33 位（CF，r/m32）向右循环移位 imm8 次。</td>
+		</tr>
+		<tr>
+			<td>REX.W + C1 /3 ib</td>
+			<td>RCR r/m64, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 65 位（CF，r/m64）向右循环移位 imm8 次。使用 6 位计数。</td>
+		</tr>
+		<tr>
+			<td>D0 /0</td>
+			<td>ROL r/m8, 1</td>
+			<td>M1</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 8 位 r/m8 向左循环移位一次。</td>
+		</tr>
+		<tr>
+			<td>REX + D0 /0</td>
+			<td>ROL r/m8<sup>2</sup>, 1</td>
+			<td>M1</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 8 位 r/m8 向左循环移位一次。</td>
+		</tr>
+		<tr>
+			<td>D2 /0</td>
+			<td>ROL r/m8, CL</td>
+			<td>MC</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 8 位 r/m8 向左循环移位 CL 次。</td>
+		</tr>
+		<tr>
+			<td>REX + D2 /0</td>
+			<td>ROL r/m8<sup>2</sup>, CL</td>
+			<td>MC</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 8 位 r/m8 向左循环移位 CL 次。</td>
+		</tr>
+		<tr>
+			<td>C0 /0 ib</td>
+			<td>ROL r/m8, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 8 位 r/m8 向左循环移位 imm8 次。</td>
+		</tr>
+	</table>
+	<p><strong>操作码<sup>1</sup></strong></p>
+	<table>
+		<tr>
+			<th></th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>REX + C0 /0 ib</td>
+			<td>ROL r/m8<sup>2</sup>, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 8 位 r/m8 向左循环移位 imm8 次。</td>
+		</tr>
+		<tr>
+			<td>D1 /0</td>
+			<td>ROL r/m16, 1</td>
+			<td>M1</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 16 位 r/m16 向左循环移位一次。</td>
+		</tr>
+		<tr>
+			<td>D3 /0</td>
+			<td>ROL r/m16, CL</td>
+			<td>MC</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 16 位 r/m16 向左循环移位 CL 次。</td>
+		</tr>
+		<tr>
+			<td>C1 /0 ib</td>
+			<td>ROL r/m16, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 16 位 r/m16 向左循环移位 imm8 次。</td>
+		</tr>
+		<tr>
+			<td>D1 /0</td>
+			<td>ROL r/m32, 1</td>
+			<td>M1</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 32 位 r/m32 向左循环移位一次。</td>
+		</tr>
+		<tr>
+			<td>REX.W + D1 /0</td>
+			<td>ROL r/m64, 1</td>
+			<td>M1</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 64 位 r/m64 向左循环移位一次。使用 6 位计数。</td>
+		</tr>
+		<tr>
+			<td>D3 /0</td>
+			<td>ROL r/m32, CL</td>
+			<td>MC</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 32 位 r/m32 向左循环移位 CL 次。</td>
+		</tr>
+		<tr>
+			<td>REX.W + D3 /0</td>
+			<td>ROL r/m64, CL</td>
+			<td>MC</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 64 位 r/m64 向左循环移位 CL 次。使用 6 位计数。</td>
+		</tr>
+		<tr>
+			<td>C1 /0 ib</td>
+			<td>ROL r/m32, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 32 位 r/m32 向左循环移位 imm8 次。</td>
+		</tr>
+		<tr>
+			<td>REX.W + C1 /0 ib</td>
+			<td>ROL r/m64, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 64 位 r/m64 向左循环移位 imm8 次。使用 6 位计数。</td>
+		</tr>
+		<tr>
+			<td>D0 /1</td>
+			<td>ROR r/m8, 1</td>
+			<td>M1</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 8 位 r/m8 向右循环移位一次。</td>
+		</tr>
+		<tr>
+			<td>REX + D0 /1</td>
+			<td>ROR r/m8<sup>2</sup>, 1</td>
+			<td>M1</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 8 位 r/m8 向右循环移位一次。</td>
+		</tr>
+		<tr>
+			<td>D2 /1</td>
+			<td>ROR r/m8, CL</td>
+			<td>MC</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 8 位 r/m8 向右循环移位 CL 次。</td>
+		</tr>
+		<tr>
+			<td>REX + D2 /1</td>
+			<td>ROR r/m8<sup>2</sup>, CL</td>
+			<td>MC</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 8 位 r/m8 向右循环移位 CL 次。</td>
+		</tr>
+		<tr>
+			<td>C0 /1 ib</td>
+			<td>ROR r/m8, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 8 位 r/m16 向右循环移位 imm8 次。</td>
+		</tr>
+		<tr>
+			<td>REX + C0 /1 ib</td>
+			<td>ROR r/m8<sup>2</sup>, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 8 位 r/m16 向右循环移位 imm8 次。</td>
+		</tr>
+		<tr>
+			<td>D1 /1</td>
+			<td>ROR r/m16, 1</td>
+			<td>M1</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 16 位 r/m16 向右循环移位一次。</td>
+		</tr>
+		<tr>
+			<td>D3 /1</td>
+			<td>ROR r/m16, CL</td>
+			<td>MC</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 16 位 r/m16 向右循环移位 CL 次。</td>
+		</tr>
+		<tr>
+			<td>C1 /1 ib</td>
+			<td>ROR r/m16, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 16 位 r/m16 向右循环移位 imm8 次。</td>
+		</tr>
+		<tr>
+			<td>D1 /1</td>
+			<td>ROR r/m32, 1</td>
+			<td>M1</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 32 位 r/m32 向右循环移位一次。</td>
+		</tr>
+		<tr>
+			<td>REX.W + D1 /1</td>
+			<td>ROR r/m64, 1</td>
+			<td>M1</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 64 位 r/m64 向右循环移位一次。使用 6 位计数。</td>
+		</tr>
+		<tr>
+			<td>D3 /1</td>
+			<td>ROR r/m32, CL</td>
+			<td>MC</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 32 位 r/m32 向右循环移位 CL 次。</td>
+		</tr>
+		<tr>
+			<td>REX.W + D3 /1</td>
+			<td>ROR r/m64, CL</td>
+			<td>MC</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 64 位 r/m64 向右循环移位 CL 次。使用 6 位计数。</td>
+		</tr>
+		<tr>
+			<td>C1 /1 ib</td>
+			<td>ROR r/m32, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 32 位 r/m32 向右循环移位 imm8 次。</td>
+		</tr>
+		<tr>
+			<td>REX.W + C1 /1 ib</td>
+			<td>ROR r/m64, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 64 位 r/m64 向右循环移位 imm8 次。使用 6 位计数。</td>
+		</tr>
+	</table>
+	<blockquote>
+		<p>1. 参见下文的“IA-32 架构兼容性”一节。</p>
+		<p>2. 在 64 位模式下，如果使用 REX 前缀，则不能将 r/m8 编码为访问以下字节寄存器：AH、BH、CH、DH。</p>
+	</blockquote>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>M1</td>
+			<td>ModRM:r/m (w)</td>
+			<td>1</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>MC</td>
+			<td>ModRM:r/m (w)</td>
+			<td>CL</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>MI</td>
+			<td>ModRM:r/m (w)</td>
+			<td>imm8</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">
+			¶
+		</a></h2>
+	<p>将第一个操作数（目的操作数）的位向左或向右移位（循环移位）第二个操作数（计数操作数）所指定的位数，并将结果存储在目的操作数中。目的操作数可以是寄存器或内存地址；计数操作数是一个无符号整数，可以是立即数或 CL 寄存器中的值。计数被屏蔽（掩码）为 5 位（如果在 64 位模式下且 REX.W = 1，则为 6 位）。</p>
+	<p>循环左移 (ROL) 和带进位循环左移 (RCL) 指令将所有位向更高有效位位置移位，但最高有效位除外，它会被循环移动到最低有效位位置。循环右移 (ROR) 和带进位循环右移 (RCR) 指令将所有位向更低有效位位置移位，但最低有效位除外，它会被循环移动到最高有效位位置。</p>
+	<p>RCL 和 RCR 指令在循环移位中包含 CF 标志位。RCL 指令将 CF 标志位移入最低有效位，并将最高有效位移入 CF 标志位。RCR 指令将 CF 标志位移入最高有效位，并将最低有效位移入 CF 标志位。对于 ROL 和 ROR 指令，CF 标志的原始值不是结果的一部分，但 CF 标志会接收从一端移位到另一端的位的副本。</p>
+	<p>OF 标志仅对 1 位循环移位有定义；在所有其他情况下均未定义（仅 RCL 和 RCR 指令除外：0 位循环移位不执行任何操作，即不影响任何标志）。对于左循环移位，OF 标志设置为 CF 位（旋转后）与结果的最高有效位的异或（XOR）。对于右循环移位，OF 标志设置为结果的最高两个有效位的异或（XOR）。</p>
+	<p>在 64 位模式下，使用 REX.R 形式的 REX 前缀允许访问额外的寄存器（R8-R15）。使用 REX.W 将第一个操作数提升至 64 位，并使计数操作数变为 6 位计数器。</p>
+
+	<h2 id="ia-32-architecture-compatibility">IA-32 架构兼容性<a class="anchor" href="#ia-32-architecture-compatibility">
+			¶
+		</a></h2>
+	<p>8086 不会屏蔽循环移位计数。然而，所有其他 IA-32 处理器（从 Intel 286 处理器开始）都会将循环移位计数屏蔽为 5 位，从而实现最大计数 31。这种屏蔽操作在所有工作模式下进行（包括虚拟-8086 模式），以减少指令的最大执行时间。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">
+			¶
+		</a></h2>
+	<h3 id="---rcl-and-rcr-instructions---">(* RCL and RCR Instructions *)<a class="anchor" href="#---rcl-and-rcr-instructions---">
+			¶
+		</a></h3>
+	<pre>SIZE := OperandSize;
+CASE (determine count) OF
+    SIZE := 8:
+        tempCOUNT := (COUNT AND 1FH) MOD 9;
+    SIZE := 16:
+        tempCOUNT := (COUNT AND 1FH) MOD 17;
+    SIZE := 32:
+        tempCOUNT := COUNT AND 1FH;
+    SIZE := 64:
+        tempCOUNT := COUNT AND 3FH;
+esac;
+IF OperandSize = 64
+    THEN COUNTMASK = 3FH;
+    ELSE COUNTMASK = 1FH;
+FI;
+</pre>
+	<h3 id="---rcl-instruction-operation---">(* RCL Instruction Operation *)<a class="anchor" href="#---rcl-instruction-operation---">
+			¶
+		</a></h3>
+	<pre>WHILE (tempCOUNT ≠ 0)
+    DO
+        tempCF := MSB(DEST);
+        DEST := (DEST ∗ 2) + CF;
+        CF := tempCF;
+        tempCOUNT := tempCOUNT – 1;
+    OD;
+ELIHW;
+IF (COUNT &amp; COUNTMASK) = 1
+    THEN OF := MSB(DEST) XOR CF;
+    ELSE OF is undefined;
+FI;
+</pre>
+	<h3 id="---rcr-instruction-operation---">(* RCR Instruction Operation *)<a class="anchor" href="#---rcr-instruction-operation---">
+			¶
+		</a></h3>
+	<pre>IF (COUNT &amp; COUNTMASK) = 1
+    THEN OF := MSB(DEST) XOR CF;
+    ELSE OF is undefined;
+FI;
+WHILE (tempCOUNT ≠ 0)
+    DO
+        tempCF := LSB(SRC);
+        DEST := (DEST / 2) + (CF * 2<sup>SIZE</sup>);
+        CF := tempCF;
+        tempCOUNT := tempCOUNT – 1;
+    OD;
+</pre>
+	<h3 id="---rol-instruction-operation---">(* ROL Instruction Operation *)<a class="anchor" href="#---rol-instruction-operation---">
+			¶
+		</a></h3>
+	<pre>tempCOUNT := (COUNT &amp; COUNTMASK) MOD SIZE
+WHILE (tempCOUNT ≠ 0)
+    DO
+        tempCF := MSB(DEST);
+        DEST := (DEST ∗ 2) + tempCF;
+        tempCOUNT := tempCOUNT – 1;
+    OD;
+ELIHW;
+IF (COUNT &amp; COUNTMASK) ≠ 0
+    THEN CF := LSB(DEST);
+FI;
+IF (COUNT &amp; COUNTMASK) = 1
+    THEN OF := MSB(DEST) XOR CF;
+    ELSE OF is undefined;
+FI;
+</pre>
+	<h3 id="---ror-instruction-operation---">(* ROR Instruction Operation *)<a class="anchor" href="#---ror-instruction-operation---">
+			¶
+		</a></h3>
+	<pre>tempCOUNT := (COUNT &amp; COUNTMASK) MOD SIZE
+WHILE (tempCOUNT ≠ 0)
+    DO
+        tempCF := LSB(SRC);
+        DEST := (DEST / 2) + (tempCF ∗ 2<sup>SIZE</sup>);
+        tempCOUNT := tempCOUNT – 1;
+    OD;
+ELIHW;
+IF (COUNT &amp; COUNTMASK) ≠ 0
+    THEN CF := MSB(DEST);
+FI;
+IF (COUNT &amp; COUNTMASK) = 1
+    THEN OF := MSB(DEST) XOR MSB − 1(DEST);
+    ELSE OF is undefined;
+FI;
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">
+			¶
+		</a></h2>
+	<p>对于 RCL 和 RCR 指令，0 位循环移位不执行任何操作，即不影响任何标志。对于 ROL 和 ROR 指令，如果屏蔽后的计数为 0，则标志不受影响。如果屏蔽后的计数为 1，则 OF 标志受到影响，否则（屏蔽后的计数大于 1）OF 标志未定义。</p>
+	<p>对于所有指令，当屏蔽后的计数非零时，CF 标志受到影响。SF、ZF、AF 和 PF 标志始终不受影响。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td rowspan="3">#GP(0)</td>
+			<td>如果源操作数位于非可写段。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>如果 DS、ES、FS 或 GS 寄存器包含 NULL 段选择子。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数的有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#SS</td>
+			<td>如果内存操作数的有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数的有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查且进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">
+			¶
+		</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果引用 SS 段的内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果源操作数位于非可写段。</td>
+		</tr>
+		<tr>
+			<td>如果内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

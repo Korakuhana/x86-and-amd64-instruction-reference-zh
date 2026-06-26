@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>ENCLV — 执行指定叶函数编号的 Enclave VMM 功能</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+
+	<h1>ENCLV — 执行指定叶函数编号的 Enclave VMM 功能</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>操作/编码</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID功能标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>NP 0F 01 C0 ENCLV</td>
+			<td>ZO</td>
+			<td>V/V</td>
+			<td>无</td>
+			<td>此指令用于执行保留给 VMM 使用的特权级 SGX 叶函数。它们用于管理 enclave。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>操作/编码</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>隐式寄存器操作数</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>无</td>
+			<td>无</td>
+			<td>无</td>
+			<td>参见第 38.3 节</td>
+		</tr>
+	</table>
+
+	<h3 id="description">描述<a class="anchor" href="#description">¶</a></h3>
+	<p>ENCLV 指令调用虚拟化 SGX 叶函数，用于在虚拟化环境中管理 enclave。软件通过在寄存器 EAX 中设置合适的值作为输入来指定叶函数。寄存器 RBX, RCX 和 RDX 具有特定于叶函数的用途，可以作为输入、作为输出，或者不被使用。在非 64 位模式下，该指令忽略 RAX 寄存器的高 32 位。</p>
+	<p>如果 CR0.PE = 0 或 RFLAGS.VM = 1，或者是在系统管理模式 (SMM) 下执行，或者不在 VMX 操作中，ENCLV 指令会产生无效操作码异常 (#UD)。此外，当 CPL &gt; 0 时尝试执行该指令会导致 #UD。如果 CR0.PG = 0 或尝试调用未定义的叶函数，该指令会产生通用保护异常 (#GP)。</p>
+	<p>在 VMX root 操作模式下的软件可以通过在 VMCS 中设置“允许 ENCLV 执行 (enable ENCLV execution)”控制，来允许在 VMX 非 root 模式下执行 ENCLV 指令。如果 VMCS 中的“允许 ENCLV 执行”控制被清除，在 VMX 非 root 模式下执行 ENCLV 指令会导致 #UD。</p>
+	<p>当允许在 VMX 非 root 模式下执行 ENCLV 指令时，VMX root 操作中的软件可以通过设置 ENCLV 退出位图中的相应位，来拦截 VMX non-root 操作中各种 ENCLV 叶函数的调用。</p>
+	<p>In 32-bit mode (IA32_EFER.LMA == 0 || CS.L == 0) and are 64 bits in 64-bit mode (IA32_EFER.LMA == 1 &amp;&amp; CS.L == 1). CS.D value has no impact on address calculation. CS.D 的值对地址计算没有影响。</p>
+	<p>段覆盖前缀和地址大小覆盖前缀被忽略，在 64 位模式下 REX 前缀也被忽略。</p>
+
+	<h3 id="operation">操作<a class="anchor" href="#operation">¶</a></h3>
+	<pre>IF TSX_ACTIVE
+            THEN GOTO TSX_ABORT_PROCESSING; FI;
+IF CR0.PE = 0 or RFLAGS.VM = 1 or in SMM or CPUID.SGX_LEAF.0:EAX.OSS = 0
+            THEN #UD; FI;
+IF not in VMX Operation or (IA32_EFER.LMA = 1 and CS.L = 0)
+            THEN #UD; FI;
+IF (CPL &gt; 0)
+            THEN #UD; FI;
+IF in VMX non-root operation
+    IF “enable ENCLV exiting“ VM-execution control is 1
+                THEN
+                    IF EAX &lt; 63 and ENCLV_exiting_bitmap[EAX] = 1 or EAX&gt; 62 and ENCLV_exiting_bitmap[63] = 1
+                        THEN VM exit;
+                    FI;
+        ELSE
+                #UD; FI;
+FI;
+IF IA32_FEATURE_CONTROL.LOCK = 0 or IA32_FEATURE_CONTROL.SGX_ENABLE = 0
+            THEN #GP(0); FI;
+IF (EAX is an invalid leaf number)
+            THEN #GP(0); FI;
+IF CR0.PG = 0
+            THEN #GP(0); FI;
+(* DS must not be an expanded down segment *)
+IF not in 64-bit mode and DS.Type is expand-down data
+            THEN #GP(0); FI;
+Jump to leaf specific flow
+</pre>
+
+	<h3 id="flags-affected">影响的标志寄存器<a class="anchor" href="#flags-affected">¶</a></h3>
+	<p>参见各个具体的叶函数。</p>
+
+	<h3 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h3>
+	<table>
+		<tr>
+			<td rowspan="4">#UD</td>
+			<td>如果使用了 LOCK/66H/REP/VEX 前缀中的任何一个。</td>
+		</tr>
+		<tr>
+			<td>如果当前特权级别不为 0。</td>
+		</tr>
+		<tr>
+			<td>如果 CPUID.(EAX=12H,ECX=0):EAX.OSS [位 5] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果逻辑处理器处于 SMM 模式。</td>
+		</tr>
+		<tr>
+			<td rowspan="5">#GP(0)</td>
+			<td>如果 IA32_FEATURE_CONTROL.LOCK = 0。</td>
+		</tr>
+		<tr>
+			<td>如果 IA32_FEATURE_CONTROL.SGX_ENABLE = 0。</td>
+		</tr>
+		<tr>
+			<td>如果 EAX 中的输入值编码了不受支持的叶函数。</td>
+		</tr>
+		<tr>
+			<td>如果数据段为向下扩展。</td>
+		</tr>
+		<tr>
+			<td>如果 CR0.PG = 0。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>ENCLV 在实模式下不被识别。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>ENCLV 在虚拟-8086 模式下不被识别。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h3 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h3>
+	<table>
+		<tr>
+			<td rowspan="4">#UD</td>
+			<td>如果使用了 LOCK/66H/REP/VEX 前缀中的任何一个。</td>
+		</tr>
+		<tr>
+			<td>如果当前特权级别不为 0。</td>
+		</tr>
+		<tr>
+			<td>如果 CPUID.(EAX=12H,ECX=0):EAX.OSS [位 5] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果逻辑处理器处于 SMM 模式。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#GP(0)</td>
+			<td>如果 IA32_FEATURE_CONTROL.LOCK = 0。</td>
+		</tr>
+		<tr>
+			<td>如果 IA32_FEATURE_CONTROL.SGX_ENABLE = 0。</td>
+		</tr>
+		<tr>
+			<td>如果 EAX 中的输入值编码了不受支持的叶函数。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

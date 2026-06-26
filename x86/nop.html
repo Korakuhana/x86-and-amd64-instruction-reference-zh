@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>NOP — 空操作</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>NOP — 空操作</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>NP 90</td>
+			<td>NOP</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>单字节空操作指令。</td>
+		</tr>
+		<tr>
+			<td>NP 0F 1F /0</td>
+			<td>NOP r/m16</td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>多字节空操作指令。</td>
+		</tr>
+		<tr>
+			<td>NP 0F 1F /0</td>
+			<td>NOP r/m32</td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>多字节空操作指令。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>M</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">
+			¶
+		</a></h2>
+	<p>此指令不执行任何操作。它是一个单字节或多字节 NOP，用于在指令流中占位，但除了 EIP 寄存器之外，不会影响机器的上下文状态。</p>
+	<p>以下型号编码的处理器上支持多字节形式的 NOP：</p>
+	<ul>
+		<li>CPUID.01H.EAX[第 11:8 位] = 0110B 或 1111B</li>
+	</ul>
+	<p>多字节 NOP 指令不改变任何寄存器的内容，也不会发起内存操作。该指令在非 64 位模式与 64 位模式下的操作完全相同。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">
+			¶
+		</a></h2>
+	<pre>The one-byte NOP instruction is an alias mnemonic for the XCHG (E)AX, (E)AX instruction.
+The multi-byte NOP instruction performs no operation on supported processors and generates undefined opcode
+exception on processors that do not support the multi-byte NOP instruction.
+The memory operand form of the instruction allows software to create a byte sequence of “no operation” as one
+instruction. For situations where multiple-byte NOPs are needed, the recommended operations (32-bit mode and
+64-bit mode) are:
+</pre>
+
+	<figure id="tbl-4-12">
+		<table>
+			<tr>
+				<th>长度</th>
+				<th>汇编</th>
+				<th>字节序列</th>
+			</tr>
+			<tr>
+				<td>2 字节<br>3 字节<br>4 字节<br>5 字节<br>6 字节<br>7 字节<br>8 字节<br>9 字节</td>
+				<td>66 NOP<br>NOP DWORD ptr [EAX]<br>NOP DWORD ptr [EAX + 00H]<br>NOP DWORD ptr [EAX + EAX*1 + 00H]<br>66 NOP DWORD ptr [EAX + EAX*1 + 00H]<br>NOP DWORD ptr [EAX + 00000000H]<br>NOP DWORD ptr [EAX + EAX*1 + 00000000H]<br>66 NOP DWORD ptr [EAX + EAX*1 + 00000000H]</td>
+				<td>66 90H<br>0F 1F 00H<br>0F 1F 40 00H<br>0F 1F 44 00 00H<br>66 0F 1F 44 00 00H<br>0F 1F 80 00 00 00 00H<br>0F 1F 84 00 00 00 00 00H<br>66 0F 1F 84 00 00 00 00 00H</td>
+			</tr>
+		</table>
+		<figcaption><a href='nop.html#tbl-4-12'>表 4-12</a>. 推荐的 NOP 指令多字节序列</figcaption>
+	</figure>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">
+			¶
+		</a></h2>
+	<p>无。</p>
+
+	<h2 id="exceptions--all-operating-modes-">异常（所有运行模式）<a class="anchor" href="#exceptions--all-operating-modes-">
+			¶
+		</a></h2>
+	<p>#UD 如果使用了 LOCK 前缀。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

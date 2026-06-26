@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>GETSEC[ENTERACCS] — 执行已认证芯片组代码</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+
+	<h1>GETSEC[ENTERACCS] — 执行已认证芯片组代码</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>NP 0F 37 (EAX = 2)</td>
+			<td>GETSEC[ENTERACCS]</td>
+			<td>进入已认证代码执行模式。EBX 保存已认证代码模块物理基地址。ECX 保存已认证代码模块大小（字节）。</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>GETSEC[ENTERACCS] 函数使用 Intel<sup>®</sup> TXT 平台芯片组的公钥加载、认证并执行已认证代码模块（Authenticated Code Module, ACM）。进入时，通过将 EAX 设置为 2 来选择 GETSEC 的 ENTERACCS 叶函数。</p>
+	<p>处理器对 GETSEC[ENTERACCS] 指令的执行实施了某些限制：</p>
+	<ul>
+		<li>除非处理器处于 CPL = 0 且 EFLAGS.VM = 0 的保护模式或 IA-32e 模式，否则不允许执行。</li>
+		<li>处理器缓存必须可用且未被禁用，即 CR0.CD 和 CR0.NW 位必须为 0。</li>
+		<li>对于包含多个逻辑处理器的处理器包，将检查 CR0.CD 以确保已启用的逻辑处理器之间的一致性。</li>
+		<li>为了在使用中断 16 的数值异常报告中强制执行操作一致性，必须设置 CR0.NE。</li>
+		<li>必须存在支持 Intel TXT 的芯片组，这是在复位后通过对上电配置功能字段进行采样传送给处理器的。</li>
+		<li>处理器不能已经处于先前 GETSEC[ENTERACCS] 或 GETSEC[SENTER] 指令启动的已认证代码执行模式中，而之后没有使用 GETSEC[EXITAC] 退出。</li>
+		<li>为避免模式之间潜在的操作冲突，如果处理器当前处于 SMM 或 VMX 操作中，则不允许执行此指令。</li>
+		<li>为确保一致地处理 SIPI 消息，执行 GETSEC[ENTERACCS] 指令的处理器还必须被指定为 IA32_APIC_BASE.BSP（位 8）所定义的 BSP（引导处理器）。</li>
+	</ul>
+	<p>如果不符合上述条件，将导致处理器触发通用保护异常。</p>
+	<p>在执行 ENTERACCS 叶函数之前，平台中的其他逻辑处理器（即 RLP）必须处于：</p>
+	<ul>
+		<li>在等待 SIPI 状态（由 INIT 断言发起，或对于非指定 BSP 处理器通过复位发起）中空闲，或者</li>
+		<li>处于由发起逻辑处理器（ILP）通过 GETSEC[SENTER] 发起的 SENTER 睡眠状态。</li>
+	</ul>
+	<p>如果同一包中的其他逻辑处理器未在这些状态之一中空闲，则执行 ENTERACCS 将触发通用保护异常。如果同一包的其他逻辑处理器未满足 CR0.CD = 0，也适用相同的要求和操作。</p>
+	<p>成功执行 ENTERACCS 会导致 ILP 进入已认证代码执行模式。在达到此点之前，处理器执行几项检查。这些检查包括：</p>
+	<ul>
+		<li>确立并检查要由处理器执行的指定已认证代码模块的位置和大小。</li>
+		<li>抑制 ILP 对外部事件的响应：INIT、A20M、NMI 和 SMI。</li>
+		<li>广播一条消息，以对其他处理器代理启用内存和 I/O 的保护。</li>
+		<li>将指定的代码模块加载到已认证代码执行区域。</li>
+		<li>隔离已认证代码执行区域的内容，防止外部代理对其状态进行进一步的修改。</li>
+		<li>认证已认证代码模块。</li>
+		<li>基于已认证代码模块头中包含的信息初始化发起逻辑处理器状态。</li>
+		<li>解锁 Intel<sup>® </sup>TXT 芯片组私有配置空间和 TPM 权限级别（locality）3 空间。</li>
+		<li>在定义的入口点开始执行已认证代码模块。</li>
+	</ul>
+	<p>GETSEC[ENTERACCS] 函数在通用寄存器 EBX 和 ECX 中需要两个附加输入参数。EBX 保存已认证代码（AC）模块物理基地址（AC 模块必须驻留在物理地址空间 4 GBytes 以下），ECX 保存 AC 模块大小（以字节为单位）。物理基地址和大小用于从系统内存中检索代码模块，并将其加载到内部已认证代码执行区域中。检查基物理地址以验证它是否在 4096 字节的模边界上。验证大小是否为 64 的倍数，是否未超出内部已认证代码执行区域容量（由 GETSEC[CAPABILITIES] 报告），以及 AC 模块的最高地址是否未超出 32 位。错误条件会导致已认证代码执行启动中止，并触发通用保护异常。</p>
+	<p>作为对处理器硬件正确操作的完整性检查，执行 GETSEC[ENTERACCS] 还将检查所有机器检查状态寄存器（由 MSR IA32_MCi_STATUS 报告）的内容，以检测是否存在任何有效的不可纠正错误条件。此外，全局机器检查状态寄存器 IA32_MCG_STATUS 的 MCIP 位必须被清除，且 IERR 处理器包引脚（或其等效物）不得被断言，表示当前没有机器检查异常处理正在进行中。这些检查在开始加载已认证代码模块之前执行。此时，如果这些状态寄存器中存在任何未处理的有效不可纠正机器检查错误条件，将导致处理器触发通用保护违规。</p>
+	<p>ILP 屏蔽对外部信号 INIT#、A20M、NMI# 和 SMI# 断言的响应。此屏蔽保持活动状态，直到可选地被 GETSEC[EXITAC] 取消屏蔽（此定义的取消屏蔽行为假定 GETSEC[ENTERACCS] 不是由先前的 GETSEC[SENTER] 执行的）。此屏蔽控制的目的是防止暴露给可能不受已认证代码模块控制的现有外部事件处理程序。</p>
+	<p>ILP 设置一个内部标志以指示其已进入已认证代码执行模式。A20M 引脚的状态同样被屏蔽，并在内部强制为未断言状态，使得在已认证代码执行模式期间不识别任何外部断言。</p>
+	<p>为防止其他（逻辑）处理器干扰在已认证代码执行模式下运行的 ILP，来自其他处理器代理的内存（不包括隐式写回事务）访问和 I/O 将被阻止。此保护在 ILP 进入已认证代码执行模式时开始。只允许继续执行从 ILP 发起的内存 and I/O 事务。退出已认证代码执行模式是通过执行 GETSEC[EXITAC] 来完成的。内存和 I/O 活动的保护将一直有效，直到 ILP 执行 GETSEC[EXITAC]。</p>
+	<p>在使用 GETSEC[ENTERACCS] 或 GETSEC[SENTER] 启动已认证执行模块之前，必须首先将处理器的 MTRR（内存类型范围寄存器）初始化为将已认证 RAM 地址映射为 WB（写回）。如果不这样做，可能会影响处理器维持所加载的已认证代码模块隔离的能力。如果处理器检测到未满足此要求，它将在加载已认证代码模块期间触发带有错误代码的 Intel® TXT 复位条件。</p>
+	<p>虽然加载模块内的物理地址必须映射为 WB，但模块边界之外的位置的内存类型必须映射为由 GETSEC[PARAMETERS] 返回的受支持内存类型之一（或默认映射为 UC）。</p>
+	<p>为了符合 MTRR MSR 指定内存类型的最小粒度，已认证代码 RAM (ACRAM) 以 4096 字节粒度块的形式分配给处理器。如果 ECX 中指定的 AC 模块大小不是 4096 的倍数，则处理器将分配到下一个 4096 字节边界，以使用不确定数据映射为 ACRAM。此填充区域对已认证代码模块作为外部内存不可见，也不能依赖于用于填充填充区域的数据值。</p>
+	<p>成功完成 GETSEC[ENTERACCS] 后，处理器的架构状态会从已认证代码模块头部保存的内容中进行部分初始化。处理器 GDTR、CS 和 DS 选择器从已认证代码模块内的字段进行初始化。由于已认证代码模块必须是可重定位的，因此所有地址引用必须相对于 EBX 中的已认证代码模块基地址。处理器 GDTR 基值初始化为 AC 模块头部字段 GDTBasePtr + EBX 中保存的模块基地址，GDTR 界限设置为 GDTLimit 字段中的值。CS 选择器初始化为 AC 模块头部 SegSel 字段，而 DS 选择器初始化为 CS + 8。段描述符字段被隐式初始化为 BASE=0、LIMIT=FFFFFh、G=1、D=1、P=1、S=1、DS 的读/写访问权限，以及 CS 的执行/读访问权限。处理器开始执行已认证代码模块，EIP 设置为 AC 模块头部 EntryPoint 字段 + 模块基地址 (EBX)。检查用于初始化处理器状态的基于 AC 模块的字段的一致性，任何失败都会导致关机（shutdown）条件。</p>
+	<p>表 7-4 给出了处理器成功完成 GETSEC[ENTERACCS] 后寄存器状态初始化的摘要。进入已认证代码执行模式后，分页将被禁用。已认证代码模块被加载并使用物理地址最初执行。执行 GETSEC[ENTERACCS] 后，由系统软件确立新的（或恢复其先前的）分页环境以及适当的映射，以满足新的保护要求。EBP 初始化为已认证代码模块基物理地址，以便在已认证环境中进行初始执行。因此，鉴于已认证代码模块必须是位置无关的，已认证代码可以引用 EBP 进行基于相对地址的引用。</p>
+
+	<figure id="tbl-7-4">
+		<table>
+			<tr>
+				<th>寄存器状态</th>
+				<th>初始化状态</th>
+				<th>说明</th>
+			</tr>
+			<tr>
+				<td>CR0</td>
+				<td>PG←0, AM←0, WP←0: 其他未变</td>
+				<td>禁用分页、对齐检查和写保护。</td>
+			</tr>
+			<tr>
+				<td>CR4</td>
+				<td>MCE←0, CET←0, PCIDE←0: 其他未变</td>
+				<td>禁用机器检查异常、控制流防篡改技术（CET）和进程上下文标识符。</td>
+			</tr>
+			<tr>
+				<td>EFLAGS</td>
+				<td>00000002H</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>IA32_EFER</td>
+				<td>0H</td>
+				<td>禁用 IA-32e 模式。</td>
+			</tr>
+			<tr>
+				<td>EIP</td>
+				<td>AC.base + EntryPoint</td>
+				<td>AC.base 位于 EBX 中，作为 GETSEC[ENTERACCS] 的输入。</td>
+			</tr>
+			<tr>
+				<td>[E|R]BX</td>
+				<td>ENTERACCS 前的状态：GETSEC[ENTERACCS] 之前的下一条 [E|R]IP</td>
+				<td>跨 GETSEC[ENTERACCS] 结转 64 位处理器状态。</td>
+			</tr>
+			<tr>
+				<td>ECX</td>
+				<td>ENTERACCS 前的状态：[31:16]=GDTR.limit; [15:0]=CS.sel</td>
+				<td>跨 GETSEC[ENTERACCS] 结转处理器状态。</td>
+			</tr>
+			<tr>
+				<td>[E|R]DX</td>
+				<td>ENTERACCS 前的状态：GDTR 基址</td>
+				<td>跨 GETSEC[ENTERACCS] 结转 64 位处理器状态。</td>
+			</tr>
+			<tr>
+				<td>EBP</td>
+				<td>AC.base</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>CS</td>
+				<td>Sel=[SegSel], base=0, limit=FFFFFh, G=1, D=1, AR=9BH</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>DS</td>
+				<td>Sel=[SegSel] +8, base=0, limit=FFFFFh, G=1, D=1, AR=93H</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>GDTR</td>
+				<td>Base= AC.base (EBX) + [GDTBasePtr], Limit=[GDTLimit]</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>DR7</td>
+				<td>00000400H</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>IA32_DEBUGCTL</td>
+				<td>0H</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>IA32_MISC_ENABLE</td>
+				<td>示例参见表 7-5。</td>
+				<td>初始化的字段数量可能会根据处理器实现而改变。</td>
+			</tr>
+			<tr>
+				<td>性能计数器和计数器控制寄存器</td>
+				<td>0H</td>
+				<td></td>
+			</tr>
+		</table>
+		<figcaption>表 7-4. GETSEC[ENTERACCS] 之后的寄存器状态初始化</figcaption>
+	</figure>
+	<p>尚未由 GETSEC[ENTERACCS] 初始化的段相关处理器状态在使用前需要进行适当的初始化。由于已经建立了新的 GDT 上下文，因此段选择器寄存器 ES、SS、FS、GS、TR 和 LDTR 中保存的先前状态值可能无效。</p>
+	<p>MSR IA32_EFER 也会作为由 ENTERACCS 初始化的处理器状态的一部分而被无条件清除。由于进入已认证代码执行模式时分页被禁用，因此必须重新建立新的分页环境，以便在已认证代码执行模式下运行时建立 IA-32e 模式。</p>
+	<p>调试异常和与陷入相关的信号也在 GETSEC[ENTERACCS] 中被禁用。这是通过复位 DR7、EFLAG 中的 TF 和 MSR IA32_DEBUGCTL 来实现的。在进入已认证代码执行模式后，一旦正确初始化了支持的异常处理程序、描述符表和调试寄存器，即可自由地重新启用这些调试功能。此外，进入此模式后，任何挂起的单步陷入条件都将被清除。</p>
+	<p>在执行 ENTERACCS 期间，与性能相关的计数器和计数器控制寄存器将被清除。这意味着在执行 ENTERACCS 时，任何处于活动状态的性能计数器都将被禁用。要重新激活处理器性能计数器，必须重新初始化并重新启用此状态。</p>
+	<p>IA32_MISC_ENABLE MSR 在进入已认证执行模式时被初始化。此 MSR 的某些位会被保留，因为保留这些位可能对于维持先前确立的平台设置至关重要（请参阅表 7-5 的力注）。其余位被清除，目的是为已认证代码模块的执行建立更一致的环境。初始化此 MSR 的影响之一是由 MONITOR 指令确立的任何先前条件都将被清除。</p>
+	<p>为了支持可能在执行 GETSEC[ENTERACCS] 之前返回到处理器架构状态，在指令完成时，某些关键的处理器状态会被捕获并存储在通用寄存器中。[E|R]BX 保存将在 GETSEC[ENTERACCS] 之后执行的下一条指令的有效地址（[E|R]IP），ECX[15:0] 保存 CS 选择器值，ECX[31:16] 保存 GDTR 界限字段，而 [E|R]DX 保存 GDTR 基址字段。随后的已认证代码可以保存这些寄存器的内容，以便在需要时，在通过 GETSEC[EXITAC] 退出已认证代码执行模式之前手动恢复此状态。有关退出已认证代码执行模式后的处理器状态，请参见 GETSEC[SEXIT] 的描述。</p>
+
+	<figure id="tbl-7-5">
+		<table>
+			<tr>
+				<th>字段</th>
+				<th>位位置</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>快速字符串启用 (Fast strings enable)</td>
+				<td>0</td>
+				<td>清除为 0。</td>
+			</tr>
+			<tr>
+				<td>FOPCODE 兼容模式启用</td>
+				<td>2</td>
+				<td>清除为 0。</td>
+			</tr>
+			<tr>
+				<td>热监视器启用 (Thermal monitor enable)</td>
+				<td>3</td>
+				<td>如果未启用其他热监视器功能，则设置为 1。<sup>2</sup></td>
+			</tr>
+			<tr>
+				<td>拆分锁禁用 (Split-lock disable)</td>
+				<td>4</td>
+				<td>清除为 0。</td>
+			</tr>
+			<tr>
+				<td>缓存线拆分时的总线锁禁用</td>
+				<td>8</td>
+				<td>清除为 0。</td>
+			</tr>
+			<tr>
+				<td>硬件预取禁用 (Hardware prefetch disable)</td>
+				<td>9</td>
+				<td>清除为 0。</td>
+			</tr>
+			<tr>
+				<td>GV1/2 传统启用</td>
+				<td>15</td>
+				<td>清除为 0。</td>
+			</tr>
+			<tr>
+				<td>MONITOR/MWAIT s/m 启用</td>
+				<td>18</td>
+				<td>清除为 0。</td>
+			</tr>
+			<tr>
+				<td>Adjacent sector prefetch disable</td>
+				<td>19</td>
+				<td>清除为 0。</td>
+			</tr>
+		</table>
+		<figcaption>表 7-5. ENTERACCS 和 SENTER 初始化的 IA32_MISC_ENABLE MSR<sup>1 </sup></figcaption>
+	</figure>
+	<blockquote>
+		<p>1. 初始化的 IA32_MISC_ENABLE 字段的数量可能会因处理器实现而异。</p>
+		<p>2. ENTERACCS（和 SENTER）初始化处理器热调制的防过热保护状态，使其至少启用最低级别。如果在执行这些 GETSEC 叶函数之一时热调制已被启用，则热调制控制设置不会发生改变。如果禁用了热调制，则会通过执行这些 GETSEC 叶函数设置热调制控制位 3 来启用它。</p>
+	</blockquote>
+	<p>在进入已认证代码执行模式后，在能够处理任何异常或外部中断 INTR 和 NMI 之前，IDTR 还将需要重新加载新的 IDT 上下文。由于在已认证代码执行模式完成时（以 EXITAC 终止）会重新启用外部中断，因此建议在此点之前建立新的 IDT 上下文。在建立这种新的 IDT 上下文之前，程序员必须注意不要执行 INT n 指令或导致产生异常或陷入信号的任何其他操作。</p>
+	<p>在完成 GETSEC[ENTERACCS] 指令之前且成功认证 AC 模块之后，Intel TXT 芯片组的私有配置空间被解锁。只有已认证代码模块能访问此通常受限制的芯片组状态，以确保平台安全。</p>
+	<p>一旦已认证代码模块在完成 GETSEC[ENTERACCS] 时启动，它就可以通过设置 EFLAGS.IF 来启用中断，并通过执行 IRET 来启用 NMI。这假定它已通过初始化 IDT、GDT 和相应的中断处理代码重新建立了中断处理支持。</p>
+
+	<h2 id="operation-in-a-uni-processor-platform">单处理器平台中的操作<a class="anchor" href="#operation-in-a-uni-processor-platform">¶</a></h2>
+	<p>(* The state of the internal flag ACMODEFLAG persists across instruction boundary *)</p>
+	<p>IF (CR4.SMXE=0)</p>
+	<p>THEN #UD;</p>
+	<p>ELSIF (in VMX non-root operation)</p>
+	<p>THEN VM Exit (reason=”GETSEC instruction”);</p>
+	<p>ELSIF (GETSEC leaf unsupported)</p>
+	<p>THEN #UD;</p>
+	<p>ELSIF ((in VMX operation) or</p>
+	<p>(CR0.PE=0) or (CR0.CD=1) or (CR0.NW=1) or (CR0.NE=0) or</p>
+	<p>(CPL&gt;0) or (EFLAGS.VM=1) or</p>
+	<p>(IA32_APIC_BASE.BSP=0) or</p>
+	<p>(TXT chipset not present) or</p>
+	<p>(ACMODEFLAG=1) or (IN_SMM=1))</p>
+	<p>THEN #GP(0);</p>
+	<p>IF (GETSEC[PARAMETERS].Parameter_Type = 5, MCA_Handling (bit 6) = 0)</p>
+	<p>FOR I = 0 to IA32_MCG_CAP.COUNT-1 DO</p>
+	<p>IF (IA32_MC[I]_STATUS = uncorrectable error)</p>
+	<p>THEN #GP(0);</p>
+	<p>OD;</p>
+	<p>FI;</p>
+	<p>IF (IA32_MCG_STATUS.MCIP=1) or (IERR pin is asserted)</p>
+	<p>THEN #GP(0);</p>
+	<p>ACBASE := EBX;</p>
+	<p>ACSIZE := ECX;</p>
+	<p>IF (((ACBASE MOD 4096) ≠ 0) or ((ACSIZE MOD 64 ) ≠ 0 ) or (ACSIZE &lt; minimum module size) OR (ACSIZE &gt; authenticated RAM capacity)) or ((ACBASE+ACSIZE) &gt; (2^32 -1)))</p>
+	<p>THEN #GP(0);</p>
+	<p>IF (secondary thread(s) CR0.CD = 1) or ((secondary thread(s) NOT(wait-for-SIPI)) and</p>
+	<p>(secondary thread(s) not in SENTER sleep state)</p>
+	<p>THEN #GP(0);</p>
+	<p>Mask SMI, INIT, A20M, and NMI external pin events;</p>
+	<p>IA32_MISC_ENABLE := (IA32_MISC_ENABLE &amp; MASK_CONST*)</p>
+	<p>(* The hexadecimal value of MASK_CONST may vary due to processor implementations *)</p>
+	<p>A20M := 0;</p>
+	<p>IA32_DEBUGCTL := 0;</p>
+	<p>Invalidate processor TLB(s);</p>
+	<p>Drain Outgoing Transactions;</p>
+	<p>ACMODEFLAG := 1;</p>
+	<p>SignalTXTMessage(ProcessorHold);</p>
+	<p>Load the internal ACRAM based on the AC module size;</p>
+	<p>(* Ensure that all ACRAM loads hit Write Back memory space *)</p>
+	<p>IF (ACRAM memory type ≠ WB)</p>
+	<p>THEN TXT-SHUTDOWN(#BadACMMType);</p>
+	<p>IF (AC module header version isnot supported) OR (ACRAM[ModuleType] ≠ 2)</p>
+	<p>THEN TXT-SHUTDOWN(#UnsupportedACM);</p>
+	<p>(* Authenticate the AC Module and shutdown with an error if it fails *)</p>
+	<p>KEY := GETKEY(ACRAM, ACBASE);</p>
+	<p>KEYHASH := HASH(KEY);</p>
+	<p>CSKEYHASH := READ(TXT.PUBLIC.KEY);</p>
+	<p>IF (KEYHASH ≠ CSKEYHASH)</p>
+	<p>THEN TXT-SHUTDOWN(#AuthenticateFail);</p>
+	<p>SIGNATURE := DECRYPT(ACRAM, ACBASE, KEY);</p>
+	<p>(* The value of SIGNATURE_LEN_CONST is implementation-specific*)</p>
+	<p>FOR I=0 to SIGNATURE_LEN_CONST - 1 DO</p>
+	<p>ACRAM[SCRATCH.I] := SIGNATURE[I];</p>
+	<p>COMPUTEDSIGNATURE := HASH(ACRAM, ACBASE, ACSIZE);</p>
+	<p>FOR I=0 to SIGNATURE_LEN_CONST - 1 DO</p>
+	<p>ACRAM[SCRATCH.SIGNATURE_LEN_CONST+I] := COMPUTEDSIGNATURE[I];</p>
+	<p>IF (SIGNATURE ≠ COMPUTEDSIGNATURE)</p>
+	<p>THEN TXT-SHUTDOWN(#AuthenticateFail);</p>
+	<p>ACMCONTROL := ACRAM[CodeControl];</p>
+	<p>IF ((ACMCONTROL.0 = 0) and (ACMCONTROL.1 = 1) and (snoop hit to modified line detected on ACRAM load))</p>
+	<p>THEN TXT-SHUTDOWN(#UnexpectedHITM);</p>
+	<p>IF (ACMCONTROL reserved bits are set)</p>
+	<p>THEN TXT-SHUTDOWN(#BadACMFormat);</p>
+	<p>IF ((ACRAM[GDTBasePtr] &lt; (ACRAM[HeaderLen] * 4 + Scratch_size)) OR</p>
+	<p>((ACRAM[GDTBasePtr] + ACRAM[GDTLimit]) &gt;= ACSIZE))</p>
+	<p>THEN TXT-SHUTDOWN(#BadACMFormat);</p>
+	<p>IF ((ACMCONTROL.0 = 1) and (ACMCONTROL.1 = 1) and (snoop hit to modified line detected on ACRAM load))</p>
+	<p>THEN ACEntryPoint := ACBASE+ACRAM[ErrorEntryPoint];</p>
+	<p>ELSE</p>
+	<p>ACEntryPoint := ACBASE+ACRAM[EntryPoint];</p>
+	<p>IF ((ACEntryPoint &gt;= ACSIZE) OR (ACEntryPoint &lt; (ACRAM[HeaderLen] * 4 + Scratch_size)))THEN TXT-SHUTDOWN(#BadACMFormat);</p>
+	<p>IF (ACRAM[GDTLimit] &amp; FFFF0000h)</p>
+	<p>THEN TXT-SHUTDOWN(#BadACMFormat);</p>
+	<p>IF ((ACRAM[SegSel] &gt; (ACRAM[GDTLimit] - 15)) OR (ACRAM[SegSel] &lt; 8))</p>
+	<p>THEN TXT-SHUTDOWN(#BadACMFormat);</p>
+	<p>IF ((ACRAM[SegSel].TI=1) OR (ACRAM[SegSel].RPL≠0))</p>
+	<p>THEN TXT-SHUTDOWN(#BadACMFormat);</p>
+	<p>CR0.[PG.AM.WP] := 0;</p>
+	<p>CR4.MCE := 0;</p>
+	<p>EFLAGS := 00000002h;</p>
+	<p>IA32_EFER := 0h;</p>
+	<p>[E|R]BX := [E|R]IP of the instruction after GETSEC[ENTERACCS];</p>
+	<p>ECX := Pre-GETSEC[ENTERACCS] GDT.limit:CS.sel;</p>
+	<p>[E|R]DX := Pre-GETSEC[ENTERACCS] GDT.base;</p>
+	<p>EBP := ACBASE;</p>
+	<p>GDTR.BASE := ACBASE+ACRAM[GDTBasePtr];</p>
+	<p>GDTR.LIMIT := ACRAM[GDTLimit];</p>
+	<p>CS.SEL := ACRAM[SegSel];</p>
+	<p>CS.BASE := 0;</p>
+	<p>CS.LIMIT := FFFFFh;</p>
+	<p>CS.G := 1;</p>
+	<p>CS.D := 1;</p>
+	<p>CS.AR := 9Bh;</p>
+	<p>DS.SEL := ACRAM[SegSel]+8;</p>
+	<p>DS.BASE := 0;</p>
+	<p>DS.LIMIT := FFFFFh;</p>
+	<p>DS.G := 1;</p>
+	<p>DS.D := 1;</p>
+	<p>DS.AR := 93h;</p>
+	<p>DR7 := 00000400h;</p>
+	<p>IA32_DEBUGCTL := 0;</p>
+	<p>SignalTXTMsg(OpenPrivate);</p>
+	<p>SignalTXTMsg(OpenLocality3);</p>
+	<p>EIP := ACEntryPoint;</p>
+	<p>END;</p>
+
+	<h2 id="flags-affected">影响的标志寄存器<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>清除所有标志。</p>
+
+	<h2 id="use-of-prefixes">前缀的使用<a class="anchor" href="#use-of-prefixes">¶</a></h2>
+	<p>LOCK 导致 #UD。</p>
+	<p>REP* 导致 #UD（包括 REPNE/REPNZ 和 REP/REPE/REPZ）。</p>
+	<p>操作数大小 导致 #UD。</p>
+	<p>不允许 NP 66/F2/F3 前缀。</p>
+	<p>段覆盖被忽略。</p>
+	<p>地址大小被忽略。</p>
+	<p>REX 被忽略。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CR4.SMXE = 0。</td>
+		</tr>
+		<tr>
+			<td>如果 GETSEC[CAPABILITIES] 未报告支持 GETSEC[ENTERACCS]。</td>
+		</tr>
+		<tr>
+			<td rowspan="12">#GP(0)</td>
+			<td>如果 CR0.CD = 1 或 CR0.NW = 1 或 CR0.NE = 0 或 CR0.PE = 0 或 CPL &gt; 0 或 EFLAGS.VM = 1。</td>
+		</tr>
+		<tr>
+			<td>如果不存在支持 Intel® TXT 的芯片组。</td>
+		</tr>
+		<tr>
+			<td>如果处于 VMX root 操作中。</td>
+		</tr>
+		<tr>
+			<td>如果发起处理器未通过 MSR 位 IA32_APIC_BASE.BSP 被指定为引导处理器。</td>
+		</tr>
+		<tr>
+			<td>如果处理器已处于已认证代码执行模式。</td>
+		</tr>
+		<tr>
+			<td>如果处理器处于 SMM 模式。</td>
+		</tr>
+		<tr>
+			<td>如果 IA32_MC[I]_STATUS 中记录了有效的不可纠正机器检查错误。</td>
+		</tr>
+		<tr>
+			<td>如果已认证代码基地址不在 4096 字节边界上。</td>
+		</tr>
+		<tr>
+			<td>如果已认证代码大小 &gt; 处理器内部已认证代码区域容量。</td>
+		</tr>
+		<tr>
+			<td>如果已认证代码大小不是 64 的模。</td>
+		</tr>
+		<tr>
+			<td>如果同包的其他已启用逻辑处理器 CR0.CD = 1。</td>
+		</tr>
+		<tr>
+			<td>如果同包的其他已启用逻辑处理器未处于 wait-for-SIPI 或 SENTER 睡眠状态。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CR4.SMXE = 0。</td>
+		</tr>
+		<tr>
+			<td>如果 GETSEC[CAPABILITIES] 未报告支持 GETSEC[ENTERACCS]。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>GETSEC[ENTERACCS] 在实地址模式下不可识别。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CR4.SMXE = 0。</td>
+		</tr>
+		<tr>
+			<td>如果 GETSEC[CAPABILITIES] 未报告支持 GETSEC[ENTERACCS]。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>GETSEC[ENTERACCS] 在虚拟-8086 模式下不可识别。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>所有保护模式异常均适用。</p>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>如果 AC 代码模块没有驻留在 2^32 - 1 以下的物理地址空间。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<p>所有保护模式异常均适用。</p>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>如果 AC 代码模块没有驻留在 2^32 - 1 以下的物理地址空间。</td>
+		</tr>
+	</table>
+
+	<h2 id="vm-exit-condition">VM-exit 条件<a class="anchor" href="#vm-exit-condition">¶</a></h2>
+	<p>如果在 VMX 非 root 操作中，退出原因（GETSEC）。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

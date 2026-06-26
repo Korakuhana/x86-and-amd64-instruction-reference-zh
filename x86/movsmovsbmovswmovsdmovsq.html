@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns:x86="http://www.felixcloutier.com/x86">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>MOVS/MOVSB/MOVSW/MOVSD/MOVSQ — 将数据从字符串移动到字符串</title>
+</head>
+
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>MOVS/MOVSB/MOVSW/MOVSD/MOVSQ — 将数据从字符串移动到字符串</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>A4</td>
+			<td>MOVS <em>m8</em>, <em>m8</em></td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>在传统模式下，将字节从地址 DS:(E)SI 移动到 ES:(E)DI。在 64 位模式下，将字节从地址 (R|E)SI 移动到 (R|E)DI。</td>
+		</tr>
+		<tr>
+			<td>A5</td>
+			<td>MOVS <em>m16</em>, <em>m16</em></td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>在传统模式下，将字从地址 DS:(E)SI 移动到 ES:(E)DI。在 64 位模式下，将字从地址 (R|E)SI 移动到 (R|E)DI。</td>
+		</tr>
+		<tr>
+			<td>A5</td>
+			<td>MOVS <em>m32</em>, <em>m32</em></td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>在传统模式下，将双字从地址 DS:(E)SI 移动到 ES:(E)DI。在 64 位模式下，将双字从地址 (R|E)SI 移动到 (R|E)DI。</td>
+		</tr>
+		<tr>
+			<td>REX.W + A5</td>
+			<td>MOVS <em>m64</em>, <em>m64</em></td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将四字从地址 (R|E)SI 移动到 (R|E)DI。</td>
+		</tr>
+		<tr>
+			<td>A4</td>
+			<td>MOVSB</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>在传统模式下，将字节从地址 DS:(E)SI 移动到 ES:(E)DI。在 64 位模式下，将字节从地址 (R|E)SI 移动到 (R|E)DI。</td>
+		</tr>
+		<tr>
+			<td>A5</td>
+			<td>MOVSW</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>在传统模式下，将字从地址 DS:(E)SI 移动到 ES:(E)DI。在 64 位模式下，将字从地址 (R|E)SI 移动到 (R|E)DI。</td>
+		</tr>
+		<tr>
+			<td>A5</td>
+			<td>MOVSD</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>在传统模式下，将双字从地址 DS:(E)SI 移动到 ES:(E)DI。在 64 位模式下，将双字从地址 (R|E)SI 移动到 (R|E)DI。</td>
+		</tr>
+		<tr>
+			<td>REX.W + A5</td>
+			<td>MOVSQ</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将四字从地址 (R|E)SI 移动到 (R|E)DI。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将第二个操作数（源操作数）指定的字节、字或双字移动到第一个操作数（目标操作数）指定的位置。源操作数和目标操作数都位于内存中。源操作数的地址从 DS:ESI 或 DS:SI 寄存器中读取（分别取决于指令的地址大小属性是 32 位还是 16 位）。目标操作数的地址从 ES:EDI 或 ES:DI 寄存器中读取（同样取决于指令的地址大小属性）。可以使用段覆盖前缀来覆盖 DS 段，但无法覆盖 ES 段。</p>
+	<p>在汇编代码级别，此指令允许两种形式：“显式操作数”形式和“无操作数”形式。显式操作数形式（使用 MOVS 助记符指定）允许显式指定源和目标操作数。在此处，源和目标操作数应为指示源值和目标的大小与位置的符号。提供此显式操作数形式是为了便于编写文档；但是，请注意，此形式提供的文档可能会误导。也就是说，源和目标操作数符号必须指定正确的<b>类型</b>（大小）（字节、字或双字），但它们不必指定正确的<b>位置</b>。源和目标操作数的位置始终由 DS:(E)SI 和 ES:(E)DI 寄存器指定，在执行移动字符串指令之前必须正确加载这些寄存器。</p>
+	<p>无操作数形式提供了 MOVS 指令的字节、字和双字版本的“简短形式”。在此处，也假定 DS:(E)SI 和 ES:(E)DI 分别是源操作数和目标操作数。源和目标操作数的大小由助记符选择：MOVSB（字节移动）、MOVSW（字移动）或 MOVSD（双字移动）。</p>
+	<p>移动操作后，(E)SI 和 (E)DI 寄存器将根据 EFLAGS 寄存器中 DF 标志的设置自动递增或递减。（如果 DF 标志为 0，则 (E)SI 和 (E)DI 寄存器递增；如果 DF 标志为 1，则 (E)SI 和 (E)DI 寄存器递减。）对于字节操作，寄存器递增或递减 1；对于字操作，递增或递减 2；对于双字操作，递增或递减 4；对于四字操作，递增或递减 8。</p>
+	<blockquote>
+		<p>为了提高性能，较新的处理器支持在由 MOVS 和 MOVSB 发起的字符串存储操作期间修改处理器的运行方式。有关快速字符串操作的更多信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷的第 7.3.9.3 节。</p>
+		<p>MOVS、MOVSB、MOVSW 和 MOVSD 指令之前可以带有 REP 前缀（有关 REP 前缀的描述，请参阅“REP/REPE/REPZ /REPNE/REPNZ — 重复字符串操作前缀”），用于 ECX 个字节、字或双字的块移动。</p>
+		<p>在 64 位模式下，指令的默认地址大小为 64 位，使用前缀 67H 支持 32 位地址大小。64 位地址由 RSI 和 RDI 指定；32 位地址由 ESI 和 EDI 指定。使用 REX.W 前缀可将双字操作提升为 64 位。有关编码数据和限制，请参阅本节开头的汇总表。</p>
+	</blockquote>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>DEST := SRC;
+Non-64-bit Mode:
+IF (Byte move)
+    THEN IF DF = 0
+        THEN
+            (E)SI := (E)SI + 1;
+            (E)DI := (E)DI + 1;
+        ELSE
+            (E)SI := (E)SI – 1;
+            (E)DI := (E)DI – 1;
+        FI;
+    ELSE IF (Word move)
+        THEN IF DF = 0
+            (E)SI := (E)SI + 2;
+            (E)DI := (E)DI + 2;
+            FI;
+        ELSE
+            (E)SI := (E)SI – 2;
+            (E)DI := (E)DI – 2;
+        FI;
+    ELSE IF (Doubleword move)
+        THEN IF DF = 0
+            (E)SI := (E)SI + 4;
+            (E)DI := (E)DI + 4;
+            FI;
+        ELSE
+            (E)SI := (E)SI – 4;
+            (E)DI := (E)DI – 4;
+        FI;
+FI;
+64-bit Mode:
+IF (Byte move)
+    THEN IF DF = 0
+        THEN
+            (R|E)SI := (R|E)SI + 1;
+            (R|E)DI := (R|E)DI + 1;
+        ELSE
+            (R|E)SI := (R|E)SI – 1;
+            (R|E)DI := (R|E)DI – 1;
+        FI;
+    ELSE IF (Word move)
+        THEN IF DF = 0
+            (R|E)SI := (R|E)SI + 2;
+            (R|E)DI := (R|E)DI + 2;
+            FI;
+        ELSE
+            (R|E)SI := (R|E)SI – 2;
+            (R|E)DI := (R|E)DI – 2;
+        FI;
+    ELSE IF (Doubleword move)
+        THEN IF DF = 0
+            (R|E)SI := (R|E)SI + 4;
+            (R|E)DI := (R|E)DI + 4;
+            FI;
+        ELSE
+            (R|E)SI := (R|E)SI – 4;
+            (R|E)DI := (R|E)DI – 4;
+        FI;
+    ELSE IF (Quadword move)
+        THEN IF DF = 0
+            (R|E)SI := (R|E)SI + 8;
+            (R|E)DI := (R|E)DI + 8;
+            FI;
+        ELSE
+            (R|E)SI := (R|E)SI – 8;
+            (R|E)DI := (R|E)DI – 8;
+        FI;
+FI;
+</pre>
+
+	<h2 id="flags-affected">影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="3">#GP(0)</td>
+			<td>如果目标操作数位于不可写的段中。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>如果 DS、ES、FS 或 GS 寄存器包含 NULL 段选择器。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>如果内存操作数有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#SS</td>
+			<td>如果内存操作数有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟 8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存操作数有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果引用 SS 段的内存地址是非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存地址是非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+	<footer>
+		<p>
+			本非官方、机械拆分、未经校验的参考文档仅为方便提供，可能存在各种明显或不明显的缺失或错误。任何严肃用途请参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+
+</html>

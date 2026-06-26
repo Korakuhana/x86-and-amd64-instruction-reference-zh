@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>EGETKEY — 获取加密密钥</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+
+	<h1>EGETKEY — 获取加密密钥</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>操作/编码</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID功能标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>EAX = 01H ENCLU[EGETKEY]</td>
+			<td>IR</td>
+			<td>V/V</td>
+			<td>SGX1</td>
+			<td>此叶函数获取加密密钥。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>操作/编码</th>
+			<th colspan="2">EAX</th>
+			<th>RBX</th>
+			<th>RCX</th>
+		</tr>
+		<tr>
+			<td>IR</td>
+			<td>EGETKEY (输入)</td>
+			<td>返回错误代码 (输出)</td>
+			<td>KEYREQUEST 的地址 (输入)</td>
+			<td>OUTPUTDATA 的地址 (输入)</td>
+		</tr>
+	</table>
+
+	<h3 id="description">描述<a class="anchor" href="#description">¶</a></h3>
+	<p>ENCLU[EGETKEY] 指令从处理器特有的密钥层级结构中返回一个 128 位的机密密钥。寄存器 RBX 包含 KEYREQUEST 结构的有效地址，指令通过解析该结构来确定请求的密钥。下面的“请求密钥”部分描述了可以请求的密钥类型。RCX 寄存器包含返回密钥的有效地址。RBX 和 RCX 中的地址都必须位于 enclave 内部。</p>
+	<p>EGETKEY 使用处理器唯一的值基于多个可能的输入生成特定的派生密钥。此指令叶只能在 enclave 内部执行。</p>
+
+	<h2 id="eegetkey-memory-parameter-semantics">EGETKEY 内存参数语义<a class="anchor" href="#eegetkey-memory-parameter-semantics">¶</a></h2>
+	<table>
+		<tr>
+			<td>KEYREQUEST</td>
+			<td>OUTPUTDATA</td>
+		</tr>
+		<tr>
+			<td>Enclave 进行的读访问</td>
+			<td>Enclave 进行的写访问</td>
+		</tr>
+	</table>
+
+	<p>在验证操作数后，指令确定要生成的密钥，并执行以下操作：</p>
+	<ul>
+		<li>指令根据表 38-66 组合密钥的派生数据。</li>
+		<li>使用派生数据和封装特有值计算派生密钥。</li>
+		<li>将计算出的密钥输出到 RCX 中的地址。</li>
+	</ul>
+	<p>如果操作数未正确对齐，指令将因 #GP(0) 而失败。指令成功完成将清除 RFLAGS.{ZF, CF, AF, OF, SF, PF}。如果用户尝试请求基于无效 CPUSVN 或 ISVSVN（当用户请求被接受时，见下表）的密钥，或者请求其未被授予属性权限的密钥，或者请求硬件不支持的密钥，指令将返回错误代码。这些检查可以按任何顺序执行。因此，由于一种原因（例如，无效属性）指示 of one cause 的错误号并不意味着不存在其他错误。因此，不同的处理器可能会对同一个 Enclave 给出不同的错误号。软件的正确性不应依赖于本节中记录的检查顺序。在这些情况下，ZF 标志被设置，RAX 中对应的错误位（SGX_INVALID_SVN、SGX_INVALID_ATTRIBUTE、SGX_INVALID_KEYNAME）被设置，且 RCX 指定地址的数据保持不变。</p>
+
+	<p><strong>请求密钥</strong></p>
+	<p>KEYREQUEST 结构（参见第 35.18.1 节）标识了要提供的密钥。Keyrequest.KeyName 字段标识所请求的密钥类型。</p>
+
+	<p><strong>派生密钥</strong></p>
+	<p>密钥派生基于 enclave 特有值（参见表 38-66）和处理器密钥的组合。取决于所请求的密钥，某些字段可能由定义直接包含，或者其值从 KeyRequest 中获取。表 38-66 中的“yes”表示从其默认位置（在源行中标识）包含该字段的值，而“request”表示从其对应的 KeyRequest 字段中包含该字段的值。</p>
+
+	<figure id="tbl-38-66">
+		<table>
+			<tr>
+				<th></th>
+				<th>密钥名称</th>
+				<th>属性</th>
+				<th>所有者 Epoch</th>
+				<th>CPU SVN</th>
+				<th>ISV SVN</th>
+				<th>ISV PRODID</th>
+				<th>ISVEXT PRODID</th>
+				<th>ISVFAMILYID</th>
+				<th>MRENCLAVE</th>
+				<th>MRSIGNER</th>
+				<th>CONFIG ID</th>
+				<th>CONFIGSVN</th>
+				<th>RAND</th>
+			</tr>
+			<tr>
+				<td rowspan="2"><strong>来源</strong></td>
+				<td rowspan="2">密钥相关常数</td>
+				<td>Y := SECS.ATTRIBUTES 且 SECS.MISCSELECT 且 SECS.CET_ATTRIBUTES;</td>
+				<td rowspan="2">CR_SGX OWNER EPOCH</td>
+				<td>Y := CPUSVN 寄存器；</td>
+				<td rowspan="2">R := Req.ISV SVN;</td>
+				<td rowspan="2">SECS.ISVID</td>
+				<td rowspan="2">SECS.ISVEXTPRODID</td>
+				<td rowspan="2">SECS.ISVFAMILYID</td>
+				<td rowspan="2">SECS.MRENCLAVE</td>
+				<td rowspan="2">SECS.MRSIGNER</td>
+				<td rowspan="2">SECS.CONFIGID</td>
+				<td rowspan="2">SECS.CONFIGSVN</td>
+				<td rowspan="2">Req.KEYID</td>
+			</tr>
+			<tr>
+				<td>R := AttribMask &amp; SECS.ATTRIBUTES 且 SECS.MISCSELECT 且 SECS.CET_ATTRIBUTES;</td>
+				<td>R := Req.CPU SVN;</td>
+			</tr>
+			<tr>
+				<td>EINITTOKEN</td>
+				<td>Yes</td>
+				<td>Request</td>
+				<td>Yes</td>
+				<td>Request</td>
+				<td>Request</td>
+				<td>Yes</td>
+				<td>No</td>
+				<td>No</td>
+				<td>No</td>
+				<td>Yes</td>
+				<td>No</td>
+				<td>No</td>
+				<td>Request</td>
+			</tr>
+			<tr>
+				<td>Report</td>
+				<td>Yes</td>
+				<td>Yes</td>
+				<td>Yes</td>
+				<td>Yes</td>
+				<td>No</td>
+				<td>No</td>
+				<td>No</td>
+				<td>No</td>
+				<td>Yes</td>
+				<td>No</td>
+				<td>Yes</td>
+				<td>Yes</td>
+				<td>Request</td>
+			</tr>
+			<tr>
+				<td>Seal</td>
+				<td>Yes</td>
+				<td>Request</td>
+				<td>Yes</td>
+				<td>Request</td>
+				<td>Request</td>
+				<td>Request</td>
+				<td>Request</td>
+				<td>Request</td>
+				<td>Request</td>
+				<td>Request</td>
+				<td>Request</td>
+				<td>Request</td>
+				<td>Request</td>
+			</tr>
+			<tr>
+				<td>Provisioning</td>
+				<td>Yes</td>
+				<td>Request</td>
+				<td>No</td>
+				<td>Request</td>
+				<td>Request</td>
+				<td>Yes</td>
+				<td>No</td>
+				<td>No</td>
+				<td>No</td>
+				<td>Yes</td>
+				<td>No</td>
+				<td>No</td>
+				<td>Yes</td>
+			</tr>
+			<tr>
+				<td>Provisioning Seal</td>
+				<td>Yes</td>
+				<td>Request</td>
+				<td>No</td>
+				<td>Request</td>
+				<td>Request</td>
+				<td>Request</td>
+				<td>Request</td>
+				<td>Request</td>
+				<td>No</td>
+				<td>Yes</td>
+				<td>Request</td>
+				<td>Request</td>
+				<td>Yes</td>
+			</tr>
+		</table>
+		<figcaption>表 38-66. 密钥派生</figcaption>
+	</figure>
+
+	<p>允许指定 CPU 或 ISV 代码，或 enclave 配置的 SVN 的密钥有附加要求。调用者请求的 SVN 密钥分别不能超出当前 CPU、ISV 或 enclave 配置的 SVN。</p>
+	<p>有几种密钥受访问控制。访问 Provisioning Key 和 Provisioning Seal key 要求设置 enclave 的 ATTRIBUTES.PROVISIONKEY。EINITTOKEN Key 要求设置 ATTRIBUTES.EINITTOKEN_KEY 且 SECS.MRSIGNER 等于 IA32_SGXLEPUBKEYHASH。</p>
+	<p>有些密钥是基于硬编码的 PKCS 填充常数（352 字节字符串）派生的：</p>
+	<p>HARDCODED_PKCS1_5_PADDING[15:0] := 0100H;</p>
+	<p>HARDCODED_PKCS1_5_PADDING[2655:16] := SignExtend330Byte(-1); // 330 bytes of 0FFH</p>
+	<p>HARDCODED_PKCS1_5_PADDING[2815:2656] := 2004000501020403650148866009060D30313000H;</p>
+
+	<p>错误代码如下：</p>
+	<figure id="tbl-38-67">
+		<table>
+			<tr>
+				<th>错误代码 (参见表 38-4)</th>
+				<th>值</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>No Error</td>
+				<td>0</td>
+				<td>EGETKEY 成功。</td>
+			</tr>
+			<tr>
+				<td>SGX_INVALID_ATTRIBUTE</td>
+				<td></td>
+				<td>KEYREQUEST 包含 enclave 未被授权的 KEYNAME。</td>
+			</tr>
+			<tr>
+				<td>SGX_INVALID_CPUSVN</td>
+				<td></td>
+				<td>如果 KEYREQUEST.CPUSVN 是不受支持的平台 CPUSVN 值。</td>
+			</tr>
+			<tr>
+				<td>SGX_INVALID_ISVSVN</td>
+				<td></td>
+				<td>如果 KEYREQUEST 软件 SVN (ISVSVN 或 CONFIGSVN) 大于 enclave 对应的 SVN。</td>
+			</tr>
+			<tr>
+				<td>SGX_INVALID_KEYNAME</td>
+				<td></td>
+				<td>如果 KEYREQUEST.KEYNAME 是不受支持的值。</td>
+			</tr>
+		</table>
+		<figcaption>表 38-67. EGETKEY 在 RAX 中的返回值</figcaption>
+	</figure>
+
+	<h3 id="concurrency-restrictions">并发限制<a class="anchor" href="#concurrency-restrictions">¶</a></h3>
+	<figure id="tbl-38-68">
+		<table>
+			<tr>
+				<th rowspan="2">叶函数</th>
+				<th rowspan="2">参数</th>
+				<th colspan="3">基本并发限制</th>
+			</tr>
+			<tr>
+				<th>访问权限</th>
+				<th>冲突时</th>
+				<th>SGX_CONFLICT VM Exit 资格</th>
+			</tr>
+			<tr>
+				<td rowspan="2">EGETKEY</td>
+				<td>KEYREQUEST [DS:RBX]</td>
+				<td>并发</td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>OUTPUTDATA [DS:RCX]</td>
+				<td>并发</td>
+				<td></td>
+				<td></td>
+			</tr>
+		</table>
+		<figcaption>表 38-68. EGETKEY 的基本并发限制</figcaption>
+	</figure>
+
+	<figure id="tbl-38-69">
+		<table>
+			<tr>
+				<th rowspan="3">叶函数</th>
+				<th rowspan="3">参数</th>
+				<th colspan="6">附加并发限制</th>
+			</tr>
+			<tr>
+				<th colspan="2">vs. EACCEPT, EACCEPTCOPY, EMODPE, EMODPR, EMODT</th>
+				<th colspan="2">vs. EADD, EEXTEND, EINIT</th>
+				<th colspan="2">vs. ETRACK, ETRACKC</th>
+			</tr>
+			<tr>
+				<th>访问权限</th>
+				<th>冲突时</th>
+				<th>访问权限</th>
+				<th>冲突时</th>
+				<th>访问权限</th>
+				<th>冲突时</th>
+			</tr>
+			<tr>
+				<td rowspan="2">EGETKEY</td>
+				<td>KEYREQUEST [DS:RBX]</td>
+				<td>并发</td>
+				<td></td>
+				<td>并发</td>
+				<td></td>
+				<td>并发</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>OUTPUTDATA [DS:RCX]</td>
+				<td>并发</td>
+				<td></td>
+				<td>并发</td>
+				<td></td>
+				<td>并发</td>
+				<td></td>
+			</tr>
+		</table>
+		<figcaption>表 38-69. EGETKEY 的附加并发限制</figcaption>
+	</figure>
+
+	<h3 id="operation">操作<a class="anchor" href="#operation">¶</a></h3>
+	<h2 id="temp-variables-in-egetkey-operational-flow">EGETKEY 操作流程中的临时变量<a class="anchor" href="#temp-variables-in-egetkey-operational-flow">¶</a></h2>
+	<table>
+		<tr>
+			<th>名称</th>
+			<th>类型</th>
+			<th>大小 (位)</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>TMP_CURRENTSECS</td>
+			<td>有效地址</td>
+			<td>32/64</td>
+			<td>当前执行 enclave 的 SECS 地址。</td>
+		</tr>
+		<tr>
+			<td>TMP_KEYDEPENDENCIES</td>
+			<td>字节结构</td>
+			<td>-</td>
+			<td>密钥派生的临时空间。</td>
+		</tr>
+		<tr>
+			<td>TMP_ATTRIBUTES</td>
+			<td>二进制</td>
+			<td>128</td>
+			<td>计算可密封属性的临时空间。</td>
+		</tr>
+		<tr>
+			<td>TMP_ISVEXTPRODID</td>
+			<td>二进制</td>
+			<td>16 字节</td>
+			<td>ISVEXTPRODID 的临时空间。</td>
+		</tr>
+		<tr>
+			<td>TMP_ISVPRODID</td>
+			<td>二进制</td>
+			<td>2 字节</td>
+			<td>ISVPRODID 的临时空间。</td>
+		</tr>
+		<tr>
+			<td>TMP_ISVFAMILYID</td>
+			<td>二进制</td>
+			<td>16 字节</td>
+			<td>ISVFAMILYID 的临时空间。</td>
+		</tr>
+		<tr>
+			<td>TMP_CONFIGID</td>
+			<td>二进制</td>
+			<td>64 字节</td>
+			<td>CONFIGID 的临时空间。</td>
+		</tr>
+		<tr>
+			<td>TMP_CONFIGSVN</td>
+			<td>二进制</td>
+			<td>2 字节</td>
+			<td>CONFIGSVN 的临时空间。</td>
+		</tr>
+		<tr>
+			<td>TMP_OUTPUTKEY</td>
+			<td>二进制</td>
+			<td>128</td>
+			<td>计算密钥的临时空间。</td>
+		</tr>
+	</table>
+
+	<p>(* Make sure KEYREQUEST is properly aligned and inside the current enclave *)</p>
+	<p>IF ( (DS:RBX is not 512Byte aligned) or (DS:RBX is not within CR_ELRANGE) )</p>
+	<p>THEN #GP(0); FI;</p>
+	<p>(* Make sure DS:RBX is an EPC address and the EPC page is valid *)</p>
+	<p>IF ( (DS:RBX does not resolve to an EPC address) or (EPCM(DS:RBX).VALID = 0) )</p>
+	<p>THEN #PF(DS:RBX); FI;</p>
+	<p>IF (EPCM(DS:RBX).BLOCKED = 1)</p>
+	<p>THEN #PF(DS:RBX); FI;</p>
+	<p>(* Check page parameters for correctness *)</p>
+	<p>IF ( (EPCM(DS:RBX).PT ≠ PT_REG) or (EPCM(DS:RBX).ENCLAVESECS ≠ CR_ACTIVE_SECS) or (EPCM(DS:RBX).PENDING = 1) or</p>
+	<p>(EPCM(DS:RBX).MODIFIED = 1) or (EPCM(DS:RBX).ENCLAVEADDRESS ≠ (DS:RBX &amp; ~0FFFH) ) or (EPCM(DS:RBX).R = 0) )</p>
+	<p>THEN #PF(DS:RBX);</p>
+	<p>FI;</p>
+	<p>(* Make sure OUTPUTDATA is properly aligned and inside the current enclave *)</p>
+	<p>IF ( (DS:RCX is not 16Byte aligned) or (DS:RCX is not within CR_ELRANGE) )</p>
+	<p>THEN #GP(0); FI;</p>
+	<p>(* Make sure DS:RCX is an EPC address and the EPC page is valid *)</p>
+	<p>IF ( (DS:RCX does not resolve to an EPC address) or (EPCM(DS:RCX).VALID = 0) )</p>
+	<p>THEN #PF(DS:RCX); FI;</p>
+	<p>IF (EPCM(DS:RCX).BLOCKED = 1)</p>
+	<p>THEN #PF(DS:RCX); FI;</p>
+	<p>(* Check page parameters for correctness *)</p>
+	<p>IF ( (EPCM(DS:RCX).PT ≠ PT_REG) or (EPCM(DS:RCX).ENCLAVESECS ≠ CR_ACTIVE_SECS) or (EPCM(DS:RCX).PENDING = 1) or</p>
+	<p>(EPCM(DS:RCX).MODIFIED = 1) or (EPCM(DS:RCX).ENCLAVEADDRESS ≠ (DS:RCX &amp; ~0FFFH) ) or (EPCM(DS:RCX).W = 0) )</p>
+	<p>THEN #PF(DS:RCX);</p>
+	<p>FI;</p>
+	<p>(* Verify RESERVED spaces in KEYREQUEST are valid *)</p>
+	<p>IF ( (DS:RBX).RESERVED ≠ 0) or (DS:RBX.KEYPOLICY.RESERVED ≠ 0) )</p>
+	<p>THEN #GP(0); FI;</p>
+	<p>TMP_CURRENTSECS := CR_ACTIVE_SECS;</p>
+	<p>(* Verify that CONFIGSVN &amp; New Policy bits are not used if KSS is not enabled *)</p>
+	<p>IF ((TMP_CURRENTSECS.ATTRIBUTES.KSS == 0) AND ((DS:RBX.KEYPOLICY &amp; 0x003C ≠ 0) OR (DS:RBX.CONFIGSVN &gt; 0)))</p>
+	<p>THEN #GP(0); FI;</p>
+	<p>(* Determine which enclave attributes that must be included in the key. Attributes that must always be include INIT &amp; DEBUG *)</p>
+	<p>REQUIRED_SEALING_MASK[127:0] := 00000000 00000000 00000000 00000003H;</p>
+	<p>TMP_ATTRIBUTES := (DS:RBX.ATTRIBUTEMASK | REQUIRED_SEALING_MASK) &amp; TMP_CURRENTSECS.ATTRIBUTES;</p>
+	<p>(* Compute MISCSELECT fields to be included *)</p>
+	<p>TMP_MISCSELECT := DS:RBX.MISCMASK &amp; TMP_CURRENTSECS.MISCSELECT</p>
+	<p>(* Compute CET_ATTRIBUTES fields to be included *)</p>
+	<p>IF (CPUID.(EAX=12H, ECX=1):EAX[6] = 1)</p>
+	<p>THEN TMP_CET_ATTRIBUTES := DS:RBX.CET_ATTRIBUTES_ MASK &amp; TMP_CURRENTSECS.CET_ATTRIBUTES; FI;</p>
+	<p>TMP_KEYDEPENDENCIES := 0;</p>
+	<p>CASE (DS:RBX.KEYNAME)</p>
+	<p>SEAL_KEY:</p>
+	<p>IF (DS:RBX.CPUSVN is beyond current CPU configuration)</p>
+	<p>THEN</p>
+	<p>RFLAGS.ZF := 1;</p>
+	<p>RAX := SGX_INVALID_CPUSVN;</p>
+	<p>GOTO EXIT;</p>
+	<p>FI;</p>
+	<p>IF (DS:RBX.ISVSVN &gt; TMP_CURRENTSECS.ISVSVN)</p>
+	<p>THEN</p>
+	<p>RFLAGS.ZF := 1;</p>
+	<p>RAX := SGX_INVALID_ISVSVN;</p>
+	<p>GOTO EXIT;</p>
+	<p>FI;</p>
+	<p>IF (DS:RBX.CONFIGSVN &gt; TMP_CURRENTSECS.CONFIGSVN)</p>
+	<p>THEN</p>
+	<p>RFLAGS.ZF := 1;</p>
+	<p>RAX := SGX_INVALID_ISVSVN;</p>
+	<p>GOTO EXIT;</p>
+	<p>FI;</p>
+	<p>(*Include enclave identity?*)</p>
+	<p>TMP_MRENCLAVE := 0;</p>
+	<p>IF (DS:RBX.KEYPOLICY.MRENCLAVE = 1)</p>
+	<p>THEN TMP_MRENCLAVE := TMP_CURRENTSECS.MRENCLAVE;</p>
+	<p>FI;</p>
+	<p>(*Include enclave author?*)</p>
+	<p>TMP_MRSIGNER := 0;</p>
+	<p>IF (DS:RBX.KEYPOLICY.MRSIGNER = 1)</p>
+	<p>THEN TMP_MRSIGNER := TMP_CURRENTSECS.MRSIGNER;</p>
+	<p>FI;</p>
+	<p>(* Include enclave product family ID? *)</p>
+	<p>TMP_ISVFAMILYID := 0;</p>
+	<p>IF (DS:RBX.KEYPOLICY.ISVFAMILYID = 1)</p>
+	<p>THEN TMP_ISVFAMILYID := TMP_CURRENTSECS.ISVFAMILYID;</p>
+	<p>FI;</p>
+	<p>(* Include enclave product ID? *)</p>
+	<p>TMP_ISVPRODID := 0;</p>
+	<p>IF (DS:RBX.KEYPOLICY.NOISVPRODID = 0)</p>
+	<p>TMP_ISVPRODID := TMP_CURRENTSECS.ISVPRODID;</p>
+	<p>FI;</p>
+	<p>(* Include enclave Config ID? *)</p>
+	<p>TMP_CONFIGID := 0;</p>
+	<p>TMP_CONFIGSVN := 0;</p>
+	<p>IF (DS:RBX.KEYPOLICY.CONFIGID = 1)</p>
+	<p>TMP_CONFIGID := TMP_CURRENTSECS.CONFIGID;</p>
+	<p>TMP_CONFIGSVN := DS:RBX.CONFIGSVN;</p>
+	<p>FI;</p>
+	<p>(* Include enclave extended product ID? *)</p>
+	<p>TMP_ISVEXTPRODID := 0;</p>
+	<p>IF (DS:RBX.KEYPOLICY.ISVEXTPRODID = 1 )</p>
+	<p>TMP_ISVEXTPRODID := TMP_CURRENTSECS.ISVEXTPRODID;</p>
+	<p>FI;</p>
+	<p>//Determine values key is based on</p>
+	<p>TMP_KEYDEPENDENCIES.KEYNAME := SEAL_KEY;</p>
+	<p>TMP_KEYDEPENDENCIES.ISVFAMILYID := TMP_ISVFAMILYID;</p>
+	<p>TMP_KEYDEPENDENCIES.ISVEXTPRODID := TMP_ISVEXTPRODID;</p>
+	<p>TMP_KEYDEPENDENCIES.ISVPRODID := TMP_ISVPRODID;</p>
+	<p>TMP_KEYDEPENDENCIES.ISVSVN := DS:RBX.ISVSVN;</p>
+	<p>TMP_KEYDEPENDENCIES.SGXOWNEREPOCH := CR_SGXOWNEREPOCH;</p>
+	<p>TMP_KEYDEPENDENCIES.ATTRIBUTES := TMP_ATTRIBUTES;</p>
+	<p>TMP_KEYDEPENDENCIES.ATTRIBUTESMASK := DS:RBX.ATTRIBUTEMASK;</p>
+	<p>TMP_KEYDEPENDENCIES.MRENCLAVE := TMP_MRENCLAVE;</p>
+	<p>TMP_KEYDEPENDENCIES.MRSIGNER := TMP_MRSIGNER;</p>
+	<p>TMP_KEYDEPENDENCIES.KEYID := DS:RBX.KEYID;</p>
+	<p>TMP_KEYDEPENDENCIES.SEAL_KEY_FUSES := CR_SEAL_FUSES;</p>
+	<p>TMP_KEYDEPENDENCIES.CPUSVN := DS:RBX.CPUSVN;</p>
+	<p>TMP_KEYDEPENDENCIES.PADDING := TMP_CURRENTSECS.PADDING;</p>
+	<p>TMP_KEYDEPENDENCIES.MISCSELECT := TMP_MISCSELECT;</p>
+	<p>TMP_KEYDEPENDENCIES.MISCMASK := ~DS:RBX.MISCMASK;</p>
+	<p>TMP_KEYDEPENDENCIES.KEYPOLICY := DS:RBX.KEYPOLICY;</p>
+	<p>TMP_KEYDEPENDENCIES.CONFIGID := TMP_CONFIGID;</p>
+	<p>TMP_KEYDEPENDENCIES.CONFIGSVN := TMP_CONFIGSVN;</p>
+	<p>IF CPUID.(EAX=12H, ECX=1):EAX[6] = 1</p>
+	<p>THEN</p>
+	<p>TMP_KEYDEPENDENCIES.CET_ATTRIBUTES := TMP_CET_ATTRIBUTES;</p>
+	<p>TMP_KEYDEPENDENCIES.CET_ATTRIBUTES _MASK := DS:RBX.CET_ATTRIBUTES _MASK;</p>
+	<p>FI;</p>
+	<p>BREAK;</p>
+	<p>REPORT_KEY:</p>
+	<p>//Determine values key is based on</p>
+	<p>TMP_KEYDEPENDENCIES.KEYNAME := REPORT_KEY;</p>
+	<p>TMP_KEYDEPENDENCIES.ISVFAMILYID := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.ISVEXTPRODID := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.ISVPRODID := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.ISVSVN := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.SGXOWNEREPOCH := CR_SGXOWNEREPOCH;</p>
+	<p>TMP_KEYDEPENDENCIES.ATTRIBUTES := TMP_CURRENTSECS.ATTRIBUTES;</p>
+	<p>TMP_KEYDEPENDENCIES.ATTRIBUTESMASK := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.MRENCLAVE := TMP_CURRENTSECS.MRENCLAVE;</p>
+	<p>TMP_KEYDEPENDENCIES.MRSIGNER := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.KEYID := DS:RBX.KEYID;</p>
+	<p>TMP_KEYDEPENDENCIES.SEAL_KEY_FUSES := CR_SEAL_FUSES;</p>
+	<p>TMP_KEYDEPENDENCIES.CPUSVN := CR_CPUSVN;</p>
+	<p>TMP_KEYDEPENDENCIES.PADDING := HARDCODED_PKCS1_5_PADDING;</p>
+	<p>TMP_KEYDEPENDENCIES.MISCSELECT := TMP_CURRENTSECS.MISCSELECT;</p>
+	<p>TMP_KEYDEPENDENCIES.MISCMASK := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.KEYPOLICY := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.CONFIGID := TMP_CURRENTSECS.CONFIGID;</p>
+	<p>TMP_KEYDEPENDENCIES.CONFIGSVN := TMP_CURRENTSECS.CONFIGSVN;</p>
+	<p>IF (CPUID.(EAX=12H, ECX=1):EAX[6] = 1)</p>
+	<p>THEN</p>
+	<p>TMP_KEYDEPENDENCIES.CET_ATTRIBUTES := TMP_CURRENTSECS.CET_ATTRIBUTES;</p>
+	<p>TMP_KEYDEPENDENCIES.CET_ATTRIBUTES_MASK := 0;</p>
+	<p>FI;</p>
+	<p>BREAK;</p>
+	<p>EINITTOKEN_KEY:</p>
+	<p>(* Check ENCLAVE has EINITTOKEN Key capability *)</p>
+	<p>IF (TMP_CURRENTSECS.ATTRIBUTES.EINITTOKEN_KEY = 0)</p>
+	<p>THEN</p>
+	<p>RFLAGS.ZF := 1;</p>
+	<p>RAX := SGX_INVALID_ATTRIBUTE;</p>
+	<p>GOTO EXIT;</p>
+	<p>FI;</p>
+	<p>IF (DS:RBX.CPUSVN is beyond current CPU configuration)</p>
+	<p>THEN</p>
+	<p>RFLAGS.ZF := 1;</p>
+	<p>RAX := SGX_INVALID_CPUSVN;</p>
+	<p>GOTO EXIT;</p>
+	<p>FI;</p>
+	<p>IF (DS:RBX.ISVSVN &gt; TMP_CURRENTSECS.ISVSVN)</p>
+	<p>THEN</p>
+	<p>RFLAGS.ZF := 1;</p>
+	<p>RAX := SGX_INVALID_ISVSVN;</p>
+	<p>GOTO EXIT;</p>
+	<p>FI;</p>
+	<p>(* Determine values key is based on *)</p>
+	<p>TMP_KEYDEPENDENCIES.KEYNAME := EINITTOKEN_KEY;</p>
+	<p>TMP_KEYDEPENDENCIES.ISVFAMILYID := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.ISVEXTPRODID := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.ISVPRODID := TMP_CURRENTSECS.ISVPRODID</p>
+	<p>TMP_KEYDEPENDENCIES.ISVSVN := DS:RBX.ISVSVN;</p>
+	<p>TMP_KEYDEPENDENCIES.SGXOWNEREPOCH := CR_SGXOWNEREPOCH;</p>
+	<p>TMP_KEYDEPENDENCIES.ATTRIBUTES := TMP_ATTRIBUTES;</p>
+	<p>TMP_KEYDEPENDENCIES.ATTRIBUTESMASK := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.MRENCLAVE := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.MRSIGNER := TMP_CURRENTSECS.MRSIGNER;</p>
+	<p>TMP_KEYDEPENDENCIES.KEYID := DS:RBX.KEYID;</p>
+	<p>TMP_KEYDEPENDENCIES.SEAL_KEY_FUSES := CR_SEAL_FUSES;</p>
+	<p>TMP_KEYDEPENDENCIES.CPUSVN := DS:RBX.CPUSVN;</p>
+	<p>TMP_KEYDEPENDENCIES.PADDING := TMP_CURRENTSECS.PADDING;</p>
+	<p>TMP_KEYDEPENDENCIES.MISCSELECT := TMP_MISCSELECT;</p>
+	<p>TMP_KEYDEPENDENCIES.MISCMASK := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.KEYPOLICY := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.CONFIGID := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.CONFIGSVN := 0;</p>
+	<p>IF (CPUID.(EAX=12H, ECX=1):EAX[6] = 1)</p>
+	<p>THEN</p>
+	<p>TMP_KEYDEPENDENCIES.CET_ATTRIBUTES := TMP_CET_ATTRIBUTES;</p>
+	<p>TMP_KEYDEPENDENCIES.CET_ATTRIBUTES _MASK := 0;</p>
+	<p>FI;</p>
+	<p>BREAK;</p>
+	<p>PROVISION_KEY:</p>
+	<p>(* Check ENCLAVE has PROVISIONING capability *)</p>
+	<p>IF (TMP_CURRENTSECS.ATTRIBUTES.PROVISIONKEY = 0)</p>
+	<p>THEN</p>
+	<p>RFLAGS.ZF := 1;</p>
+	<p>RAX := SGX_INVALID_ATTRIBUTE;</p>
+	<p>GOTO EXIT;</p>
+	<p>FI;</p>
+	<p>IF (DS:RBX.CPUSVN is beyond current CPU configuration)</p>
+	<p>THEN</p>
+	<p>RFLAGS.ZF := 1;</p>
+	<p>RAX := SGX_INVALID_CPUSVN;</p>
+	<p>GOTO EXIT;</p>
+	<p>FI;</p>
+	<p>IF (DS:RBX.ISVSVN &gt; TMP_CURRENTSECS.ISVSVN)</p>
+	<p>THEN</p>
+	<p>RFLAGS.ZF := 1;</p>
+	<p>RAX := SGX_INVALID_ISVSVN;</p>
+	<p>GOTO EXIT;</p>
+	<p>FI;</p>
+	<p>(* Determine values key is based on *)</p>
+	<p>TMP_KEYDEPENDENCIES.KEYNAME := PROVISION_KEY;</p>
+	<p>TMP_KEYDEPENDENCIES.ISVFAMILYID := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.ISVEXTPRODID := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.ISVPRODID := TMP_CURRENTSECS.ISVPRODID;</p>
+	<p>TMP_KEYDEPENDENCIES.ISVSVN := DS:RBX.ISVSVN;</p>
+	<p>TMP_KEYDEPENDENCIES.SGXOWNEREPOCH := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.ATTRIBUTES := TMP_ATTRIBUTES;</p>
+	<p>TMP_KEYDEPENDENCIES.ATTRIBUTESMASK := DS:RBX.ATTRIBUTEMASK;</p>
+	<p>TMP_KEYDEPENDENCIES.MRENCLAVE := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.MRSIGNER := TMP_CURRENTSECS.MRSIGNER;</p>
+	<p>TMP_KEYDEPENDENCIES.KEYID := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.SEAL_KEY_FUSES := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.CPUSVN := DS:RBX.CPUSVN;</p>
+	<p>TMP_KEYDEPENDENCIES.PADDING := TMP_CURRENTSECS.PADDING;</p>
+	<p>TMP_KEYDEPENDENCIES.MISCSELECT := TMP_MISCSELECT;</p>
+	<p>TMP_KEYDEPENDENCIES.MISCMASK := ~DS:RBX.MISCMASK;</p>
+	<p>TMP_KEYDEPENDENCIES.KEYPOLICY := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.CONFIGID := 0;</p>
+	<p>IF (CPUID.(EAX=12H, ECX=1):EAX[6] = 1)</p>
+	<p>THEN</p>
+	<p>TMP_KEYDEPENDENCIES.CET_ATTRIBUTES := TMP_CET_ATTRIBUTES;</p>
+	<p>TMP_KEYDEPENDENCIES.CET_ATTRIBUTES _MASK := 0;</p>
+	<p>FI;</p>
+	<p>BREAK;</p>
+	<p>PROVISION_SEAL_KEY:</p>
+	<p>(* Check ENCLAVE has PROVISIONING capability *)</p>
+	<p>IF (TMP_CURRENTSECS.ATTRIBUTES.PROVISIONKEY = 0)</p>
+	<p>THEN</p>
+	<p>RFLAGS.ZF := 1;</p>
+	<p>RAX := SGX_INVALID_ATTRIBUTE;</p>
+	<p>GOTO EXIT;</p>
+	<p>FI;</p>
+	<p>IF (DS:RBX.CPUSVN is beyond current CPU configuration)</p>
+	<p>THEN</p>
+	<p>RFLAGS.ZF := 1;</p>
+	<p>RAX := SGX_INVALID_CPUSVN;</p>
+	<p>GOTO EXIT;</p>
+	<p>FI;</p>
+	<p>IF (DS:RBX.ISVSVN &gt; TMP_CURRENTSECS.ISVSVN)</p>
+	<p>THEN</p>
+	<p>RFLAGS.ZF := 1;</p>
+	<p>RAX := SGX_INVALID_ISVSVN;</p>
+	<p>GOTO EXIT;</p>
+	<p>FI;</p>
+	<p>(* Include enclave product family ID? *)</p>
+	<p>TMP_ISVFAMILYID := 0;</p>
+	<p>IF (DS:RBX.KEYPOLICY.ISVFAMILYID = 1)</p>
+	<p>THEN TMP_ISVFAMILYID := TMP_CURRENTSECS.ISVFAMILYID;</p>
+	<p>FI;</p>
+	<p>(* Include enclave product ID? *)</p>
+	<p>TMP_ISVPRODID := 0;</p>
+	<p>IF (DS:RBX.KEYPOLICY.NOISVPRODID = 0)</p>
+	<p>TMP_ISVPRODID := TMP_CURRENTSECS.ISVPRODID;</p>
+	<p>FI;</p>
+	<p>(* Include enclave Config ID? *)</p>
+	<p>TMP_CONFIGID := 0;</p>
+	<p>TMP_CONFIGSVN := 0;</p>
+	<p>IF (DS:RBX.KEYPOLICY.CONFIGID = 1)</p>
+	<p>TMP_CONFIGID := TMP_CURRENTSECS.CONFIGID;</p>
+	<p>TMP_CONFIGSVN := DS:RBX.CONFIGSVN;</p>
+	<p>FI;</p>
+	<p>(* Include enclave extended product ID? *)</p>
+	<p>TMP_ISVEXTPRODID := 0;</p>
+	<p>IF (DS:RBX.KEYPOLICY.ISVEXTPRODID = 1)</p>
+	<p>TMP_ISVEXTPRODID := TMP_CURRENTSECS.ISVEXTPRODID;</p>
+	<p>FI;</p>
+	<p>(* Determine values key is based on *)</p>
+	<p>TMP_KEYDEPENDENCIES.KEYNAME := PROVISION_SEAL_KEY;</p>
+	<p>TMP_KEYDEPENDENCIES.ISVFAMILYID := TMP_ISVFAMILYID;</p>
+	<p>TMP_KEYDEPENDENCIES.ISVEXTPRODID := TMP_ISVEXTPRODID;</p>
+	<p>TMP_KEYDEPENDENCIES.ISVPRODID := TMP_ISVPRODID;</p>
+	<p>TMP_KEYDEPENDENCIES.ISVSVN := DS:RBX.ISVSVN;</p>
+	<p>TMP_KEYDEPENDENCIES.SGXOWNEREPOCH := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.ATTRIBUTES := TMP_ATTRIBUTES;</p>
+	<p>TMP_KEYDEPENDENCIES.ATTRIBUTESMASK := DS:RBX.ATTRIBUTEMASK;</p>
+	<p>TMP_KEYDEPENDENCIES.MRENCLAVE := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.MRSIGNER := TMP_CURRENTSECS.MRSIGNER;</p>
+	<p>TMP_KEYDEPENDENCIES.KEYID := 0;</p>
+	<p>TMP_KEYDEPENDENCIES.SEAL_KEY_FUSES := CR_SEAL_FUSES;</p>
+	<p>TMP_KEYDEPENDENCIES.CPUSVN := DS:RBX.CPUSVN;</p>
+	<p>TMP_KEYDEPENDENCIES.PADDING := TMP_CURRENTSECS.PADDING;</p>
+	<p>TMP_KEYDEPENDENCIES.MISCSELECT := TMP_MISCSELECT;</p>
+	<p>TMP_KEYDEPENDENCIES.MISCMASK := ~DS:RBX.MISCMASK;</p>
+	<p>TMP_KEYDEPENDENCIES.KEYPOLICY := DS:RBX.KEYPOLICY;</p>
+	<p>TMP_KEYDEPENDENCIES.CONFIGID := TMP_CONFIGID;</p>
+	<p>TMP_KEYDEPENDENCIES.CONFIGSVN := TMP_CONFIGSVN;</p>
+	<p>IF (CPUID.(EAX=12H, ECX=1):EAX[6] = 1)</p>
+	<p>THEN</p>
+	<p>TMP_KEYDEPENDENCIES.CET_ATTRIBUTES := TMP_CET_ATTRIBUTES;</p>
+	<p>TMP_KEYDEPENDENCIES.CET_ATTRIBUTES _MASK := 0;</p>
+	<p>FI;</p>
+	<p>BREAK;</p>
+	<p>DEFAULT:</p>
+	<p>(* The value of KEYNAME is invalid *)</p>
+	<p>RFLAGS.ZF := 1;</p>
+	<p>RAX := SGX_INVALID_KEYNAME;</p>
+	<p>GOTO EXIT;</p>
+	<p>ESAC;</p>
+	<p>(* Calculate the final derived key and output to the address in RCX *)</p>
+	<p>TMP_OUTPUTKEY := derivekey(TMP_KEYDEPENDENCIES);</p>
+	<p>DS:RCX[15:0] := TMP_OUTPUTKEY;</p>
+	<p>RAX := 0;</p>
+	<p>RFLAGS.ZF := 0;</p>
+	<p>EXIT:</p>
+	<p>RFLAGS.CF := 0;</p>
+	<p>RFLAGS.PF := 0;</p>
+	<p>RFLAGS.AF := 0;</p>
+	<p>RFLAGS.OF := 0;</p>
+	<p>RFLAGS.SF := 0;</p>
+
+	<h3 id="flags-affected">影响的标志寄存器<a class="anchor" href="#flags-affected">¶</a></h3>
+	<p>如果成功，清除 ZF，否则设置 ZF。清除 CF、PF、AF、OF、SF。</p>
+
+	<h3 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h3>
+	<table>
+		<tr>
+			<td rowspan="5">#GP(0)</td>
+			<td>如果地在 enclave 外部执行。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数有效地址超出当前 enclave 范围。</td>
+		</tr>
+		<tr>
+			<td>如果有效地址未正确对齐。</td>
+		</tr>
+		<tr>
+			<td>如果有效地址超出 DS 段限制。</td>
+		</tr>
+		<tr>
+			<td>如果 KEYREQUEST 格式无效。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误代码)</td>
+			<td>如果访问内存时发生页面错误。</td>
+		</tr>
+	</table>
+
+	<h3 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h3>
+	<table>
+		<tr>
+			<td rowspan="5">#GP(0)</td>
+			<td>如果地在 enclave 外部执行。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数有效地址超出当前 enclave 范围。</td>
+		</tr>
+		<tr>
+			<td>如果有效地址未正确对齐。</td>
+		</tr>
+		<tr>
+			<td>如果有效地址非规范形式。</td>
+		</tr>
+		<tr>
+			<td>如果 KEYREQUEST 格式无效。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误代码)</td>
+			<td>如果访问内存操作数时发生页面错误。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

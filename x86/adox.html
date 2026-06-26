@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>ADOX — 带溢出标志的双操作数无符号整数加法</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>ADOX — 带溢出标志的双操作数无符号整数加法</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>F3 0F 38 F6 /r ADOX r32, r/m32</td>
+			<td>RM</td>
+			<td>V/V</td>
+			<td>ADX</td>
+			<td>对 r32、r/m32 和 OF 进行无符号加法，结果存入 r32，并写入 OF。</td>
+		</tr>
+		<tr>
+			<td>F3 REX.w 0F 38 F6 /r ADOX r64, r/m64</td>
+			<td>RM</td>
+			<td>V/N.E.</td>
+			<td>ADX</td>
+			<td>对 r64、r/m64 和 OF 进行无符号加法，结果存入 r64，并写入 OF。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>RM</td>
+			<td>ModRM:reg (r, w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>对目标操作数（第一操作数）、源操作数（第二操作数）以及溢出标志（OF）进行无符号加法，并将结果存入目标操作数。目标操作数是一个通用寄存器，而源操作数可以是一个通用寄存器或内存地址。OF 的状态代表上一次加法的进位。该指令使用操作数无符号加法产生的进位来设置 OF 标志。</p>
+	<p>ADOX 指令在多精度加法的上下文环境中执行，其中我们用一个进位链将一系列操作数相加。在加法链的开始，我们执行一条指令来清零 OF（例如 XOR）。</p>
+	<p>此指令在实模式和虚拟8086模式下受支持。如果不处于 64 位模式，操作数大小始终为 32 位。</p>
+	<p>在 64 位模式下，默认操作数大小为 32 位。使用 REX.R 形式 of REX 前缀允许访问额外的寄存器（R8-15）。使用 REX.W 形式 of REX 前缀可将操作提升为 64 位。</p>
+	<p>ADOX 无论在事务区域内部还是外部均可正常执行。</p>
+	<p>注意：ADOX 对 CF 和 OF 标志的定义不同于《Intel<sup>®</sup> 64 和 IA-32 架构软件开发人员手册》第 2A 卷中定义的 ADD/ADC 指令。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF OperandSize is 64-bit
+    THEN OF:DEST[63:0] := DEST[63:0] + SRC[63:0] + OF;
+    ELSE OF:DEST[31:0] := DEST[31:0] + SRC[31:0] + OF;
+FI;
+</pre>
+
+	<h2 id="flags-affected">影响的标志<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>OF 根据结果更新。CF、SF、ZF、AF 和 PF 标志不受影响。</p>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>unsigned char _addcarryx_u32 (unsigned char c_in, unsigned int src1, unsigned int src2, unsigned int *sum_out);
+</pre>
+	<pre>unsigned char _addcarryx_u64 (unsigned char c_in, unsigned __int64 src1, unsigned __int64 src2, unsigned __int64 *sum_out);
+</pre>
+
+	<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>如果 CPUID.(EAX=07H, ECX=0H):EBX.ADX[bit 19] = 0。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果 SS 段中的地址非法。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果 CS、DS、ES、FS 或 GS 段中的内存操作数有效地址非法。</td>
+		</tr>
+		<tr>
+			<td>如果使用 DS、ES、FS 或 GS 寄存器访问内存，且其包含空段选择子。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>如果 CPUID.(EAX=07H, ECX=0H):EBX.ADX[bit 19] = 0。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果 SS 段中的地址非法。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果操作数的任何部分超出了从 0 到 FFFFH 的有效地址空间。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>如果 CPUID.(EAX=07H, ECX=0H):EBX.ADX[bit 19] = 0。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果 SS 段中的地址非法。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果操作数的任何部分超出了从 0 到 FFFFH 的有效地址空间。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>如果 CPUID.(EAX=07H, ECX=0H):EBX.ADX[bit 19] = 0。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果引用 SS 段的内存地址处于非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存地址处于非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

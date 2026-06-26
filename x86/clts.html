@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>CLTS — 清除 CR0 中的任务切换 (TS) 标志位</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>CLTS — 清除 CR0 中的任务切换 (TS) 标志位</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>0F 06</td>
+			<td>CLTS</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>清除 CR0 中的 TS 标志位。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>清除 CR0 寄存器中的任务切换（TS）标志位。此指令旨在用于操作系统例程。它是一条特权指令，只能在 CPL 为 0 时执行。它被允许在实地址模式下执行，以允许对保护模式进行初始化。</p>
+	<p>处理器在每次发生任务切换时都会设置 TS 标志位。该标志位用于在多任务应用程序中同步保存 FPU 上下文。有关此标志的更多信息，请参阅《Intel<sup>®</sup> 64 和 IA-32 架构软件开发人员手册》第 3A 卷第 2 章中标题为“控制寄存器”一节中关于 TS 标志的描述。</p>
+	<p>CLTS 指令在非 64 位模式和 64 位模式下的操作相同。</p>
+	<p>有关此指令在 VMX 非根操作中行为的更多信息，请参阅《Intel<sup>®</sup> 64 和 IA-32 架构软件开发人员手册》第 3C 卷第 26 章“VMX 非根操作”。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>CR0.TS[bit 3] := 0;
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>清除 CR0 寄存器中的 TS 标志位。</p>
+
+	<h2 id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果当前特权级别不为 0。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 id="virtual-8086-mode-exceptions">虚拟 8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>在虚拟 8086 模式下无法识别 CLTS 指令。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果 CPL 大于 0。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns:x86="http://www.felixcloutier.com/x86">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>CLI — 清除中断标志</title>
+</head>
+
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>CLI — 清除中断标志</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>FA</td>
+			<td>CLI</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>清除中断标志位；清除中断标志位后禁用可屏蔽硬件中断。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>在大多数情况下，CLI 清除 EFLAGS 寄存器中的 IF 标志，并且不受影响其他标志。清除 IF 标志会导致处理器忽略可屏蔽的外设中断。IF 标志以及 CLI 和 STI 指令对异常和不可屏蔽中断（NMI）的产生没有影响。</p>
+	<p>在以下两种定义模式下，操作有所不同：</p>
+	<ul>
+		<li><strong>PVI 模式 </strong>（保护模式虚拟中断）：CR0.PE = 1，EFLAGS.VM = 0，CPL = 3，且 CR4.PVI = 1；</li>
+		<li><strong>VME 模式 </strong>（虚拟 8086 模式扩展）：CR0.PE = 1，EFLAGS.VM = 1，且 CR4.VME = 1。</li>
+	</ul>
+	<p>如果 IOPL &lt; 3 并且 VME 模式或 PVI 模式处于活动状态，CLI 会清除 EFLAGS 寄存器中的 VIF 标志，而保持 IF 不受影响。</p>
+	<p><a href="#tbl-3-7">表 3-7</a> 指示了 CLI 指令的行为，具体取决于处理器的运行模式、IOPL 和 CPL。</p>
+
+	<figure id="tbl-3-7">
+		<table>
+			<tr>
+				<th>模式</th>
+				<th>IOPL</th>
+				<th>CLI 结果</th>
+			</tr>
+			<tr>
+				<td>实地址</td>
+				<td><sub>X</sub><sup>1</sup></td>
+				<td>IF = 0</td>
+			</tr>
+			<tr>
+				<td rowspan="2">保护模式，非 PVI<sup>2</sup></td>
+				<td>≥ CPL</td>
+				<td>IF = 0</td>
+			</tr>
+			<tr>
+				<td>&lt; CPL</td>
+				<td>#GP 故障</td>
+			</tr>
+			<tr>
+				<td rowspan="2">保护模式，PVI<sup>3</sup></td>
+				<td>3</td>
+				<td>IF = 0</td>
+			</tr>
+			<tr>
+				<td>0–2</td>
+				<td>VIF = 0</td>
+			</tr>
+			<tr>
+				<td rowspan="2">虚拟-8086，非 VME<sup>3</sup></td>
+				<td>3</td>
+				<td>IF = 0</td>
+			</tr>
+			<tr>
+				<td>0–2</td>
+				<td>#GP 故障</td>
+			</tr>
+			<tr>
+				<td rowspan="2">虚拟-8086，VME<sup>3</sup></td>
+				<td>3</td>
+				<td>IF = 0</td>
+			</tr>
+			<tr>
+				<td>0–2</td>
+				<td>VIF = 0</td>
+			</tr>
+		</table>
+		<figcaption>表 3-7. CLI 结果决策表</figcaption>
+	</figure>
+
+	<blockquote>
+		<p>1. X = 此设置对指令操作无影响。</p>
+		<p>2. 在此表中，只要 CR0.PE = 1 且 EFLAGS.VM = 0，“保护模式”即适用；它包括兼容模式和 64 位模式。</p>
+		<p>3. PVI 模式和虚拟 8086 模式均意味着 CPL = 3。</p>
+	</blockquote>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF CR0.PE = 0
+    THEN IF := 0; (* Reset Interrupt Flag *)
+    ELSE
+        IF IOPL ≥ CPL (* CPL = 3 if EFLAGS.VM = 1 *)
+            THEN IF := 0; (* Reset Interrupt Flag *)
+            ELSE
+                IF VME mode OR PVI mode
+                    THEN VIF := 0; (* Reset Virtual Interrupt Flag *)
+                    ELSE #GP(0);
+                FI;
+        FI;
+FI;
+</pre>
+
+	<h2 id="flags-affected">影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>IF 标志或 VIF 标志被清除为 0。其他标志不受影响。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果 CPL 大于 IOPL 且 PVI 模式未激活。</td>
+		</tr>
+		<tr>
+			<td>如果 CPL 大于 IOPL 且小于 3。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟 8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果 IOPL 小于 3 且 VME 模式未激活。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+	<footer>
+		<p>
+			本非官方、机械拆分、未经校验的参考文档仅为方便提供，可能存在各种明显或不明显的缺失或错误。任何严肃用途请参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+
+</html>

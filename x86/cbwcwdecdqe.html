@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>CBW/CWDE/CDQE — 字节转换为字/字转换为双字/双字转换为四字</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>CBW/CWDE/CDQE — 字节转换为字/字转换为双字/双字转换为四字</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>98</td>
+			<td>CBW</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>AX := AL 的符号扩展。</td>
+		</tr>
+		<tr>
+			<td>98</td>
+			<td>CWDE</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>EAX := AX 的符号扩展。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 98</td>
+			<td>CDQE</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>RAX := EAX 的符号扩展。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">
+			¶
+		</a></h2>
+	<p>通过符号扩展将源操作数的大小翻倍。CBW（字节转换为字）指令将源操作数中的符号位（第 7 位）复制到 AH 寄存器的每一个位中。CWDE（字转换为双字）指令将 AX 寄存器中字的符号位（第 15 位）复制到 EAX 寄存器的高 16 位中。</p>
+	<p>CBW 和 CWDE 使用相同的操作码。CBW 指令设计在操作数大小属性为 16 时使用；CWDE 设计在操作数大小属性为 32 时使用。某些汇编器可能会强制操作数大小，而另外一些汇编器可能会将这两个助记符视为同义词（CBW/CWDE），并使用操作数大小属性的设置来确定要转换的值的大小。</p>
+	<p>在 64 位模式下，默认操作大小是目的寄存器的大小。使用 REX.W 前缀可将此指令提升为对 64 位操作数进行操作（提升后为 CDQE）。在这种情况下，CDQE 将 EAX 寄存器中双字的符号位（第 31 位）复制到 RAX 的高 32 位中。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">
+			¶
+		</a></h2>
+	<pre>IF OperandSize = 16 (* Instruction = CBW *)
+    THEN
+        AX := SignExtend(AL);
+    ELSE IF (OperandSize = 32, Instruction = CWDE)
+        EAX := SignExtend(AX); FI;
+    ELSE (* 64-Bit Mode, OperandSize = 64, Instruction = CDQE*)
+        RAX := SignExtend(EAX);
+FI;
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">
+			¶
+		</a></h2>
+	<p>无。</p>
+
+	<h2 id="exceptions--all-operating-modes-">异常（所有运行模式）<a class="anchor" href="#exceptions--all-operating-modes-">
+			¶
+		</a></h2>
+	<p>#UD 如果使用了 LOCK 前缀。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>ENQCMD — 入队命令</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+
+	<h1>ENQCMD — 入队命令</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>操作/编码</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID功能标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>F2 0F 38 F8 !(11):rrr:bbb ENQCMD r32/r64, m512</td>
+			<td>A</td>
+			<td>V/V</td>
+			<td>ENQCMD</td>
+			<td>以原子方式将 64 字节用户命令从源内存操作数入队到寄存器操作数中指定的 ES 段偏移量处。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>操作/编码</th>
+			<th>元组</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>A</td>
+			<td>无</td>
+			<td>ModRM:reg (写)</td>
+			<td>ModRM:r/m (读)</td>
+			<td>无</td>
+			<td>无</td>
+		</tr>
+	</table>
+
+	<h3 id="description">描述<a class="anchor" href="#description">¶</a></h3>
+	<p>ENQCMD 指令允许软件向<strong>入队寄存器 (enqueue registers)</strong>写入命令，入队寄存器是通过内存映射 I/O (MMIO) 访问的特殊设备寄存器。</p>
+	<p>入队寄存器期望的写入格式如下：</p>
+	<figure id="fig-3-16">
+		<table>
+			<tr>
+				<td>511 32 31 30 20 19</td>
+			</tr>
+			<tr>
+				<td>设备特定命令 权限 保留 PASID</td>
+			</tr>
+		</table>
+		<figcaption><a href='enqcmd.html#fig-3-16'>图 3-16</a>. 写入入队寄存器的 64 字节数据</figcaption>
+	</figure>
+	<p>位 19:0 传送进程地址空间标识符 (PASID)，这是系统软件可分配给单个软件线程的值。位 31 包含特权标识（0 = 用户；1 = 管理员）。实现入队寄存器的设备可以使用这两个值以及高 60 字节中特定于设备的命令。</p>
+	<p>ENQCMD 指令首先从源内存操作数中读取 64 字节的命令数据。这是一种普通加载，其可缓存性和内存顺序通常由内存类型隐式定义。源操作数不需要对齐，并且不保证所有 64 字节都是原子加载的。源操作数的位 31:0 必须为零。</p>
+	<p>然后该指令将这 64 字节格式化为与<a href='enqcmd.html#fig-3-16'>图 3-16</a>所给格式一致的<strong>命令数据</strong>：</p>
+	<ul>
+		<li>Command[19:0] 获取 IA32_PASID[19:0]。<sup>1</sup></li>
+		<li>Command[30:20] 为零。</li>
+		<li>Command[31] 为 0（表示用户级；无论 CPL 为多少，都使用此值）。</li>
+		<li>Command[511:32] 获取从内存读取的源操作数的位 511:32。</li>
+	</ul>
+	<p>ENQCMD 指令使用<strong>入队存储 (enqueue store)</strong>（定义如下）将此命令 data 写入目标操作数。目标操作数的地址在通用寄存器中指定为 ES 段的偏移量（段不能被覆盖）。<sup>2</sup> 目标线性地址必须对齐到 64 字节边界。入队存储的操作忽略目标内存地址的内存类型。</p>
+	<blockquote>
+		<p>1. 系统软件应该加载 IA32_PASID MSR，以便位 19:0 包含当前软件线程的 PASID。MSR 的有效位 IA32_PASID[31] 必须为 1。有关 IA32_PASID MSR 的其他详细信息，请参见 Intel<sup>®</sup> 64 和 IA-32 架构软件开发人员手册卷 4。</p>
+		<p>2. 在 64 位模式下，寄存器操作数的宽度为 64 位（带有 67H 前缀时为 32 位）。在非 64 位模式下，当 CS.D = 1时，宽度为 32 位（带有 67H 前缀时为 16 位）。在非 64 位模式下，当 CS.D = 0 时，宽度为 16 位（带有 67H 前缀时为 32 位）。</p>
+	</blockquote>
+	<p>入队存储的排序与之前对 WB 或 WC 内存的存储（包括 non-temporal 存储）或 CLFLUSHOPT 或 CLWB 的执行（当应用于入队存储地址以外的地址时）无关。软件可以通过在入队存储之前执行内存屏障指令（如 SFENCE 或 MFENCE）来强制执行此类排序。</p>
+	<p>入队存储不会将数据写入缓存层次结构，也不会将任何数据提取到缓存层次结构中。入队存储的命令数据绝不会与写入同一地址的任何其他存储的数据合并。</p>
+	<p>与其他存储不同，入队存储会返回状态，ENQCMD 指令将该状态加载到 RFLAGS 寄存器中的 ZF 标志中：</p>
+	<ul>
+		<li>ZF = 0（成功）表示 64 字节的命令数据已原子方式写入到设备的入队寄存器并已被设备接受。（这并不保证设备已经执行了命令；它可能只是排队等候稍后执行。）</li>
+		<li>ZF = 1（重试）表示命令数据未被接受。如果目标地址是入队寄存器，但由于容量或其他临时原因导致命令未被接受，则返回此状态。如果目标地址不是入队寄存器（包括内存地址的情况），也会返回此状态；在这些情况下，存储会被丢弃，并且既不写入 MMIO 也不写入内存。</li>
+	</ul>
+	<p>ENQCMD 指令的可用性由 CPUID 功能标志 ENQCMD（CPUID.(EAX=07H, ECX=0H):ECX[位 29]）指示。</p>
+
+	<h3 id="operation">操作<a class="anchor" href="#operation">¶</a></h3>
+	<pre>IF IA32_PASID[31] = 0
+    THEN #GP;
+ELSE
+    COMMAND := (SRC &amp; ~FFFFFFFFH) | (IA32_PASID &amp; FFFFFH);
+    DEST := COMMAND;
+FI;
+</pre>
+
+	<h3 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器固有等效项<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h3>
+	<pre>ENQCMD int_enqcmd(void *dst, const void *src)
+</pre>
+
+	<h3 id="flags-affected">影响的标志寄存器<a class="anchor" href="#flags-affected">¶</a></h3>
+	<p>如果入队存储完成返回重试状态，则设置 ZF 标志；否则清除。清除所有其他标志。</p>
+
+	<h3 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h3>
+	<p>无。</p>
+
+	<h3 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h3>
+	<table>
+		<tr>
+			<td rowspan="4">#GP(0)</td>
+			<td>对于 CS、DS、ES、FS 或 GS 段中非法的内存操作数有效地址。</td>
+		</tr>
+		<tr>
+			<td>如果目标线性地址未对齐到 64 字节边界。</td>
+		</tr>
+		<tr>
+			<td>如果 IA32_PASID MSR 中的 PASID 有效字段（位 31）为 0。</td>
+		</tr>
+		<tr>
+			<td>如果源操作数的位 31:0 不全为零。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>对于 SS 段中的非法地址。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误代码)</td>
+			<td>如果发生页面错误。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CPUID.07H.0H:ECX.ENQCMD[位 29] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h3 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h3>
+	<table>
+		<tr>
+			<td rowspan="4">#GP</td>
+			<td>如果操作数的任何部分位于有效地址空间 0 到 FFFFH 之外。</td>
+		</tr>
+		<tr>
+			<td>如果目标线性地址未对齐到 64 字节边界。</td>
+		</tr>
+		<tr>
+			<td>如果 IA32_PASID MSR 中的 PASID 有效字段（位 31）为 0。</td>
+		</tr>
+		<tr>
+			<td>如果源操作数的位 31:0 不全为零。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CPUID.07H.0H:ECX.ENQCMD[bit 29] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h3 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h3>
+	<p>与实地址模式下的异常相同。此外：</p>
+	<table>
+		<tr>
+			<td>#PF(错误代码)</td>
+			<td>如果发生页面错误。</td>
+		</tr>
+	</table>
+
+	<h3 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h3>
+	<p>与保护模式下的异常相同。</p>
+
+	<h3 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h3>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果引用 SS 段的内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td rowspan="4">#GP(0)</td>
+			<td>如果内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>如果目标线性地址未对齐到 64 字节边界。</td>
+		</tr>
+		<tr>
+			<td>如果 IA32_PASID MSR 中的 PASID 有效字段（位 31）为 0。</td>
+		</tr>
+		<tr>
+			<td>如果源操作数的位 31:0 不全为零。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误代码)</td>
+			<td>如果发生页面错误。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CPUID.07H.0H:ECX.ENQCMD[位 29] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

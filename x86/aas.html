@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>AAS — 减法后的 ASCII 调整</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>AAS — 减法后的 ASCII 调整</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>3F</td>
+			<td>AAS</td>
+			<td>ZO</td>
+			<td>Invalid</td>
+			<td>Valid</td>
+			<td>减法后的 ASCII 调整 AL。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>调整两个非组合 BCD 值相减的结果，以创建非组合 BCD 结果。AL 寄存器是该指令的隐式源和目的操作数。仅当 AAS 指令跟在从另一个非组合 BCD 值中减去一个非组合 BCD 值（二进制减法）并将字节结果存储在 AL 寄存器中的 SUB 指令之后时才有用。然后，AAS 指令调整 AL 寄存器的内容以包含正确的 1 位非组合 BCD 结果。</p>
+	<p>如果减法产生十进制借位，则 AH 寄存器递减 1，并设置 CF 和 AF 标志。如果没有发生十进制借位，则清除 CF 和 AF 标志，且 AH 寄存器保持不变。在这两种情况下，AL 寄存器的高四位都被置为 0。</p>
+	<p>此指令在兼容模式和传统模式下如上所述执行。在 64 位模式下无效。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF 64-bit mode
+    THEN
+        #UD;
+    ELSE
+        IF ((AL AND 0FH) &gt; 9) or (AF = 1)
+            THEN
+                AX := AX – 6;
+                AH := AH – 1;
+                AF := 1;
+                CF := 1;
+                AL := AL AND 0FH;
+            ELSE
+                CF := 0;
+                AF := 0;
+                AL := AL AND 0FH;
+        FI;
+FI;
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>如果存在十进制借位，则将 AF 和 CF 标志设置为 1；否则将其清除为 0。OF、SF、ZF 和 PF 标志是未定义的。</p>
+
+	<h2 id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 id="virtual-8086-mode-exceptions">虚拟 8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果处于 64 位模式。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns:x86="http://www.felixcloutier.com/x86">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>LEA — 加载有效地址</title>
+</head>
+
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>LEA — 加载有效地址</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>8D /r</td>
+			<td>LEA r16,m</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 m 的有效地址存储在寄存器 r16 中。</td>
+		</tr>
+		<tr>
+			<td>8D /r</td>
+			<td>LEA r32,m</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 m 的有效地址存储在寄存器 r32 中。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 8D /r</td>
+			<td>LEA r64,m</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 m 的有效地址存储在寄存器 r64 中。</td>
+		</tr>
+	</table>
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>RM</td>
+			<td>ModRM:reg (w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+	<h2 id="description">描述<a class="anchor" href="#description">
+			¶
+		</a></h2>
+	<p>计算第二操作数（源操作数）的有效地址，并将其存储在第一操作数（目的操作数）中。源操作数是一个内存地址（偏移量部分），由处理器的某种寻址模式指定；目的操作数是一个通用寄存器。地址大小和操作数大小属性会影响该指令执行的操作，如下表所示。该指令的操作数大小属性由所选寄存器决定；地址大小属性由代码段的属性决定。</p>
+	<figure id="tbl-3-54">
+		<table>
+			<tr>
+				<th>操作数大小</th>
+				<th>地址大小</th>
+				<th>执行的操作</th>
+			</tr>
+			<tr>
+				<td>16</td>
+				<td>16</td>
+				<td>计算16位有效地址并存储在指定的16位目的寄存器中。</td>
+			</tr>
+			<tr>
+				<td>16</td>
+				<td>32</td>
+				<td>计算32位有效地址。将该地址的低16位存储在指定的16位目的寄存器中。</td>
+			</tr>
+			<tr>
+				<td>32</td>
+				<td>16</td>
+				<td>计算16位有效地址。将该16位地址进行零扩展，并存储在指定的32位目的寄存器中。</td>
+			</tr>
+			<tr>
+				<td>32</td>
+				<td>32</td>
+				<td>计算32位有效地址并存储在指定的32位目的寄存器中。</td>
+			</tr>
+		</table>
+		<figcaption><a href='lea.html#tbl-3-54'>表 3-54</a>. 非64位模式下带地址和操作数大小属性的 LEA 操作</figcaption>
+	</figure>
+	<p>不同的汇编器可能会根据源操作数的大小属性和符号引用来使用不同的算法。</p>
+	<p>在 64 位模式下，该指令的目的操作数受操作数大小属性支配，默认操作数大小为 32 位。地址计算受地址大小属性支配，默认地址大小为 64 位。在 64 位模式下，无法编码 16 位的地址大小。参见 <a href='lea.html#tbl-3-55'>表 3-55</a>。</p>
+	<figure id="tbl-3-55">
+		<table>
+			<tr>
+				<th>操作数大小</th>
+				<th>地址大小</th>
+				<th>执行的操作</th>
+			</tr>
+			<tr>
+				<td>16</td>
+				<td>32</td>
+				<td>计算32位有效地址（使用 67H 前缀）。将该地址的低16位存储在指定的16位目的寄存器中（使用 66H 前缀）。</td>
+			</tr>
+			<tr>
+				<td>16</td>
+				<td>64</td>
+				<td>计算64位有效地址（默认地址大小）。将该地址的低16位存储在指定的16位目的寄存器中（使用 66H 前缀）。</td>
+			</tr>
+			<tr>
+				<td>32</td>
+				<td>32</td>
+				<td>计算32位有效地址（使用 67H 前缀）并存储在指定的32位目的寄存器中。</td>
+			</tr>
+			<tr>
+				<td>32</td>
+				<td>64</td>
+				<td>计算64位有效地址（默认地址大小）并将该地址的低32位存储在指定的32位目的寄存器中。</td>
+			</tr>
+			<tr>
+				<td>64</td>
+				<td>32</td>
+				<td>计算32位有效地址（使用 67H 前缀），零扩展到64位，并存储在指定的64位目的寄存器中（使用 REX.W）。</td>
+			</tr>
+			<tr>
+				<td>64</td>
+				<td>64</td>
+				<td>计算64位有效地址（默认地址大小）并将该地址的全部64位存储在指定的64位目的寄存器中（使用 REX.W）。</td>
+			</tr>
+		</table>
+		<figcaption><a href='lea.html#tbl-3-55'>表 3-55</a>. 64位模式下带地址和操作数大小属性的 LEA 操作</figcaption>
+	</figure>
+	<h2 id="operation">操作<a class="anchor" href="#operation">
+			¶
+		</a></h2>
+	<pre>IF OperandSize = 16 and AddressSize = 16
+    THEN
+        DEST := EffectiveAddress(SRC); (* 16-bit address *)
+    ELSE IF OperandSize = 16 and AddressSize = 32
+        THEN
+            temp := EffectiveAddress(SRC); (* 32-bit address *)
+            DEST := temp[0:15]; (* 16-bit address *)
+        FI;
+    ELSE IF OperandSize = 32 and AddressSize = 16
+        THEN
+            temp := EffectiveAddress(SRC); (* 16-bit address *)
+            DEST := ZeroExtend(temp); (* 32-bit address *)
+        FI;
+    ELSE IF OperandSize = 32 and AddressSize = 32
+        THEN
+            DEST := EffectiveAddress(SRC); (* 32-bit address *)
+        FI;
+    ELSE IF OperandSize = 16 and AddressSize = 64
+        THEN
+            temp := EffectiveAddress(SRC); (* 64-bit address *)
+            DEST := temp[0:15]; (* 16-bit address *)
+        FI;
+    ELSE IF OperandSize = 32 and AddressSize = 64
+        THEN
+            temp := EffectiveAddress(SRC); (* 64-bit address *)
+            DEST := temp[0:31]; (* 16-bit address *)
+        FI;
+    ELSE IF OperandSize = 64 and AddressSize = 64
+        THEN
+            DEST := EffectiveAddress(SRC); (* 64-bit address *)
+        FI;
+FI;
+</pre>
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">
+			¶
+		</a></h2>
+	<p>无。</p>
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果源操作数不是内存位置。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">
+			¶
+		</a></h2>
+	<p>与保护模式下的异常相同。</p>
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">
+			¶
+		</a></h2>
+	<p>与保护模式下的异常相同。</p>
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">
+			¶
+		</a></h2>
+	<p>与保护模式下的异常相同。</p>
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">
+			¶
+		</a></h2>
+	<p>与保护模式下的异常相同。</p>
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span
+				style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a
+				href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+				64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+
+</html>

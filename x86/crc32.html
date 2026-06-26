@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>CRC32 — 累加 CRC32 值</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>CRC32 — 累加 CRC32 值</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>F2 0F 38 F0 /r CRC32 r32, r/m8</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>对 r/m8 累加 CRC32 值。</td>
+		</tr>
+		<tr>
+			<td>F2 REX 0F 38 F0 /r CRC32 r32, r/m8<sup>1</sup></td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>对 r/m8 累加 CRC32 值。</td>
+		</tr>
+		<tr>
+			<td>F2 0F 38 F1 /r CRC32 r32, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>对 r/m16 累加 CRC32 值。</td>
+		</tr>
+		<tr>
+			<td>F2 0F 38 F1 /r CRC32 r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>对 r/m32 累加 CRC32 值。</td>
+		</tr>
+		<tr>
+			<td>F2 REX.W 0F 38 F0 /r CRC32 r64, r/m8</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>对 r/m8 累加 CRC32 值。</td>
+		</tr>
+		<tr>
+			<td>F2 REX.W 0F 38 F1 /r CRC32 r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>对 r/m64 累加 CRC32 值。</td>
+		</tr>
+	</table>
+	<blockquote>
+		<p>1. 在 64 位模式下，如果使用 REX 前缀，则不能将 r/m8 编码为访问以下字节寄存器：AH、BH、CH、DH。</p>
+	</blockquote>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>RM</td>
+			<td>ModRM:reg (r, w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>以第一操作数（目标操作数）中的初始值开始，对第二操作数（源操作数）累加 CRC32 值（多项式为 11EDC6F41H），并将结果存入目标操作数。源操作数可以是一个寄存器或内存地址。目标操作数必须是一个 r32 或 r64 寄存器。如果目标操作数是一个 r64 寄存器，则 32 位的结果被存储在最低有效双字中，并且 r64 寄存器的最高有效双字中存储 00000000H。</p>
+	<p>目标操作数中提供的初始值是存储在 r32 寄存器或 r64 寄存器最低有效双字中的双字整数。为了递增地累加 CRC32 值，软件将上一次 CRC32 操作的结果保留在目标操作数中，然后以源操作数中的新输入数据再次执行 CRC32 指令。源操作数中包含的数据按反射位顺序（reflected bit order）进行处理。这意味着源操作数的最高有效位被视为商的最低有效位，源操作数的所有其他位以此类推。同样，CRC 操作的结果以反射位顺序存储在目标操作数中。这意味着所得 CRC 的最高有效位（位 31）存储在目标操作数的最低有效位（位 0）中，所得 CRC 的所有其他位以此类推。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<blockquote>
+		<p>BIT_REFLECT64: DST[63-0] = SRC[0-63]</p>
+		<p>BIT_REFLECT32: DST[31-0] = SRC[0-31]</p>
+		<p>BIT_REFLECT16: DST[15-0] = SRC[0-15]</p>
+		<p>BIT_REFLECT8: DST[7-0] = SRC[0-7]</p>
+		<p>MOD2: Remainder from Polynomial division modulus 2</p>
+	</blockquote>
+	<pre>CRC32 instruction for 64-bit source operand and 64-bit destination operand:
+    TEMP1[63-0] := BIT_REFLECT64 (SRC[63-0])
+    TEMP2[31-0] := BIT_REFLECT32 (DEST[31-0])
+    TEMP3[95-0] := TEMP1[63-0] « 32
+    TEMP4[95-0] := TEMP2[31-0] « 64
+    TEMP5[95-0] := TEMP3[95-0] XOR TEMP4[95-0]
+    TEMP6[31-0] := TEMP5[95-0] MOD2 11EDC6F41H
+    DEST[31-0] := BIT_REFLECT (TEMP6[31-0])
+    DEST[63-32] := 00000000H
+CRC32 instruction for 32-bit source operand and 32-bit destination operand:
+    TEMP1[31-0] := BIT_REFLECT32 (SRC[31-0])
+    TEMP2[31-0] := BIT_REFLECT32 (DEST[31-0])
+    TEMP3[63-0] := TEMP1[31-0] « 32
+    TEMP4[63-0] := TEMP2[31-0] « 32
+    TEMP5[63-0] := TEMP3[63-0] XOR TEMP4[63-0]
+    TEMP6[31-0] := TEMP5[63-0] MOD2 11EDC6F41H
+    DEST[31-0] := BIT_REFLECT (TEMP6[31-0])
+CRC32 instruction for 16-bit source operand and 32-bit destination operand:
+    TEMP1[15-0] := BIT_REFLECT16 (SRC[15-0])
+    TEMP2[31-0] := BIT_REFLECT32 (DEST[31-0])
+    TEMP3[47-0] := TEMP1[15-0] « 32
+    TEMP4[47-0] := TEMP2[31-0] « 16
+    TEMP5[47-0] := TEMP3[47-0] XOR TEMP4[47-0]
+    TEMP6[31-0] := TEMP5[47-0] MOD2 11EDC6F41H
+    DEST[31-0] := BIT_REFLECT (TEMP6[31-0])
+CRC32 instruction for 8-bit source operand and 64-bit destination operand:
+    TEMP1[7-0] := BIT_REFLECT8(SRC[7-0])
+    TEMP2[31-0] := BIT_REFLECT32 (DEST[31-0])
+    TEMP3[39-0] := TEMP1[7-0] « 32
+    TEMP4[39-0] := TEMP2[31-0] « 8
+    TEMP5[39-0] := TEMP3[39-0] XOR TEMP4[39-0]
+    TEMP6[31-0] := TEMP5[39-0] MOD2 11EDC6F41H
+    DEST[31-0] := BIT_REFLECT (TEMP6[31-0])
+    DEST[63-32] := 00000000H
+CRC32 instruction for 8-bit source operand and 32-bit destination operand:
+    TEMP1[7-0] := BIT_REFLECT8(SRC[7-0])
+    TEMP2[31-0] := BIT_REFLECT32 (DEST[31-0])
+    TEMP3[39-0] := TEMP1[7-0] « 32
+    TEMP4[39-0] := TEMP2[31-0] « 8
+    TEMP5[39-0] := TEMP3[39-0] XOR TEMP4[39-0]
+    TEMP6[31-0] := TEMP5[39-0] MOD2 11EDC6F41H
+    DEST[31-0] := BIT_REFLECT (TEMP6[31-0])
+</pre>
+
+	<h2 id="flags-affected">影响的标志<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>unsigned int _mm_crc32_u8( unsigned int crc, unsigned char data )
+</pre>
+	<pre>unsigned int _mm_crc32_u16( unsigned int crc, unsigned short data )
+</pre>
+	<pre>unsigned int _mm_crc32_u32( unsigned int crc, unsigned int data )
+</pre>
+	<pre>unsigned __int64 _mm_crc32_u64( unsigned __int64 crc, unsigned __int64 data )
+</pre>
+
+	<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果 CS、DS、ES、FS 或 GS 段中的内存操作数有效地址非法。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果 SS 段中的内存操作数有效地址非法。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CPUID.01H:ECX.SSE4_2[Bit 20] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果操作数的任何部分超出了从 0 到 0FFFFH 的有效地址空间。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果 SS 段中的内存操作数有效地址非法。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CPUID.01H:ECX.SSE4_2[Bit 20] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟 8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果操作数的任何部分超出了从 0 到 0FFFFH 的有效地址空间。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果 SS 段中的内存操作数有效地址非法。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CPUID.01H:ECX.SSE4_2[Bit 20] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存地址处于非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果引用 SS 段的内存地址处于非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CPUID.01H:ECX.SSE4_2[Bit 20] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

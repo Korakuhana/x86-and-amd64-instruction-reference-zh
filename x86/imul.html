@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns:x86="http://www.felixcloutier.com/x86">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>IMUL — 有符号乘法</title>
+</head>
+
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>IMUL — 有符号乘法</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>F6 /5</td>
+			<td>IMUL r/m8<sup>1</sup></td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>AX := AL ∗ r/m 字节。</td>
+		</tr>
+		<tr>
+			<td>F7 /5</td>
+			<td>IMUL r/m16</td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>DX:AX := AX ∗ r/m 字。</td>
+		</tr>
+		<tr>
+			<td>F7 /5</td>
+			<td>IMUL r/m32</td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>EDX:EAX := EAX ∗ r/m32。</td>
+		</tr>
+		<tr>
+			<td>REX.W + F7 /5</td>
+			<td>IMUL r/m64</td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>RDX:RAX := RAX ∗ r/m64。</td>
+		</tr>
+		<tr>
+			<td>0F AF /r</td>
+			<td>IMUL r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>字寄存器 := 字寄存器 ∗ r/m16。</td>
+		</tr>
+		<tr>
+			<td>0F AF /r</td>
+			<td>IMUL r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>双字寄存器 := 双字寄存器 ∗ r/m32。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F AF /r</td>
+			<td>IMUL r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>四字寄存器 := 四字寄存器 ∗ r/m64。</td>
+		</tr>
+		<tr>
+			<td>6B /r ib</td>
+			<td>IMUL r16, r/m16, imm8</td>
+			<td>RMI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>字寄存器 := r/m16 ∗ 符号扩展的立即数位。</td>
+		</tr>
+		<tr>
+			<td>6B /r ib</td>
+			<td>IMUL r32, r/m32, imm8</td>
+			<td>RMI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>双字寄存器 := r/m32 ∗ 符号扩展的立即数位。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 6B /r ib</td>
+			<td>IMUL r64, r/m64, imm8</td>
+			<td>RMI</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>四字寄存器 := r/m64 ∗ 符号扩展的立即数位。</td>
+		</tr>
+		<tr>
+			<td>69 /r iw</td>
+			<td>IMUL r16, r/m16, imm16</td>
+			<td>RMI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>字寄存器 := r/m16 ∗ 立即数字。</td>
+		</tr>
+		<tr>
+			<td>69 /r id</td>
+			<td>IMUL r32, r/m32, imm32</td>
+			<td>RMI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>双字寄存器 := r/m32 ∗ 立即数双字。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 69 /r id</td>
+			<td>IMUL r64, r/m64, imm32</td>
+			<td>RMI</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>四字寄存器 := r/m64 ∗ 立即数双字。</td>
+		</tr>
+	</table>
+	<blockquote>
+		<p>1. 在 64 位模式下，如果使用了 REX 前缀，则不能通过编码 r/m8 来访问以下字节寄存器：AH、BH、CH、DH。</p>
+	</blockquote>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>M</td>
+			<td>ModRM:r/m (r, w)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>RM</td>
+			<td>ModRM:reg (r, w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>RMI</td>
+			<td>ModRM:reg (r, w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>imm8/16/32</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">
+			¶
+		</a></h2>
+	<p>对两个操作数执行有符号乘法。根据操作数的数量，该指令有三种形式。</p>
+	<ul>
+		<li><strong>单操作数形式 </strong>——此形式与 MUL 指令所使用的形式相同。在这里，源操作数（在通用寄存器或内存位置中）乘以 AL、AX、EAX 或 RAX 寄存器中的值（具体取决于操作数大小），乘积（大小为输入操作数两倍）分别存储在 AX、DX:AX、EDX:EAX 或 RDX:RAX 寄存器中。</li>
+		<li><strong>双操作数形式 </strong>——在此形式中，目的操作数（第一操作数）乘以源操作数（第二操作数）。目的操作数是一个通用寄存器，源操作数可以是一个立即数、通用寄存器或内存位置。中间乘积（大小为输入操作数两倍）被截断并存储在目的操作数位置。</li>
+		<li><strong>三操作数形式 </strong>——此形式需要一个目的操作数（第一操作数）和两个源操作数（第二和第三操作数）。在这里，第一源操作数（可以是通用寄存器或内存位置）乘以第二源操作数（一个立即数）。中间乘积（大小为第一源操作数两倍）被截断并存储在目的操作数（通用寄存器）中。</li>
+	</ul>
+	<p>当立即数用作操作数时，它会被符号扩展到目的操作数格式的长度。</p>
+	<p>当中间乘积的有符号整数值与符号扩展后被截断的操作数大小乘积不同时，CF 和 OF 标志位会被置位；否则，CF 和 OF 标志位会被清除。</p>
+	<p>IMUL 指令的三种形式是相似的，因为乘积的长度都被计算为操作数长度的两倍。在使用单操作数形式时，乘积精确地存储在目的地中。然而，在使用双操作数和三操作数形式时，结果在存储到目的寄存器之前，会被截断到目的操作数的长度。由于存在这种截断，应该测试 CF 或 OF 标志位以确保没有丢失有效位。</p>
+	<p>双操作数和三操作数形式也可以与无符号操作数一起使用，因为无论操作数是有符号还是无符号，乘积的下半部分都是相同的。然而，CF 和 OF 标志位不能用于确定结果的上半部分是否为非零。</p>
+	<p>在 64 位模式下，该指令的默认操作大小为 32 位。使用 REX.R 前缀允许访问额外的寄存器（R8-R15）。使用 REX.W 前缀可将操作提升至 64 位。使用 REX.W 会对指令的三种形式产生如下修改：</p>
+	<ul>
+		<li><strong>单操作数形式 </strong>——源操作数（在 64 位通用寄存器或内存位置中）乘以 RAX 寄存器中的值，乘积存储在 RDX:RAX 寄存器中。</li>
+		<li><strong>双操作数形式 </strong>——如果源操作数是寄存器或内存位置，它会被提升到 64 位。目的操作数被提升到 64 位。</li>
+		<li><strong>三操作数形式 </strong>——第一源操作数（寄存器或内存位置）和目的操作数被提升到 64 位。如果源操作数是立即数，它会被符号扩展到 64 位。</li>
+	</ul>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">
+			¶
+		</a></h2>
+	<pre>IF (NumberOfOperands = 1)
+    THEN IF (OperandSize = 8)
+        THEN
+            TMP_XP := AL ∗ SRC (* Signed multiplication; TMP_XP is a signed integer at twice the width of the SRC *);
+            AX := TMP_XP[15:0];
+            IF SignExtend(TMP_XP[7:0]) = TMP_XP
+                THEN CF := 0; OF := 0;
+                ELSE CF := 1; OF := 1; FI;
+        ELSE IF OperandSize = 16
+            THEN
+                TMP_XP := AX ∗ SRC (* Signed multiplication; TMP_XP is a signed integer at twice the width of the SRC *)
+                DX:AX := TMP_XP[31:0];
+                IF SignExtend(TMP_XP[15:0]) = TMP_XP
+                    THEN CF := 0; OF := 0;
+                    ELSE CF := 1; OF := 1; FI;
+            ELSE IF OperandSize = 32
+                THEN
+                    TMP_XP := EAX ∗ SRC (* Signed multiplication; TMP_XP is a signed integer at twice the width of the SRC*)
+                    EDX:EAX := TMP_XP[63:0];
+                    IF SignExtend(TMP_XP[31:0]) = TMP_XP
+                        THEN CF := 0; OF := 0;
+                        ELSE CF := 1; OF := 1; FI;
+                ELSE (* OperandSize = 64 *)
+                    TMP_XP := RAX ∗ SRC (* Signed multiplication; TMP_XP is a signed integer at twice the width of the SRC *)
+                    EDX:EAX := TMP_XP[127:0];
+                    IF SignExtend(TMP_XP[63:0]) = TMP_XP
+                        THEN CF := 0; OF := 0;
+                        ELSE CF := 1; OF := 1; FI;
+                FI;
+        FI;
+    ELSE IF (NumberOfOperands = 2)
+        THEN
+            TMP_XP := DEST ∗ SRC (* Signed multiplication; TMP_XP is a signed integer at twice the width of the SRC *)
+            DEST := TruncateToOperandSize(TMP_XP);
+            IF SignExtend(DEST) ≠ TMP_XP
+                THEN CF := 1; OF := 1;
+                ELSE CF := 0; OF := 0; FI;
+        ELSE (* NumberOfOperands = 3 *)
+            TMP_XP := SRC1 ∗ SRC2 (* Signed multiplication; TMP_XP is a signed integer at twice the width of the SRC1 *)
+            DEST := TruncateToOperandSize(TMP_XP);
+            IF SignExtend(DEST) ≠ TMP_XP
+                THEN CF := 1; OF := 1;
+                ELSE CF := 0; OF := 0; FI;
+    FI;
+FI;
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">
+			¶
+		</a></h2>
+	<p>对于指令的单操作数形式，当有效位被带入结果的上半部分时，CF 和 OF 标志位会被置位；当结果完全适合结果的下半部分时，CF 和 OF 标志位会被清除。对于指令的双操作数和三操作数形式，当结果必须被截断以适应目的操作数大小时，CF 和 OF 标志位会被置位；当结果完全适合目的操作数大小时，CF 和 OF 标志位会被清除。SF、ZF、AF 和 PF 标志位未定义。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段界限。</td>
+		</tr>
+		<tr>
+			<td>如果使用 DS、ES、FS 或 GS 寄存器访问内存，且该寄存器包含 NULL 段选择子。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数的有效地址超出 SS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#SS</td>
+			<td>如果内存操作数的有效地址超出 SS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数的有效地址超出 SS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查且进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">
+			¶
+		</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果引用 SS 段的内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span
+				style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a
+				href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+				64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+
+</html>

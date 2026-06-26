@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>BNDMK — 创建边界</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>BNDMK — 创建边界</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>F3 0F 1B /r BNDMK bnd, m32</td>
+			<td>RM</td>
+			<td>N.E./V</td>
+			<td>MPX</td>
+			<td>根据 m32 创建下界和上界，并将它们存储在 bnd 中。</td>
+		</tr>
+		<tr>
+			<td>F3 0F 1B /r BNDMK bnd, m64</td>
+			<td>RM</td>
+			<td>V/N.E.</td>
+			<td>MPX</td>
+			<td>根据 m64 创建下界和上界，并将它们存储在 bnd 中。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+		</tr>
+		<tr>
+			<td>RM</td>
+			<td>ModRM:reg (w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>根据第二操作数创建边界，并将下界和上界存储在边界寄存器 bnd 中。第二操作数必须是内存操作数。来自内存操作数的基址寄存器的内容存储在下界 bnd.LB 中。m32/m64 有效地址的反码（1's complement）存储在上界 bnd.UB 中。m32/m64 的计算行为与 LEA 相同。</p>
+	<p>此指令不会导致任何内存访问，也不会读取或写入任何标志位。</p>
+	<p>如果指令未指定基址寄存器，则下界将为零。此指令的寄存器-寄存器形式保留旧有行为（NOP）。</p>
+	<p>如果在 64 位模式下使用 RIP 相对寻址执行，该指令将引发无效操作码异常（#UD）。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>BND.LB := SRCMEM.base;
+IF 64-bit mode Then
+    BND.UB := NOT(LEA.64_bits(SRCMEM));
+ELSE
+    BND.UB := Zero_Extend.64_bits(NOT(LEA.32_bits(SRCMEM)));
+FI;
+</pre>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>BNDMKvoid * _bnd_set_ptr_bounds(const void * q, size_t size);
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="4">#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>如果启用 Intel MPX 时 ModRM.r/m 编码为 BND4-BND7。</td>
+		</tr>
+		<tr>
+			<td>如果未使用 67H 前缀且 CS.D=0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 67H 前缀且 CS.D=1。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="3">#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>如果启用 Intel MPX 时 ModRM.r/m 编码为 BND4-BND7。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 16 位寻址。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="3">#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>如果启用 Intel MPX 时 ModRM.r/m 编码为 BND4-BND7。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 16 位寻址。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="3">#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>如果启用 Intel MPX 时 ModRM.r/m 和 REX 编码为 BND4-BND15。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 RIP 相对寻址。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果引用 SS 段的内存地址处于非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存地址处于非规范形式。</td>
+		</tr>
+	</table>
+	<p>与保护模式下的异常相同。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

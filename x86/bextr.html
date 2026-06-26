@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>BEXTR — 位域提取</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>BEXTR — 位域提取</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64/32位模式</th>
+			<th>CPUID 功能标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>VEX.LZ.0F38.W0 F7 /r BEXTR r32a, r/m32, r32b</td>
+			<td>RMV</td>
+			<td>V/V</td>
+			<td>BMI1</td>
+			<td>以 r32b 为控制，从 r/m32 提取连续位；将结果存入 r32a。</td>
+		</tr>
+		<tr>
+			<td>VEX.LZ.0F38.W1 F7 /r BEXTR r64a, r/m64, r64b</td>
+			<td>RMV</td>
+			<td>V/N.E.</td>
+			<td>BMI1</td>
+			<td>以 r64b 为控制，从 r/m64 提取连续位；将结果存入 r64a。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>RMV</td>
+			<td>ModRM:reg (w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>VEX.vvvv (r)</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>使用在第二源操作数（第三个操作数）中指定的索引值和长度值，从第一源操作数（第二个操作数）中提取连续的位。第二源操作数的第 7:0 位指定提取位的起始位位置。超过操作数大小的 START 值将不会从第一源操作数中提取任何位。第二源操作数的第 15:8 位指定从 START 位置开始提取的最大位数（LENGTH）。只提取第一源操作数中直到 (OperandSize - 1) 的位位置。提取的位被写入目的寄存器，从最低有效位开始。目的操作数中的所有高阶位（从位位置 LENGTH 开始）都清零。如果未提取任何位，则清除目的寄存器。</p>
+	<p>在实模式和虚拟 8086 模式下不支持此指令。如果不在 64 位模式下，操作数大小始终为 32 位。在 64 位模式下，操作数大小为 64 位时需要 VEX.W1。在非 64 位模式下，VEX.W1 被忽略。尝试在 VEX.L 不等于 0 的情况下执行此指令将导致 #UD。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>START := SRC2[7:0];
+LEN := SRC2[15:8];
+TEMP := ZERO_EXTEND_TO_512 (SRC1 );
+DEST := ZERO_EXTEND(TEMP[START+LEN -1: START]);
+ZF := (DEST = 0);
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>ZF 根据结果更新。AF、SF 和 PF 未定义。所有其他标志位被清除。</p>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等效固有函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>BEXTR unsigned __int32 _bextr_u32(unsigned __int32 src, unsigned __int32 start. unsigned __int32 len);
+</pre>
+	<pre>BEXTR unsigned __int64 _bextr_u64(unsigned __int64 src, unsigned __int32 start. unsigned __int32 len);
+</pre>
+
+	<h2 id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+	<p>无。</p>
+
+	<h2 id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+	<p>请参阅 <span class="not-imported">表 2-29</span>，“类型 13 类异常条件”，此外：</p>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果 VEX.W = 1。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

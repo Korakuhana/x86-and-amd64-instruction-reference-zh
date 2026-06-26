@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>CMOVcc — 条件传送</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>CMOVcc — 条件传送</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>0F 47 /r</td>
+			<td>CMOVA r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果高于则传送 (CF=0 且 ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 47 /r</td>
+			<td>CMOVA r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果高于则传送 (CF=0 且 ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 47 /r</td>
+			<td>CMOVA r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果高于则传送 (CF=0 且 ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 43 /r</td>
+			<td>CMOVAE r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果高于或等于则传送 (CF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 43 /r</td>
+			<td>CMOVAE r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果高于或等于则传送 (CF=0)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 43 /r</td>
+			<td>CMOVAE r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果高于或等于则传送 (CF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 42 /r</td>
+			<td>CMOVB r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果低于则传送 (CF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 42 /r</td>
+			<td>CMOVB r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果低于则传送 (CF=1)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 42 /r</td>
+			<td>CMOVB r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果低于则传送 (CF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 46 /r</td>
+			<td>CMOVBE r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果低于或等于则传送 (CF=1 或 ZF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 46 /r</td>
+			<td>CMOVBE r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果低于或等于则传送 (CF=1 或 ZF=1)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 46 /r</td>
+			<td>CMOVBE r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果低于或等于则传送 (CF=1 或 ZF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 42 /r</td>
+			<td>CMOVC r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果进位则传送 (CF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 42 /r</td>
+			<td>CMOVC r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果进位则传送 (CF=1)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 42 /r</td>
+			<td>CMOVC r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果进位则传送 (CF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 44 /r</td>
+			<td>CMOVE r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果等于则传送 (ZF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 44 /r</td>
+			<td>CMOVE r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果等于则传送 (ZF=1)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 44 /r</td>
+			<td>CMOVE r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果等于则传送 (ZF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 4F /r</td>
+			<td>CMOVG r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果大于则传送 (ZF=0 且 SF=OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 4F /r</td>
+			<td>CMOVG r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果大于则传送 (ZF=0 且 SF=OF)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 4F /r</td>
+			<td>CMOVG r64, r/m64</td>
+			<td>RM</td>
+			<td>V/N.E.</td>
+			<td>N/A</td>
+			<td>如果大于则传送 (ZF=0 且 SF=OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 4D /r</td>
+			<td>CMOVGE r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果大于或等于则传送 (SF=OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 4D /r</td>
+			<td>CMOVGE r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果大于或等于则传送 (SF=OF)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 4D /r</td>
+			<td>CMOVGE r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果大于或等于则传送 (SF=OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 4C /r</td>
+			<td>CMOVL r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果小于则传送 (SF≠OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 4C /r</td>
+			<td>CMOVL r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果小于则传送 (SF≠OF)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 4C /r</td>
+			<td>CMOVL r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果小于则传送 (SF≠OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 4E /r</td>
+			<td>CMOVLE r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果小于或等于则传送 (ZF=1 或 SF≠OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 4E /r</td>
+			<td>CMOVLE r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果小于或等于则传送 (ZF=1 或 SF≠OF)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 4E /r</td>
+			<td>CMOVLE r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果小于或等于则传送 (ZF=1 或 SF≠OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 46 /r</td>
+			<td>CMOVNA r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果不高于则传送 (CF=1 或 ZF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 46 /r</td>
+			<td>CMOVNA r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果不高于则传送 (CF=1 或 ZF=1)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 46 /r</td>
+			<td>CMOVNA r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果不高于则传送 (CF=1 或 ZF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 42 /r</td>
+			<td>CMOVNAE r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果不高于或等于则传送 (CF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 42 /r</td>
+			<td>CMOVNAE r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果不高于或等于则传送 (CF=1)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 42 /r</td>
+			<td>CMOVNAE r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果不高于或等于则传送 (CF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 43 /r</td>
+			<td>CMOVNB r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果不低于则传送 (CF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 43 /r</td>
+			<td>CMOVNB r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果不低于则传送 (CF=0)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 43 /r</td>
+			<td>CMOVNB r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果不低于则传送 (CF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 47 /r</td>
+			<td>CMOVNBE r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果不低于或等于则传送 (CF=0 且 ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 47 /r</td>
+			<td>CMOVNBE r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果不低于或等于则传送 (CF=0 且 ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 47 /r</td>
+			<td>CMOVNBE r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果不低于或等于则传送 (CF=0 且 ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 43 /r</td>
+			<td>CMOVNC r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果无进位则传送 (CF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 43 /r</td>
+			<td>CMOVNC r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果无进位则传送 (CF=0)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 43 /r</td>
+			<td>CMOVNC r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果无进位则传送 (CF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 45 /r</td>
+			<td>CMOVNE r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果不等于则传送 (ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 45 /r</td>
+			<td>CMOVNE r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果不等于则传送 (ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 45 /r</td>
+			<td>CMOVNE r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果不等于则传送 (ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 4E /r</td>
+			<td>CMOVNG r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果不大于则传送 (ZF=1 或 SF≠OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 4E /r</td>
+			<td>CMOVNG r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果不大于则传送 (ZF=1 或 SF≠OF)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 4E /r</td>
+			<td>CMOVNG r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果不大于则传送 (ZF=1 或 SF≠OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 4C /r</td>
+			<td>CMOVNGE r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果不大于或等于则传送 (SF≠OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 4C /r</td>
+			<td>CMOVNGE r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果不大于或等于则传送 (SF≠OF)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 4C /r</td>
+			<td>CMOVNGE r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果不大于或等于则传送 (SF≠OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 4D /r</td>
+			<td>CMOVNL r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果不小于则传送 (SF=OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 4D /r</td>
+			<td>CMOVNL r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果不小于则传送 (SF=OF)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 4D /r</td>
+			<td>CMOVNL r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果不小于则传送 (SF=OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 4F /r</td>
+			<td>CMOVNLE r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果不小于或等于则传送 (ZF=0 且 SF=OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 4F /r</td>
+			<td>CMOVNLE r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果不小于或等于则传送 (ZF=0 且 SF=OF)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 4F /r</td>
+			<td>CMOVNLE r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果不小于或等于则传送 (ZF=0 且 SF=OF)。</td>
+		</tr>
+		<tr>
+			<td>0F 41 /r</td>
+			<td>CMOVNO r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果无溢出则传送 (OF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 41 /r</td>
+			<td>CMOVNO r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果无溢出则传送 (OF=0)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 41 /r</td>
+			<td>CMOVNO r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果无溢出则传送 (OF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 4B /r</td>
+			<td>CMOVNP r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非奇偶则传送 (PF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 4B /r</td>
+			<td>CMOVNP r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果非奇偶则传送 (PF=0)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 4B /r</td>
+			<td>CMOVNP r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果非奇偶则传送 (PF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 49 /r</td>
+			<td>CMOVNS r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果无符号则传送 (SF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 49 /r</td>
+			<td>CMOVNS r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果无符号则传送 (SF=0)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 49 /r</td>
+			<td>CMOVNS r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果无符号则传送 (SF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 45 /r</td>
+			<td>CMOVNZ r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果不为零则传送 (ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 45 /r</td>
+			<td>CMOVNZ r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果不为零则传送 (ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 45 /r</td>
+			<td>CMOVNZ r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果不为零则传送 (ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 40 /r</td>
+			<td>CMOVO r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果溢出则传送 (OF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 40 /r</td>
+			<td>CMOVO r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果溢出则传送 (OF=1)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 40 /r</td>
+			<td>CMOVO r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果溢出则传送 (OF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 4A /r</td>
+			<td>CMOVP r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果奇偶（偶校验）则传送 (PF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 4A /r</td>
+			<td>CMOVP r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果奇偶（偶校验）则传送 (PF=1)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 4A /r</td>
+			<td>CMOVP r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果奇偶（偶校验）则传送 (PF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 4A /r</td>
+			<td>CMOVPE r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果奇偶为偶则传送 (PF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 4A /r</td>
+			<td>CMOVPE r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果奇偶为偶则传送 (PF=1)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 4A /r</td>
+			<td>CMOVPE r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果奇偶为偶则传送 (PF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 4B /r</td>
+			<td>CMOVPO r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果奇偶为奇则传送 (PF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 4B /r</td>
+			<td>CMOVPO r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果奇偶为奇则传送 (PF=0)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 4B /r</td>
+			<td>CMOVPO r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果奇偶为奇则传送 (PF=0)。</td>
+		</tr>
+		<tr>
+			<td>0F 48 /r</td>
+			<td>CMOVS r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果有符号则传送 (SF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 48 /r</td>
+			<td>CMOVS r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果有符号则传送 (SF=1)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 48 /r</td>
+			<td>CMOVS r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果有符号则传送 (SF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 44 /r</td>
+			<td>CMOVZ r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果为零则传送 (ZF=1)。</td>
+		</tr>
+		<tr>
+			<td>0F 44 /r</td>
+			<td>CMOVZ r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>如果为零则传送 (ZF=1)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 44 /r</td>
+			<td>CMOVZ r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>如果为零则传送 (ZF=1)。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>RM</td>
+			<td>ModRM:reg (r, w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>如果 EFLAGS 寄存器中的状态标志（CF、OF、PF、SF 和 ZF）处于指定的状态（或条件），则每个 CMOVcc 指令都会执行传送操作。一个条件码（<em>cc</em>）与每个指令相关联，用以指示要测试的条件。如果条件不满足，则不执行传送，并且从 CMOV<em>cc</em> 指令后面的指令继续执行。</p>
+	<p>具体而言，CMOVcc 会无条件地（不论条件码和 EFLAGS 寄存器中的状态标志如何）将其源操作数中的数据加载到一个临时寄存器中。如果与该指令相关联的条件码（cc）得到满足，则临时寄存器中的数据随后会被复制到该指令的目的操作数中。</p>
+	<p>这些指令可以将 16 位、32 位或 64 位值从内存传送到通用寄存器，或者从一个通用寄存器传送到另一个通用寄存器。不支持 8 位寄存器操作数的条件传送。</p>
+	<p>每个 CMOV<em>cc</em> 助记符的条件在上方表格的描述列中给出。术语“小于（less）”和“大于（greater）”用于有符号整数的比较，而术语“高于（above）”和“低于（below）”用于无符号整数的比较。</p>
+	<p>因为状态标志的特定状态有时可以有两种解释方式，所以为某些操作码定义了两个助记符。例如，CMOVA（如果高于则条件传送）指令和 CMOVNBE（如果不低于或等于则条件传送）指令是操作码 0F 47H 的替代助记符。</p>
+	<p>CMOV<em>cc</em> 指令是在 P6 系列处理器中引入的；但是，并非所有 IA-32 处理器都支持这些指令。软件可以通过使用 CPUID 指令检查处理器的功能信息来确定是否支持 CMOV<em>cc</em> 指令（请参阅本章中的“CPUID — CPU 标识”）。</p>
+	<p>在 64 位模式下，该指令的默认操作大小为 32 位。使用 REX.R 前缀允许访问额外的寄存器（R8-R15）。使用 REX.W 前缀可将操作提升至 64 位。请参阅本节开头的汇总图表以获取编码数据和限制。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>temp := SRC
+IF condition TRUE
+    THEN DEST := temp;
+ELSE IF (OperandSize = 32 and IA-32e mode active)
+    THEN DEST[63:32] := 0;
+FI;
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>如果 DS、ES、FS 或 GS 寄存器包含空段选择子。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数的有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生页错误。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#SS</td>
+			<td>如果内存操作数的有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 id="virtual-8086-mode-exceptions">虚拟 8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数的有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生页错误。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果引用 SS 段的内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生页错误。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns:x86="http://www.felixcloutier.com/x86">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>MOV — 数据传送</title>
+</head>
+
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>MOV — 数据传送</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>88 /r</td>
+			<td>MOV r/m8, r8</td>
+			<td>MR</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 r8 传送到 r/m8。</td>
+		</tr>
+		<tr>
+			<td>REX + 88 /r</td>
+			<td>MOV r/m8<sup>1</sup>, r8<sup>1</sup></td>
+			<td>MR</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 r8 传送到 r/m8。</td>
+		</tr>
+		<tr>
+			<td>89 /r</td>
+			<td>MOV r/m16, r16</td>
+			<td>MR</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 r16 传送到 r/m16。</td>
+		</tr>
+		<tr>
+			<td>89 /r</td>
+			<td>MOV r/m32, r32</td>
+			<td>MR</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 r32 传送到 r/m32。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 89 /r</td>
+			<td>MOV r/m64, r64</td>
+			<td>MR</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 r64 传送到 r/m64。</td>
+		</tr>
+		<tr>
+			<td>8A /r</td>
+			<td>MOV r8, r/m8</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 r/m8 传送到 r8。</td>
+		</tr>
+		<tr>
+			<td>REX + 8A /r</td>
+			<td>MOV r8<sup>1</sup>, r/m8<sup>1</sup></td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 r/m8 传送到 r8。</td>
+		</tr>
+		<tr>
+			<td>8B /r</td>
+			<td>MOV r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 r/m16 传送到 r16。</td>
+		</tr>
+		<tr>
+			<td>8B /r</td>
+			<td>MOV r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 r/m32 传送到 r32。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 8B /r</td>
+			<td>MOV r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 r/m64 传送到 r64。</td>
+		</tr>
+		<tr>
+			<td>8C /r</td>
+			<td>MOV r/m16, Sreg<sup>2</sup></td>
+			<td>MR</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将段寄存器传送到 r/m16。</td>
+		</tr>
+		<tr>
+			<td>8C /r</td>
+			<td>MOV r16/r32/m16, Sreg<sup>2</sup></td>
+			<td>MR</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将零扩展的 16 位段寄存器传送到 r16/r32/m16。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 8C /r</td>
+			<td>MOV r64/m16, Sreg<sup>2</sup></td>
+			<td>MR</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将零扩展的 16 位段寄存器传送到 r64/m16。</td>
+		</tr>
+		<tr>
+			<td>8E /r</td>
+			<td>MOV Sreg, r/m16<sup>2</sup></td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 r/m16 传送到段寄存器。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 8E /r</td>
+			<td>MOV Sreg, r/m64<sup>2</sup></td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 r/m64 的低 16 位传送到段寄存器。</td>
+		</tr>
+		<tr>
+			<td>A0</td>
+			<td>MOV AL, moffs8<sup>3</sup></td>
+			<td>FD</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将位于 (seg:offset) 的字节传送到 AL。</td>
+		</tr>
+		<tr>
+			<td>REX.W + A0</td>
+			<td>MOV AL, moffs8<sup>3</sup></td>
+			<td>FD</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将位于 (offset) 的字节传送到 AL。</td>
+		</tr>
+		<tr>
+			<td>A1</td>
+			<td>MOV AX, moffs16<sup>3</sup></td>
+			<td>FD</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将位于 (seg:offset) 的字传送到 AX。</td>
+		</tr>
+		<tr>
+			<td>A1</td>
+			<td>MOV EAX, moffs32<sup>3</sup></td>
+			<td>FD</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将位于 (seg:offset) 的双字传送到 EAX。</td>
+		</tr>
+		<tr>
+			<td>REX.W + A1</td>
+			<td>MOV RAX, moffs64<sup>3</sup></td>
+			<td>FD</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将位于 (offset) 的四字传送到 RAX。</td>
+		</tr>
+		<tr>
+			<td>A2</td>
+			<td>MOV moffs8, AL</td>
+			<td>TD</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 AL 传送到 (seg:offset)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + A2</td>
+			<td>MOV moffs8<sup>1</sup>, AL</td>
+			<td>TD</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 AL 传送到 (offset)。</td>
+		</tr>
+		<tr>
+			<td>A3</td>
+			<td>MOV moffs16<sup>3</sup>, AX</td>
+			<td>TD</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 AX 传送到 (seg:offset)。</td>
+		</tr>
+		<tr>
+			<td>A3</td>
+			<td>MOV moffs32<sup>3</sup>, EAX</td>
+			<td>TD</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 EAX 传送到 (seg:offset)。</td>
+		</tr>
+		<tr>
+			<td>REX.W + A3</td>
+			<td>MOV moffs64<sup>3</sup>, RAX</td>
+			<td>TD</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 RAX 传送到 (offset)。</td>
+		</tr>
+		<tr>
+			<td>B0+ rb ib</td>
+			<td>MOV r8, imm8</td>
+			<td>OI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 imm8 传送到 r8。</td>
+		</tr>
+		<tr>
+			<td>REX + B0+ rb ib</td>
+			<td>MOV r8<sup>1</sup>, imm8</td>
+			<td>OI</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 imm8 传送到 r8。</td>
+		</tr>
+		<tr>
+			<td>B8+ rw iw</td>
+			<td>MOV r16, imm16</td>
+			<td>OI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 imm16 传送到 r16。</td>
+		</tr>
+		<tr>
+			<td>B8+ rd id</td>
+			<td>MOV r32, imm32</td>
+			<td>OI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 imm32 传送到 r32。</td>
+		</tr>
+		<tr>
+			<td>REX.W + B8+ rd io</td>
+			<td>MOV r64, imm64</td>
+			<td>OI</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 imm64 传送到 r64。</td>
+		</tr>
+		<tr>
+			<td>C6 /0 ib</td>
+			<td>MOV r/m8, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 imm8 传送到 r/m8。</td>
+		</tr>
+		<tr>
+			<td>REX + C6 /0 ib</td>
+			<td>MOV r/m8<sup>1</sup>, imm8</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 imm8 传送到 r/m8。</td>
+		</tr>
+		<tr>
+			<td>C7 /0 iw</td>
+			<td>MOV r/m16, imm16</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 imm16 传送到 r/m16。</td>
+		</tr>
+		<tr>
+			<td>C7 /0 id</td>
+			<td>MOV r/m32, imm32</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 imm32 传送到 r/m32。</td>
+		</tr>
+		<tr>
+			<td>REX.W + C7 /0 id</td>
+			<td>MOV r/m64, imm32</td>
+			<td>MI</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将符号扩展至 64 位的 imm32 传送到 r/m64。</td>
+		</tr>
+	</table>
+	<blockquote>
+		<p>1. 在 64 位模式下，如果使用了 REX 前缀，则不能通过编码 r/m8 来访问以下字节寄存器：AH、BH、CH、DH。</p>
+		<p>2. 在 32 位模式下，汇编器可能会在此指令中插入 16 位操作数大小前缀（有关更多信息，请参见以下“描述”部分）。</p>
+		<p>3. moffs8、moffs16、moffs32 和 moffs64 操作数指定相对于段基址的简单偏移量，其中 8、16、32 和 64 指的是数据大小。该指令的地址大小属性决定偏移量的大小，可以是 16 位、32 位或 64 位。</p>
+	</blockquote>
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>MR</td>
+			<td>ModRM:r/m (w)</td>
+			<td>ModRM:reg (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>RM</td>
+			<td>ModRM:reg (w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>FD</td>
+			<td>AL/AX/EAX/RAX</td>
+			<td>Moffs</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>TD</td>
+			<td>Moffs (w)</td>
+			<td>AL/AX/EAX/RAX</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>OI</td>
+			<td>opcode + rd (w)</td>
+			<td>imm8/16/32/64</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>MI</td>
+			<td>ModRM:r/m (w)</td>
+			<td>imm8/16/32/64</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+	<h2 id="description">描述<a class="anchor" href="#description">
+			¶
+		</a></h2>
+	<p>将第二操作数（源操作数）复制到第一操作数（目的操作数）。源操作数可以是一个立即数、通用寄存器、段寄存器或内存位置；目的寄存器可以是一个通用寄存器、段寄存器或内存位置。两个操作数必须具有相同的大小，该大小可以是一个字节、一个字、一个双字或一个四字。</p>
+	<p>MOV 指令不能用于加载 CS 寄存器。尝试这样做会导致无效操作码异常（#UD）。要加载 CS 寄存器，请使用远跳转 JMP、CALL 或 RET 指令。</p>
+	<p>如果目的操作数是段寄存器（DS、ES、FS、GS 或 SS），则源操作数必须是有效的段选择子。在保护模式下，将段选择子移入段寄存器会自动将与该段选择子关联的段描述符信息加载到段寄存器的隐藏（阴影）部分。在加载此信息时，会对段选择子和段描述符信息进行验证（参见下文的“操作”算法）。段描述符数据是从指定段选择子的 GDT 或 LDT 项中获取的。</p>
+	<p>可以将 NULL 段选择子（值 0000-0003）加载到 DS、ES、FS 和 GS 寄存器中，而不会引发保护异常。但是，随后任何试图引用其相应段寄存器加载了 NULL 值的段的操作都会引发通用保护异常（#GP），并且不会发生内存引用。</p>
+	<p>使用 MOV 指令加载 SS 寄存器会抑制或禁止某些调试异常，并禁止在下一条指令边界上的中断。（该禁止在引发异常或执行下一条指令后结束。）这种行为允许在发生事件之前通过下一条指令（MOV ESP，栈指针值）将栈指针加载到 ESP 寄存器中。参见 Intel® 64 和 IA-32 架构软件开发人员手册第 3A 卷第 6.8.3 节“切换栈时屏蔽异常和中断”。Intel 建议软件使用 LSS 指令同时加载 SS 寄存器和 ESP。</p>
+	<p>当执行 MOV Reg, Sreg 时，处理器将 Sreg 的内容复制到通用寄存器的 16 个最低有效位。大多数 IA-32 处理器（Pentium Pro 处理器及更高版本）和所有 Intel 64 处理器的目的寄存器高位都为零，但在 Intel Quark X1000 处理器、Pentium 及更早版本的处理器中，位 31:16 是未定义的。</p>
+	<p>在 64 位模式下，该指令的默认操作大小为 32 位。使用 REX.R 前缀允许访问额外的寄存器（R8-R15）。使用 REX.W 前缀可将操作提升至 64 位。请参阅本节开头的汇总图表以获取编码数据 and 限制。</p>
+	<h2 id="operation">操作<a class="anchor" href="#operation">
+			¶
+		</a></h2>
+	<pre>DEST := SRC;
+Loading a segment register while in protected mode results in special checks and actions, as described in the following listing. These
+checks are performed on the segment selector and the segment descriptor to which it points.
+IF SS is loaded
+    THEN
+        IF segment selector is NULL
+            THEN #GP(0); FI;
+        IF segment selector index is outside descriptor table limits
+        OR segment selector's RPL ≠ CPL
+        OR segment is not a writable data segment
+        OR DPL ≠ CPL
+            THEN #GP(selector); FI;
+        IF segment not marked present
+            THEN #SS(selector);
+            ELSE
+                SS := segment selector;
+                SS := segment descriptor; FI;
+FI;
+IF DS, ES, FS, or GS is loaded with non-NULL selector
+THEN
+    IF segment selector index is outside descriptor table limits
+    OR segment is not a data or readable code segment
+    OR ((segment is a data or nonconforming code segment) AND ((RPL &gt; DPL) or (CPL &gt; DPL)))
+        THEN #GP(selector); FI;
+    IF segment not marked present
+        THEN #NP(selector);
+        ELSE
+            SegmentRegister := segment selector;
+            SegmentRegister := segment descriptor; FI;
+FI;
+IF DS, ES, FS, or GS is loaded with NULL selector
+    THEN
+        SegmentRegister := segment selector;
+        SegmentRegister := segment descriptor;
+FI;
+</pre>
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">
+			¶
+		</a></h2>
+	<p>无。</p>
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td rowspan="4">#GP(0)</td>
+			<td>如果试图使用 NULL 段选择子加载 SS 寄存器。</td>
+		</tr>
+		<tr>
+			<td>如果目的操作数处于不可写的段中。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段界限。</td>
+		</tr>
+		<tr>
+			<td>如果 DS、ES、FS 或 GS 寄存器包含 NULL 段选择子。</td>
+		</tr>
+		<tr>
+			<td rowspan="5">#GP(选择子)</td>
+			<td>如果段选择子索引超出描述符表限制。</td>
+		</tr>
+		<tr>
+			<td>如果正在加载 SS 寄存器，并且段选择子的 RPL 和段描述符的 DPL 不等于 CPL。</td>
+		</tr>
+		<tr>
+			<td>如果正在加载 SS 寄存器，并且指向的段是不可写的数据段。</td>
+		</tr>
+		<tr>
+			<td>如果正在加载 DS、ES、FS 或 GS 寄存器，并且指向的段不是数据或可读代码段。</td>
+		</tr>
+		<tr>
+			<td>如果正在加载 DS、ES、FS 或 GS 寄存器，且指向的段是数据或非一致性代码段，并且 RPL 或 CPL 大于 DPL。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数的有效地址超出 SS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#SS(选择子)</td>
+			<td>如果正在加载 SS 寄存器，且指向的段被标记为不存在。</td>
+		</tr>
+		<tr>
+			<td>#NP</td>
+			<td>如果正在加载 DS、ES、FS 或 GS 寄存器，且指向的段被标记为不存在。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果试图加载 CS 寄存器。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#SS</td>
+			<td>如果内存操作数的有效地址超出 SS 段界限。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果试图加载 CS 寄存器。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数的有效地址超出 SS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查且进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果试图加载 CS 寄存器。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">
+			¶
+		</a></h2>
+		<p>与保护模式下的异常相同。</p>
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td rowspan="3">#GP(0)</td>
+			<td>如果内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>如果试图在 CPL = 3 时使用 NULL 段选择子加载 SS 寄存器。</td>
+		</tr>
+		<tr>
+			<td>如果试图在 CPL &lt; 3 且 CPL ≠ RPL 时使用 NULL 段选择子加载 SS 寄存器。</td>
+		</tr>
+		<tr>
+			<td rowspan="6">#GP(选择子)</td>
+			<td>如果段选择子索引超出描述符表限制。</td>
+		</tr>
+		<tr>
+			<td>如果访问描述符表的内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>如果正在加载 SS 寄存器，并且段选择子的 RPL 和段描述符的 DPL 不等于 CPL。</td>
+		</tr>
+		<tr>
+			<td>如果正在加载 SS 寄存器，并且指向的段是不可写的数据段。</td>
+		</tr>
+		<tr>
+			<td>如果正在加载 DS、ES、FS 或 GS 寄存器，并且指向的段不是数据或可读代码段。</td>
+		</tr>
+		<tr>
+			<td>如果正在加载 DS、ES、FS 或 GS 寄存器，且指向的段是数据或非一致性代码段，但 RPL 和 CPL 都大于 DPL。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果栈地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#SS(选择子)</td>
+			<td>如果正在加载 SS 寄存器，且指向的段被标记为不存在。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐 of 内存引用。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果试图加载 CS 寄存器。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span
+				style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a
+				href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+				64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+
+</html>

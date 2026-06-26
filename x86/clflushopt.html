@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>CLFLUSHOPT — 优化的高速缓存行刷新</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>CLFLUSHOPT — 优化的高速缓存行刷新</h1>
+
+	<table>
+		<tr>
+			<th>操作码 / 指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>NFx 66 0F AE /7 CLFLUSHOPT m8</td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>刷新包含 m8 的高速缓存行。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>M</td>
+			<td>ModRM:r/m (w)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>从高速缓存一致性域中每个级别的高速缓存层次结构中，使包含由内存操作数指定的线性地址的高速缓存行无效。如果该高速缓存行在高速缓存层次结构的任何级别包含修改过的数据，则将该数据写回内存。源操作数是一个字节内存位置。</p>
+	<p>CLFLUSHOPT 的可用性由 CPUID 功能标志 CLFLUSHOPT（CPUID.(EAX=07H,ECX=0H):EBX[第 23 位]）是否存在来指示。受影响的对齐高速缓存行大小也使用 CPUID 指令指示（当 EAX 寄存器的初始值为 1 时，为 EBX 寄存器的第 8 至 15 位）。</p>
+	<p>包含受影响缓存行的页面的内存属性对该指令的行为没有影响。应当指出，处理器可以自由地从分配了允许推测性读取的内存类型（例如 WB、WC 和 WT 内存类型）的系统内存区域中推测性地获取并缓存数据。PREFETCH<em>h</em> 指令可用于向处理器提供关于这种推测行为的提示。因为这种推测性获取可以发生在任何时间且不与指令执行挂钩，所以 CLFLUSH 指令相对于 PREFETCH<em>h</em> 指令或任何推测性获取机制是无序的（即，数据可在引用该缓存行的 CLFLUSH 指令执行之前、期间或之后被推测性地加载到缓存行中）。</p>
+	<p>CLFLUSHOPT 指令的执行相对于屏障（fence）指令以及锁定的“读-修改-写”指令是有序的；它们相对于被使无效缓存行的旧写入也是有序的。它们相对于 CLFLUSHOPT 的其他执行、CLFLUSH 和 CLWB 的执行，或者相对于被使无效缓存行的较新写入是无序的。软件可以使用 SFENCE 指令来使 CLFLUSHOPT 的执行相对于这些操作之一进行排序。</p>
+	<p>CLFLUSHOPT 指令可以在所有特权级别下使用，并且受与字节加载关联的所有权限检查和页故障约束（此外，允许 CLFLUSHOPT 指令刷新仅执行段中的线性地址）。与加载类似，CLFLUSHOPT 指令在页表中设置 A（已访问）位，但不设置 D（脏）位。</p>
+	<p>在某些实现中，CLFLUSHOPT 指令在使用事务同步扩展（TSX）时可能总是会导致事务中止。通常不期望在典型的事务区域内部使用 CLFLUSHOPT 指令。但是，程序员绝不能依赖 CLFLUSHOPT 指令来强制进行事务中止，因为它们是否会导致事务中止取决于具体实现。</p>
+	<p>CLFLUSHOPT 指令在非 64 位模式和 64 位模式下的操作相同。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>Flush_Cache_Line_Optimized(SRC);
+</pre>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalents">Intel C/C++ 编译器等效固有函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalents">¶</a></h2>
+	<pre>CLFLUSHOPT void _mm_clflushopt(void const *p)
+</pre>
+
+	<h2 id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果在 CS、DS、ES、FS 或 GS 段中内存操作数有效地址非法。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果 SS 段中的地址非法。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生页错误。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#UD</td>
+			<td>如果 CPUID.(EAX=07H,ECX=0H):EBX.CLFLUSHOPT[bit 23] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>如果使用了指令前缀 F2H 或 F3H。</td>
+		</tr>
+	</table>
+
+	<h2 id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>如果操作数的任何部分超出从 0 到 FFFFH 的有效地址空间。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#UD</td>
+			<td>如果 CPUID.(EAX=07H,ECX=0H):EBX.CLFLUSHOPT[bit 23] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>如果使用了指令前缀 F2H 或 F3H。</td>
+		</tr>
+	</table>
+
+	<h2 id="virtual-8086-mode-exceptions">虚拟 8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<p>与实地址模式下的异常相同。</p>
+	<table>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生页错误。</td>
+		</tr>
+	</table>
+
+	<h2 id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果引用 SS 段的内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生页错误。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#UD</td>
+			<td>如果 CPUID.(EAX=07H,ECX=0H):EBX.CLFLUSHOPT[bit 23] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>如果使用了指令前缀 F2H 或 F3H。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

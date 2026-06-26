@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns:x86="http://www.felixcloutier.com/x86">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>LOOP/LOOPcc — 根据 ECX 计数器循环</title>
+</head>
+
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>LOOP/LOOPcc — 根据 ECX 计数器循环</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>E2 cb</td>
+			<td>LOOP rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>计数器减 1；如果计数器不为 0，则进行短跳转。</td>
+		</tr>
+		<tr>
+			<td>E1 cb</td>
+			<td>LOOPE rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>计数器减 1；如果计数器不为 0 且 ZF = 1，则进行短跳转。</td>
+		</tr>
+		<tr>
+			<td>E0 cb</td>
+			<td>LOOPNE rel8</td>
+			<td>D</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>计数器减 1；如果计数器不为 0 且 ZF = 0，则进行短跳转。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>D</td>
+			<td>Offset (偏移量)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>使用 RCX、ECX 或 CX 寄存器作为计数器（取决于地址大小是 64 位、32 位还是 16 位）执行循环操作。请注意，LOOP 指令会忽略 REX.W；但可以使用 67H 前缀覆盖 64 位地址大小。</p>
+	<p>每次执行 LOOP 指令时，计数寄存器都会递减，然后检查是否为 0。如果计数为 0，则循环终止，程序继续执行 LOOP 指令后面的指令。如果计数不为零，则执行到目标（target）操作数的近跳转，该操作数通常是循环开始处的指令。</p>
+	<p>目标指令使用相对偏移量（相对于 IP/EIP/RIP 寄存器中指令指针当前值的有符号偏移量）指定。此偏移量在汇编代码中通常指定为标签，但在机器码级别，它被编码为有符号的 8 位立即数，该值会被加到指令指针中。此指令允许的偏移量为 -128 到 +127。</p>
+	<p>某些形式的循环指令（LOOP<em>cc</em>）还接受 ZF 标志作为在计数达到零之前终止循环的条件。对于这些形式的指令，每个指令都关联一个条件码（<em>cc</em>），以指示被测试的条件。在这里，LOOP<em>cc</em> 指令本身不会影响 ZF 标志的状态；ZF 标志是由循环中的其他指令改变的。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF (AddressSize = 32)
+    THEN Count is ECX;
+ELSE IF (AddressSize = 64)
+    Count is RCX;
+ELSE Count is CX;
+FI;
+Count := Count – 1;
+IF Instruction is not LOOP
+    THEN
+        IF (Instruction := LOOPE) or (Instruction := LOOPZ)
+            THEN IF (ZF = 1) and (Count ≠ 0)
+                    THEN BranchCond := 1;
+                    ELSE BranchCond := 0;
+                FI;
+            ELSE (Instruction = LOOPNE) or (Instruction = LOOPNZ)
+                IF (ZF = 0 ) and (Count ≠ 0)
+                    THEN BranchCond := 1;
+                    ELSE BranchCond := 0;
+        FI;
+    ELSE (* Instruction = LOOP *)
+        IF (Count ≠ 0)
+            THEN BranchCond := 1;
+            ELSE BranchCond := 0;
+        FI;
+FI;
+IF BranchCond = 1
+    THEN
+        IF in 64-bit mode (* OperandSize = 64 *)
+            THEN
+                tempRIP := RIP + SignExtend(DEST);
+                IF tempRIP is not canonical
+                    THEN #GP(0);
+                ELSE RIP := tempRIP;
+                FI;
+            ELSE
+                tempEIP := EIP SignExtend(DEST);
+                IF OperandSize 16
+                    THEN tempEIP := tempEIP AND 0000FFFFH;
+                FI;
+                IF tempEIP is not within code segment limit
+                    THEN #GP(0);
+                    ELSE EIP := tempEIP;
+                FI;
+        FI;
+    ELSE
+        Terminate loop and continue program execution at (R/E)IP;
+FI;
+</pre>
+
+	<h2 id="flags-affected">影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果跳转的偏移量超出了 CS 段的限制。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>如果跳转的偏移量超出了 CS 段的限制，或者超出了 0 到 FFFFH 的有效地址空间。如果使用了 32 位地址大小覆盖前缀，可能会发生这种情况。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟 8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<p>与实地址模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果跳转的偏移量是非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+	<footer>
+		<p>
+			本非官方、机械拆分、未经校验的参考文档仅为方便提供，可能存在各种明显或不明显的缺失或错误。任何严肃用途请参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+
+</html>

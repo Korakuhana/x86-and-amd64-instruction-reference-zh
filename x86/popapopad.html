@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns:x86="http://www.felixcloutier.com/x86">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>POPA/POPAD — 将所有通用寄存器出栈</title>
+</head>
+
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>POPA/POPAD — 将所有通用寄存器出栈</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>61</td>
+			<td>POPA</td>
+			<td>ZO</td>
+			<td>Invalid</td>
+			<td>Valid</td>
+			<td>弹出 DI, SI, BP, BX, DX, CX, 以及 AX。</td>
+		</tr>
+		<tr>
+			<td>61</td>
+			<td>POPAD</td>
+			<td>ZO</td>
+			<td>Invalid</td>
+			<td>Valid</td>
+			<td>弹出 EDI, ESI, EBP, EBX, EDX, ECX, 以及 EAX。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>从栈中弹出双字（POPAD）或字（POPA）到通用寄存器中。寄存器的加载顺序如下：EDI、ESI、EBP、EBX、EDX、ECX、EAX（如果操作数大小属性为 32）；以及 DI、SI、BP、BX、DX、CX、AX（如果操作数大小属性为 16）。（这些指令执行与 PUSHA/PUSHAD 指令相反的操作。）栈中用于 ESP 或 SP 寄存器的值被忽略。相反，每次加载寄存器后都会递增 ESP 或 SP 寄存器。</p>
+	<p>助记符 POPA（全部出栈）和 POPAD（全部双字出栈）指向同一个操作码。POPA 指令旨在操作数大小属性为 16 时使用，而 POPAD 指令旨在操作数大小属性为 32 时使用。某些汇编器可能会在下述情况下强制确定操作数大小：POPA 为 16，POPAD 为 32（必要时使用操作数大小覆盖前缀 [66H]）。其他汇编器可能将这些助记符视为同义词（POPA/POPAD），并使用操作数大小属性的当前设置来确定从栈中弹出的值的大小，而不管所使用的助记符如何。（当前代码段的段描述符中的 D 标志决定了操作数大小属性。）</p>
+	<p>此指令在非 64 位模式下的执行情况如上所述。它在 64 位模式下无效。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF 64-Bit Mode
+    THEN
+        #UD;
+ELSE
+    IF OperandSize = 32 (* Instruction = POPAD *)
+    THEN
+        EDI := Pop();
+        ESI := Pop();
+        EBP := Pop();
+        Increment ESP by 4; (* Skip next 4 bytes of stack *)
+        EBX := Pop();
+        EDX := Pop();
+        ECX := Pop();
+        EAX := Pop();
+    ELSE (* OperandSize = 16, instruction = POPA *)
+        DI := Pop();
+        SI := Pop();
+        BP := Pop();
+        Increment ESP by 2; (* Skip next 2 bytes of stack *)
+        BX := Pop();
+        DX := Pop();
+        CX := Pop();
+        AX := Pop();
+    FI;
+FI;
+</pre>
+
+	<h2 id="flags-affected">影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果栈的起始或结束地址不在栈段边界内。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS</td>
+			<td>如果栈的起始或结束地址不在栈段边界内。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟 8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果栈的起始或结束地址不在栈段边界内。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查且进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果处于 64 位模式下。</td>
+		</tr>
+	</table>
+	<footer>
+		<p>
+			本非官方、机械拆分、未经校验的参考文档仅为方便提供，可能存在各种明显或不明显的缺失或错误。任何严肃用途请参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+
+</html>

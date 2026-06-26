@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>CMPSS — 比较标量单精度浮点值</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>CMPSS — 比较标量单精度浮点值</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op / En</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>F3 0F C2 /r ib CMPSS xmm1, xmm2/m32, imm8</td>
+			<td>A</td>
+			<td>V/V</td>
+			<td>SSE</td>
+			<td>使用 imm8 的 bits 2:0 作为比较关系谓词，比较 xmm2/m32 和 xmm1 中的低位单精度浮点值。</td>
+		</tr>
+		<tr>
+			<td>VEX.LIG.F3.0F.WIG C2 /r ib VCMPSS xmm1, xmm2, xmm3/m32, imm8</td>
+			<td>B</td>
+			<td>V/V</td>
+			<td>AVX</td>
+			<td>使用 imm8 的 bits 4:0 作为比较关系谓词，比较 xmm3/m32 和 xmm2 中的低位单精度浮点值。</td>
+		</tr>
+		<tr>
+			<td>EVEX.LLIG.F3.0F.W0 C2 /r ib VCMPSS k1 {k2}, xmm2, xmm3/m32{sae}, imm8</td>
+			<td>C</td>
+			<td>V/V</td>
+			<td>AVX512F</td>
+			<td>使用 imm8 的 bits 4:0 作为比较关系谓词，在使用写掩码 k2 的情况下比较 xmm3/m32 和 xmm2 中的低位单精度浮点值，并将结果保存在掩码寄存器 k1 中。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>元组类型</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>A</td>
+			<td>N/A</td>
+			<td>ModRM:reg (r, w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>imm8</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>B</td>
+			<td>N/A</td>
+			<td>ModRM:reg (w)</td>
+			<td>VEX.vvvv (r)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>imm8</td>
+		</tr>
+		<tr>
+			<td>C</td>
+			<td>Tuple1 Scalar</td>
+			<td>ModRM:reg (w)</td>
+			<td>EVEX.vvvv (r)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>imm8</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>比较第二源操作数和第一源操作数中的低位单精度浮点值，并将比较结果返回给目的操作数。比较关系谓词操作数（即立即数操作数）指定所执行的比较类型。</p>
+	<p>128 位传统 SSE 版本：第一源与目的操作数（第一操作数）是 XMM 寄存器。第二源操作数（第二操作数）可以是 XMM 寄存器或 32 位内存位置。对应的 YMM 目的寄存器的 bits (MAXVL-1:32) 保持不变。比较结果是全 1 的双字掩码（比较为真）或全 0（比较为假）。</p>
+	<p>VEX.128 编码版本：第一源操作数（第二操作数）是 XMM 寄存器。第二源操作数（第三操作数）可以是 XMM 寄存器或 32 位内存位置。结果存储在目的操作数的低 32 位中；目的操作数的 bits 127:32 从第一源操作数中复制。目的 ZMM 寄存器的 bits (MAXVL-1:128) 清零。比较结果是全 1 的双字掩码（比较为真）或全 0（比较为假）。</p>
+	<p>EVEX 编码版本：第一源操作数（第二操作数）是 XMM 寄存器。第二源操作数可以是 XMM 寄存器或 32 位内存位置。目的操作数（第一操作数）是 opmask（操作掩码）寄存器。比较结果是单个掩码位，1 表示比较为真，0 表示比较为假，根据写掩码 k2 从最低有效位（LSB）开始写入目的地。目的寄存器的 bits (MAX_KL-1:128) 清零。</p>
+	<p>比较关系谓词操作数是 8 位立即数：</p>
+	<ul>
+		<li>对于使用 VEX 前缀编码的指令，bits 4:0 定义了要执行的比较类型（参见<a href='cmppd.html#tbl-3-1'>表 3-1</a>）。立即数的 bits 5 到 7 保留。</li>
+		<li>对于未使用 VEX 前缀的指令编码，bits 2:0 定义了要进行的比较类型（参见<a href='cmppd.html#tbl-3-1'>表 3-1</a> 的前 8 行）。立即数的 bits 3 到 7 保留。</li>
+	</ul>
+	<p>当被比较的两个源操作数中至少有一个是 NaN 时，无序（unordered）关系为真；当两个源操作数均不是 NaN 时，有序（ordered）关系为真。</p>
+	<p>后续使用目的操作数中的掩码结果作为输入操作数的计算指令不会产生异常，因为全 0 掩码对应浮点值 +0.0，而全 1 掩码对应 QNaN。</p>
+	<p>请注意，具有 “CPUID.1H:ECX.AVX = 0” 的处理器未实现 “大于”、“大于或等于”、“不大于” 和 “不大于或等于” 关系谓词。这些比较可以通过使用相反关系（即使用 “不小于或等于” 来进行 “大于” 比较）或通过软件模拟来完成。使用软件模拟时，程序必须交换操作数（必要时复制寄存器以保护现在将存于目的寄存器中的数据），然后使用不同的谓词执行比较。要用于这些模拟的谓词列在《Intel® 64 和 IA-32 架构软件开发人员手册》第 2A 卷中表 3-7（位于 cli.html 对应章节）的前 8 行中的 Emulation 标题下。</p>
+	<p>编译器和汇编器除了三操作数 CMPSS 指令之外，对于具有 “CPUID.1H:ECX.AVX = 0” 的处理器，还可以实现以下双操作数伪操作。参见<a href='cmpss.html#tbl-3-8'>表 3-8</a>。编译器应将保留的 imm8 值视为非法语法。</p>
+
+	<figure id="tbl-3-8">
+		<table>
+			<tr>
+				<th>伪操作</th>
+				<th>CMPSS 实现</th>
+			</tr>
+			<tr>
+				<td>CMPEQSS xmm1, xmm2</td>
+				<td>CMPSS xmm1, xmm2, 0</td>
+			</tr>
+			<tr>
+				<td>CMPLTSS xmm1, xmm2</td>
+				<td>CMPSS xmm1, xmm2, 1</td>
+			</tr>
+			<tr>
+				<td>CMPLESS xmm1, xmm2</td>
+				<td>CMPSS xmm1, xmm2, 2</td>
+			</tr>
+			<tr>
+				<td>CMPUNORDSS xmm1, xmm2</td>
+				<td>CMPSS xmm1, xmm2, 3</td>
+			</tr>
+			<tr>
+				<td>CMPNEQSS xmm1, xmm2</td>
+				<td>CMPSS xmm1, xmm2, 4</td>
+			</tr>
+			<tr>
+				<td>CMPNLTSS xmm1, xmm2</td>
+				<td>CMPSS xmm1, xmm2, 5</td>
+			</tr>
+			<tr>
+				<td>CMPNLESS xmm1, xmm2</td>
+				<td>CMPSS xmm1, xmm2, 6</td>
+			</tr>
+			<tr>
+				<td>CMPORDSS xmm1, xmm2</td>
+				<td>CMPSS xmm1, xmm2, 7</td>
+			</tr>
+		</table>
+		<figcaption><a href='cmpss.html#tbl-3-8'>表 3-8</a>. 伪操作和 CMPSS 实现</figcaption>
+	</figure>
+
+	<p>处理器未实现的大于关系在软件中需要多于一条指令来模拟，因此不应被实现为伪操作。（对于这些关系，程序员应当反转相应小于关系的操作数，并使用移动指令确保掩码被移动到正确的目的寄存器，且源操作数保持完整。）</p>
+	<p>具有 “CPUID.1H:ECX.AVX = 1” 的处理器实现了表 3-7 中所示的全部 32 个谓词，不再需要软件模拟。编译器和汇编器除了四操作数 VCMPSS 指令之外，还可以实现以下三操作数伪操作。参见表 3-9，其中 reg1、reg2 和 reg3 记号表示 XMM 寄存器或 YMM 寄存器。编译器应将保留的 imm8 值视为非法语法。或者，内部函数可以将伪操作映射到预定义常量，以支持更简单的内部函数接口。编译器和汇编器可以类似地通过扩展表 3-9 中列出的语法，为 EVEX 编码的 VCMPSS 指令实现三操作数伪操作。</p>
+
+	<figure id="tbl-3-9">
+		<table>
+			<tr>
+				<th>伪操作</th>
+				<th>CMPSS 实现</th>
+			</tr>
+			<tr>
+				<td>VCMPEQSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 0</td>
+			</tr>
+			<tr>
+				<td>VCMPLTSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 1</td>
+			</tr>
+			<tr>
+				<td>VCMPLESS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 2</td>
+			</tr>
+			<tr>
+				<td>VCMPUNORDSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 3</td>
+			</tr>
+			<tr>
+				<td>VCMPNEQSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 4</td>
+			</tr>
+			<tr>
+				<td>VCMPNLTSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 5</td>
+			</tr>
+			<tr>
+				<td>VCMPNLESS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 6</td>
+			</tr>
+			<tr>
+				<td>VCMPORDSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 7</td>
+			</tr>
+			<tr>
+				<td>VCMPEQ_UQSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 8</td>
+			</tr>
+			<tr>
+				<td>VCMPNGESS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 9</td>
+			</tr>
+			<tr>
+				<td>VCMPNGTSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 0AH</td>
+			</tr>
+			<tr>
+				<td>VCMPFALSESS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 0BH</td>
+			</tr>
+			<tr>
+				<td>VCMPNEQ_OQSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 0CH</td>
+			</tr>
+			<tr>
+				<td>VCMPGESS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 0DH</td>
+			</tr>
+			<tr>
+				<td>VCMPGTSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 0EH</td>
+			</tr>
+			<tr>
+				<td>VCMPTRUESS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 0FH</td>
+			</tr>
+			<tr>
+				<td>VCMPEQ_OSSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 10H</td>
+			</tr>
+			<tr>
+				<td>VCMPLT_OQSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 11H</td>
+			</tr>
+			<tr>
+				<td>VCMPLE_OQSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 12H</td>
+			</tr>
+			<tr>
+				<td>VCMPUNORD_SSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 13H</td>
+			</tr>
+			<tr>
+				<td>VCMPNEQ_USSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 14H</td>
+			</tr>
+			<tr>
+				<td>VCMPNLT_UQSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 15H</td>
+			</tr>
+			<tr>
+				<td>VCMPNLE_UQSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 16H</td>
+			</tr>
+			<tr>
+				<td>VCMPORD_SSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 17H</td>
+			</tr>
+			<tr>
+				<td>VCMPEQ_USSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 18H</td>
+			</tr>
+			<tr>
+				<td>VCMPNGE_UQSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 19H</td>
+			</tr>
+			<tr>
+				<td>VCMPNGT_UQSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 1AH</td>
+			</tr>
+			<tr>
+				<td>VCMPFALSE_OSSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 1BH</td>
+			</tr>
+			<tr>
+				<td>VCMPNEQ_OSSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 1CH</td>
+			</tr>
+			<tr>
+				<td>VCMPGE_OQSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 1DH</td>
+			</tr>
+			<tr>
+				<td>VCMPGT_OQSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 1EH</td>
+			</tr>
+			<tr>
+				<td>VCMPTRUE_USSS reg1, reg2, reg3</td>
+				<td>VCMPSS reg1, reg2, reg3, 1FH</td>
+			</tr>
+		</table>
+		<figcaption><a href='cmpss.html#tbl-3-9'>表 3-9</a>. 伪操作和 VCMPSS 实现</figcaption>
+	</figure>
+	<p>软件应确保 VCMPSS 编码为 VEX.L=0。用 VEX.L=1 编码 VCMPSS 可能会在不同处理器代次之间遇到不可预测的行为。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>CASE (COMPARISON PREDICATE) OF
+    0: OP3 := EQ_OQ; OP5 := EQ_OQ;
+    1: OP3 := LT_OS; OP5 := LT_OS;
+    2: OP3 := LE_OS; OP5 := LE_OS;
+    3: OP3 := UNORD_Q; OP5 := UNORD_Q;
+    4: OP3 := NEQ_UQ; OP5 := NEQ_UQ;
+    5: OP3 := NLT_US; OP5 := NLT_US;
+    6: OP3 := NLE_US; OP5 := NLE_US;
+    7: OP3 := ORD_Q; OP5 := ORD_Q;
+    8: OP5 := EQ_UQ;
+    9: OP5 := NGE_US;
+    10: OP5 := NGT_US;
+    11: OP5 := FALSE_OQ;
+    12: OP5 := NEQ_OQ;
+    13: OP5 := GE_OS;
+    14: OP5 := GT_OS;
+    15: OP5 := TRUE_UQ;
+    16: OP5 := EQ_OS;
+    17: OP5 := LT_OQ;
+    18: OP5 := LE_OQ;
+    19: OP5 := UNORD_S;
+    20: OP5 := NEQ_US;
+    21: OP5 := NLT_UQ;
+    22: OP5 := NLE_UQ;
+    23: OP5 := ORD_S;
+    24: OP5 := EQ_US;
+    25: OP5 := NGE_UQ;
+    26: OP5 := NGT_UQ;
+    27: OP5 := FALSE_OS;
+    28: OP5 := NEQ_OS;
+    29: OP5 := GE_OQ;
+    30: OP5 := GT_OQ;
+    31: OP5 := TRUE_US;
+    DEFAULT: Reserved
+ESAC;
+</pre>
+
+	<h3 id="vcmpss--evex-encoded-version-">VCMPSS (EVEX Encoded Version)<a class="anchor" href="#vcmpss--evex-encoded-version-">¶</a></h3>
+	<pre>CMP0 := SRC1[31:0] OP5 SRC2[31:0];
+IF k2[0] or *no writemask*
+    THEN IF CMP0 = TRUE
+        THEN DEST[0] := 1;
+        ELSE DEST[0] := 0; FI;
+    ELSE DEST[0] := 0
+            ; zeroing-masking only
+FI;
+DEST[MAX_KL-1:1] := 0
+</pre>
+
+	<h3 id="cmpss--128-bit-legacy-sse-version-">CMPSS (128-bit Legacy SSE Version)<a class="anchor" href="#cmpss--128-bit-legacy-sse-version-">¶</a></h3>
+	<pre>CMP0 := DEST[31:0] OP3 SRC[31:0];
+IF CMP0 = TRUE
+THEN DEST[31:0] := FFFFFFFFH;
+ELSE DEST[31:0] := 00000000H; FI;
+DEST[MAXVL-1:32] (Unmodified)
+</pre>
+
+	<h3 id="vcmpss--vex-128-encoded-version-">VCMPSS (VEX.128 Encoded Version)<a class="anchor" href="#vcmpss--vex-128-encoded-version-">¶</a></h3>
+	<pre>CMP0 := SRC1[31:0] OP5 SRC2[31:0];
+IF CMP0 = TRUE
+THEN DEST[31:0] := FFFFFFFFH;
+ELSE DEST[31:0] := 00000000H; FI;
+DEST[127:32] := SRC1[127:32]
+DEST[MAXVL-1:128] := 0
+</pre>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>VCMPSS __mmask8 _mm_cmp_ss_mask( __m128 a, __m128 b, int imm);
+VCMPSS __mmask8 _mm_cmp_round_ss_mask( __m128 a, __m128 b, int imm, int sae);
+VCMPSS __mmask8 _mm_mask_cmp_ss_mask( __mmask8 k1, __m128 a, __m128 b, int imm);
+VCMPSS __mmask8 _mm_mask_cmp_round_ss_mask( __mmask8 k1, __m128 a, __m128 b, int imm, int sae);
+(V)CMPSS __m128 _mm_cmp_ss(__m128 a, __m128 b, const int imm)
+</pre>
+
+	<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+	<p>如果存在 SNaN 操作数则触发无效异常，如果存在 QNaN 且谓词如<a href='cmppd.html#tbl-3-1'>表 3-1</a>所列，则触发无效异常；非规范化值异常。</p>
+
+	<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+	<p>VEX 编码的指令，参见 <span class="not-imported">表 2-20</span>，“Type 3 类异常条件”。</p>
+	<p>EVEX 编码的指令，参见 <span class="not-imported">表 2-47</span>，“Type E3 类异常条件”。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

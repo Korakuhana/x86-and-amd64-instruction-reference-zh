@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns:x86="http://www.felixcloutier.com/x86">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>XCHG — 交换寄存器/内存与寄存器</title>
+</head>
+
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>XCHG — 交换寄存器/内存与寄存器</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>90+rw</td>
+			<td>XCHG AX, r16</td>
+			<td>O</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 r16 与 AX 进行交换。</td>
+		</tr>
+		<tr>
+			<td>90+rw</td>
+			<td>XCHG r16, AX</td>
+			<td>O</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 AX 与 r16 进行交换。</td>
+		</tr>
+		<tr>
+			<td>90+rd</td>
+			<td>XCHG EAX, r32</td>
+			<td>O</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 r32 与 EAX 进行交换。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 90+rd</td>
+			<td>XCHG RAX, r64</td>
+			<td>O</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 r64 与 RAX 进行交换。</td>
+		</tr>
+		<tr>
+			<td>90+rd</td>
+			<td>XCHG r32, EAX</td>
+			<td>O</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 EAX 与 r32 进行交换。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 90+rd</td>
+			<td>XCHG r64, RAX</td>
+			<td>O</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 RAX 与 r64 进行交换。</td>
+		</tr>
+		<tr>
+			<td>86 /r</td>
+			<td>XCHG r/m8, r8</td>
+			<td>MR</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 r8（字节寄存器）与 r/m8 中的字节进行交换。</td>
+		</tr>
+		<tr>
+			<td>REX + 86 /r</td>
+			<td>XCHG r/m8*, r8*</td>
+			<td>MR</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 r8（字节寄存器）与 r/m8 中的字节进行交换。</td>
+		</tr>
+		<tr>
+			<td>86 /r</td>
+			<td>XCHG r8, r/m8</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 r/m8 中的字节与 r8（字节寄存器）进行交换。</td>
+		</tr>
+		<tr>
+			<td>REX + 86 /r</td>
+			<td>XCHG r8*, r/m8*</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 r/m8 中的字节与 r8（字节寄存器）进行交换。</td>
+		</tr>
+		<tr>
+			<td>87 /r</td>
+			<td>XCHG r/m16, r16</td>
+			<td>MR</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 r16 与 r/m16 中的字进行交换。</td>
+		</tr>
+		<tr>
+			<td>87 /r</td>
+			<td>XCHG r16, r/m16</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 r/m16 中的字与 r16 进行交换。</td>
+		</tr>
+		<tr>
+			<td>87 /r</td>
+			<td>XCHG r/m32, r32</td>
+			<td>MR</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 r32 与 r/m32 中的双字进行交换。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 87 /r</td>
+			<td>XCHG r/m64, r64</td>
+			<td>MR</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 r64 与 r/m64 中的四字进行交换。</td>
+		</tr>
+		<tr>
+			<td>87 /r</td>
+			<td>XCHG r32, r/m32</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 r/m32 中的双字与 r32 进行交换。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 87 /r</td>
+			<td>XCHG r64, r/m64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 r/m64 中的四字与 r64 进行交换。</td>
+		</tr>
+	</table>
+	<blockquote>
+		<p>* 在 64 位模式下，如果使用 REX 前缀，则无法编码 r/m8 以访问以下字节寄存器：AH、BH、CH、DH。</p>
+	</blockquote>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>O</td>
+			<td>AX/EAX/RAX (r, w)</td>
+			<td>opcode + rd (r, w)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>O</td>
+			<td>opcode + rd (r, w)</td>
+			<td>AX/EAX/RAX (r, w)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>MR</td>
+			<td>ModRM:r/m (r, w)</td>
+			<td>ModRM:reg (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>RM</td>
+			<td>ModRM:reg (w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>交换目标操作数（第一个）和源操作数（第二个）的内容。操作数可以是两个通用寄存器，或者是一个寄存器和一个内存位置。如果引用了内存操作数，则在交换操作期间自动实现处理器的锁定协议，无论是否存在 LOCK 前缀或 IOPL 的值如何。（有关锁定协议的更多信息，请参阅本章中的 LOCK 前缀说明。）</p>
+	<p>此指令对于实现用于进程同步的信号量或类似数据结构非常有用。（有关总线锁定的更多信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 3A 卷第 9 章中的“总线锁定”。）</p>
+	<p>对于 16 位操作数，也可以使用 XCHG 指令来代替 BSWAP 指令。</p>
+	<p>在 64 位模式下，该指令的默认操作大小为 32 位。使用 REX.R 形式 of REX 前缀允许访问其他寄存器（R8-R15）。使用 REX.W 形式 of REX 前缀可将操作提升为 64 位。有关编码数据 and 限制，请参阅本节开头的汇总表。</p>
+	<blockquote>
+		<p>无论数据大小前缀（包括 REX.W）如何，XCHG (E)AX, (E)AX（编码指令字节为 90H）都是 NOP 的别名。</p>
+	</blockquote>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>TEMP := DEST;
+DEST := SRC;
+SRC := TEMP;
+</pre>
+
+	<h2 id="flags-affected">影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="3">#GP(0)</td>
+			<td>如果任一操作数位于不可写的段中。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>如果 DS、ES、FS 或 GS 寄存器包含 NULL 段选择器。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀，但目标不是内存操作数。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>如果内存操作数有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#SS</td>
+			<td>如果内存操作数有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀，但目标不是内存操作数。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟 8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存操作数有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀，但目标不是内存操作数。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果引用 SS 段的内存地址是非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存地址是非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常.</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀，但目标不是内存操作数。</td>
+		</tr>
+	</table>
+	<footer>
+		<p>
+			本非官方、机械拆分、未经校验的参考文档仅为方便提供，可能存在各种明显或不明显的缺失或错误。任何严肃用途请参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>ENCODEKEY256 — 使用 Key Locker 编码 256 位密钥</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+
+	<h1>ENCODEKEY256 — 使用 Key Locker 编码 256 位密钥</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>操作/编码</th>
+			<th>64/32位模式</th>
+			<th>CPUID功能标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>F3 0F 38 FB 11:rrr:bbb ENCODEKEY256 r32, r32 &lt;XMM0-6&gt;</td>
+			<td>A</td>
+			<td>V/V</td>
+			<td>AESKLE</td>
+			<td>将 XMM1:XMM0 中的 256 位 AES 密钥封装到密钥句柄中，并将其存储在 XMM0-3 中。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>操作/编码</th>
+			<th>元组</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3-4</th>
+			<th>操作数 5-9</th>
+		</tr>
+		<tr>
+			<td>A</td>
+			<td>无</td>
+			<td>ModRM:reg (写)</td>
+			<td>ModRM:r/m (读)</td>
+			<td>隐式 XMM0—1 (读, 写)</td>
+			<td>隐式 XMM2—6 (写)</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>ENCODEKEY256 指令将隐式操作数 XMM1:XMM0 中的 256 位 AES 密钥封装到密钥句柄中，然后存储在隐式目标操作数 XMM0-3 中。</p>
+	<p>显式源操作数是一个通用寄存器，指定要在句柄中构建哪些句柄限制。</p>
+	<p>显式目标操作数填充有关于密钥来源及其属性的信息。XMM4 到 XMM6 保留供未来使用，软件不应依赖它们被清零。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<h4 id="encodekey256">ENCODEKEY256<a class="anchor" href="#encodekey256">¶</a></h4>
+	<pre>#GP (0) if a reserved bit<sup>2</sup> in SRC[31:0] is set
+InputKey[255:0] := XMM1:XMM0;
+KeyMetadata[2:0] = SRC[2:0];
+KeyMetadata[23:3] = 0; // Reserved for future usage
+KeyMetadata[27:24] = 1; // KeyType is AES-256 (value of 1)
+KeyMetadata[127:28] = 0; // Reserved for future usage
+// KeyMetadata is the AAD input and InputKey is the Plaintext input for WrapKey256
+Handle[511:0] := WrapKey256(InputKey[255:0], KeyMetadata[127:0], IWKey.Integrity Key[127:0], IWKey.Encryption Key[255:0]);
+DEST[0] := IWKey.NoBackup;
+DEST[4:1] := IWKey.KeySource[3:0];
+DEST[31:5] = 0;
+XMM0 := Handle[127:0]; // AAD
+XMM1 := Handle[255:128]; // Integrity Tag
+XMM2 := Handle[383:256]; // CipherText[127:0]
+XMM3 := Handle[511:384]; // CipherText[255:128]
+XMM4 := 0;
+    // Reserved for future usage
+XMM5 := 0;
+    // Reserved for future usage
+XMM6 := 0;
+    // Reserved for future usage
+RFLAGS.OF, SF, ZF, AF, PF, CF := 0;
+1. Further details on Key Locker and usage of this instruction can be found here:
+</pre>
+	<h3 id="https---software-intel-com-content-www-us-en-develop-download-intel-key-locker-specification-html-">https://software.intel.com/content/www/us/en/develop/download/intel-key-locker-specification.html.<a class="anchor" href="#https---software-intel-com-content-www-us-en-develop-download-intel-key-locker-specification-html-">¶</a></h3>
+	<blockquote>
+		<p>2. SRC[31:3] 目前保留供未来使用。表示不可解密限制的 SRC[2] 在 CPUID.19H:EAX[2] = 0 时保留。表示不可加密限制的 SRC[1] 在 CPUID.19H:EAX[1] = 0 时保留。表示仅 CPL0 限制的 SRC[0] 在 CPUID.19H:EAX[0] = 0 时保留。</p>
+	</blockquote>
+
+	<h2 id="flags-affected">影响的标志寄存器<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>所有算术标志（OF、SF、ZF、AF、PF、CF）均被清零为 0。尽管它们在当前定义的操作中被清零，但未来的扩展可能会在标志中报告信息。</p>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器固有等效项<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>ENCODEKEY256 unsigned int _mm_encodekey256_u32(unsigned int htype, __m128i key_lo, __m128i key_hi, void* h);
+</pre>
+
+	<h2 id="exceptions--all-operating-modes-">异常 (所有运行模式)<a class="anchor" href="#exceptions--all-operating-modes-">¶</a></h2>
+	<p>#GP 如果在源寄存器值中设置了保留位。</p>
+	<p>#UD 如果使用了 LOCK 前缀。</p>
+	<p>如果 CPUID.07H:ECX.KL[bit 23] = 0。</p>
+	<p>如果 CR4.KL = 0。</p>
+	<p>如果 CPUID.19H:EBX.AESKLE[bit 0] = 0。</p>
+	<p>如果 CR0.EM = 1。</p>
+	<p>如果 CR4.OSFXSR = 0。</p>
+	<p>#NM 如果 CR0.TS = 1。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

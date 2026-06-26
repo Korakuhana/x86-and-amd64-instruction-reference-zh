@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>PAUSE — 自旋等待提示</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>PAUSE — 自旋等待提示</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>F3 90</td>
+			<td>PAUSE</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>向处理器提供提示，以提高自旋等待（spin-wait）循环的性能。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>提高自旋等待（spin-wait）循环的性能。在执行“自旋等待循环”时，处理器在退出循环时会遭受严重的性能损失，因为它检测到了可能发生的内存顺序违规。PAUSE 指令向处理器提供了一个提示，表明该代码序列是一个自旋等待循环。处理器利用此提示在大多数情况下避免内存顺序违规，从而大大提高处理器性能。因此，建议在所有自旋等待循环中放置一条 PAUSE 指令。</p>
+	<p>PAUSE 指令的另一个功能是减少处理器在执行自旋循环时消耗的功耗。处理器可以极快地执行自旋等待循环，导致处理器在等待其自旋所针对的资源可用时消耗大量能量。在自旋等待循环中插入一条 pause 指令可以大大降低处理器的功耗。</p>
+	<p>此指令是在 Pentium 4 处理器中引入的，但向后兼容所有 IA-32 处理器。在早期的 IA-32 处理器中，PAUSE 指令的操作类似于 NOP 指令。Pentium 4 和 Intel Xeon 处理器将 PAUSE 指令实现为延迟（delay）。延迟是有限的，对某些处理器来说可能是零。此指令不会改变处理器的架构状态（即，它实质上执行的是带有延迟的无操作运算）。</p>
+	<p>此指令的操作在非 64 位模式和 64 位模式下相同。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>Execute_Next_Instruction(DELAY);
+</pre>
+
+	<h2 id="numeric-exceptions">数值异常<a class="anchor" href="#numeric-exceptions">¶</a></h2>
+	<p>无。</p>
+
+	<h2 id="exceptions--all-operating-modes-">异常（所有操作模式）<a class="anchor" href="#exceptions--all-operating-modes-">¶</a></h2>
+	<p>#UD 如果使用了 LOCK 前缀。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

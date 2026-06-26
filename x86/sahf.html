@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns:x86="http://www.felixcloutier.com/x86">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>SAHF — 将 AH 写入标志寄存器</title>
+</head>
+
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>SAHF — 将 AH 写入标志寄存器</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>9E</td>
+			<td>SAHF</td>
+			<td>ZO</td>
+			<td>Invalid<sup>1</sup></td>
+			<td>Valid</td>
+			<td>将 AH 中的值加载到 EFLAGS 寄存器的 SF、ZF、AF、PF 和 CF 中。</td>
+		</tr>
+	</table>
+	<blockquote>
+		<p>1. 在特定步进中有效；参见描述部分。</p>
+	</blockquote>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将 EFLAGS 寄存器的 SF、ZF、AF、PF 和 CF 标志加载为 AH 寄存器中对应位的值（分别为第 7、6、4、2 和 0 位）。AH 寄存器的第 1、3 和 5 位被忽略；EFLAGS 寄存器中对应的保留位（1、3 和 5）保持不变，如下方的“操作”部分所示。</p>
+	<p>此指令在兼容模式和传统模式下如上所述执行。仅当 CPUID.80000001H:ECX.LAHF-SAHF[bit 0] = 1 时，它在 64 位模式下才有效。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF IA-64 Mode
+    THEN
+        IF CPUID.80000001H.ECX[0] = 1;
+            THEN
+                RFLAGS(SF:ZF:0:AF:0:PF:1:CF) := AH;
+            ELSE
+                #UD;
+        FI
+    ELSE
+        EFLAGS(SF:ZF:0:AF:0:PF:1:CF) := AH;
+FI;
+</pre>
+
+	<h2 id="flags-affected">影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>SF、ZF、AF、PF 和 CF 标志加载自 AH 寄存器的值。EFLAGS 寄存器的第 1、3 和 5 位不受影响，其值分别保持为 1、0 和 0。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟 8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CPUID.80000001H.ECX[0] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+	<footer>
+		<p>
+			本非官方、机械拆分、未经校验的参考文档仅为方便提供，可能存在各种明显或不明显的缺失或错误。任何严肃用途请参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+
+</html>

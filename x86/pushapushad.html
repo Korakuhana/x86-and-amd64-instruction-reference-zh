@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns:x86="http://www.felixcloutier.com/x86">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>PUSHA/PUSHAD — 将所有通用寄存器压入栈</title>
+</head>
+
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>PUSHA/PUSHAD — 将所有通用寄存器压入栈</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>60</td>
+			<td>PUSHA</td>
+			<td>ZO</td>
+			<td>Invalid</td>
+			<td>Valid</td>
+			<td>压入 AX, CX, DX, BX, 原始 SP, BP, SI, 以及 DI。</td>
+		</tr>
+		<tr>
+			<td>60</td>
+			<td>PUSHAD</td>
+			<td>ZO</td>
+			<td>Invalid</td>
+			<td>Valid</td>
+			<td>压入 EAX, ECX, EDX, EBX, 原始 ESP, EBP, ESI, 以及 EDI。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将通用寄存器的内容压入栈中。寄存器在栈中的存储顺序如下：EAX、ECX、EDX、EBX、ESP（原始值）、EBP、ESI、EDI（如果当前操作数大小属性为 32）；以及 AX、CX、DX、BX、SP（原始值）、BP、SI、DI（如果操作数大小属性为 16）。这些指令执行与 POPA/POPAD 指令相反的操作。压入的 ESP 或 SP 寄存器的值是压入第一个寄存器之前的初始值（参见下方的“操作”部分）。</p>
+	<p>助记符 PUSHA（全部压栈）和 PUSHAD（全部双字压栈）指向同一个操作码。PUSHA 指令旨在操作数大小属性为 16 时使用，而 PUSHAD 指令旨在操作数大小属性为 32 时使用。某些汇编器可能会在下述情况下强制确定操作数大小：使用 PUSHA 时为 16，使用 PUSHAD 时为 32。其他汇编器可能将这些助记符视为同义词（PUSHA/PUSHAD），并使用操作数大小属性的当前设置来确定从栈中压入的值的大小，而不管所使用的助记符如何。</p>
+	<p>在实地址模式下，如果执行 PUSHA/PUSHAD 时 ESP 或 SP 寄存器为 1、3 或 5：将产生 #SS 异常，但不会传送（报告的栈错误会阻止 #SS 传送）。接下来，处理器产生 #DF 异常并进入关机状态，如《Intel® 64 和 IA-32 架构软件开发人员手册》第 3A 卷第 6 章中关于 #DF 的讨论所述。</p>
+	<p>此指令在兼容模式和传统模式下的执行过程与所述相同。该指令在 64 位模式下无效。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF 64-bit Mode
+    THEN #UD
+FI;
+IF OperandSize = 32 (* PUSHAD instruction *)
+    THEN
+        Temp := (ESP);
+        Push(EAX);
+        Push(ECX);
+        Push(EDX);
+        Push(EBX);
+        Push(Temp);
+        Push(EBP);
+        Push(ESI);
+        Push(EDI);
+    ELSE (* OperandSize = 16, PUSHA instruction *)
+        Temp := (SP);
+        Push(AX);
+        Push(CX);
+        Push(DX);
+        Push(BX);
+        Push(Temp);
+        Push(BP);
+        Push(SI);
+        Push(DI);
+FI;
+</pre>
+
+	<h2 id="flags-affected">影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果栈的起始或结束地址超出栈段限制。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>如果 ESP 或 SP 寄存器包含 7、9、11、13 或 15。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟 8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果 ESP 或 SP 寄存器包含 7、9、11、13 或 15。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查且进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果处于 64 位模式下。</td>
+		</tr>
+	</table>
+	<footer>
+		<p>
+			本非官方、机械拆分、未经校验的参考文档仅为方便提供，可能存在各种明显或不明显的缺失或错误。任何严肃用途请参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>BNDSTX — 使用地址翻译存储扩展边界</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>BNDSTX — 使用地址翻译存储扩展边界</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>NP 0F 1B /r BNDSTX mib, bnd</td>
+			<td>MR</td>
+			<td>V/V</td>
+			<td>MPX</td>
+			<td>使用 mib 的基址进行地址翻译，将 bnd 中的边界以及 mib 的索引寄存器中的指针值存储到边界表项 (BTE) 中。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+		</tr>
+		<tr>
+			<td>MR</td>
+			<td>SIB.base (r): 指针 SIB.index(r) 的地址</td>
+			<td>ModRM:reg (r)</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>BNDSTX 使用由内存操作数 (mib) 的 SIB 寻址形式的偏移量和基址寄存器构建的线性地址，执行地址翻译以存储到边界表项。源操作数 bnd 中的边界被写入 BTE 中的下界 and 上界。mib 的索引寄存器的内容被写入 BTE 中的指针值字段。</p>
+	<p>此指令不会导致对 mib 的线性地址或由基址引用的有效地址进行内存访问，并且不会读取或写入任何标志位。</p>
+	<p>段超越适用于使用 mib 基址的线性地址计算，并在地址翻译期间用于生成边界表项的地址。默认情况下，BTE 的地址假定为线性地址。不会对 mib 的基址进行段检查。</p>
+	<p>不会检查 mib 的基址是否违反规范地址，因为它不访问内存。</p>
+	<p>此指令的任何未指定基址或索引寄存器的编码都会将这些寄存器视为零（常量）。此指令的寄存器-寄存器 (reg-reg) 形式将保持为 NOP。</p>
+	<p>SIB 字节的比例 (Scale) 字段对这些指令没有影响，并会被忽略。</p>
+	<p>在内存故障时，边界寄存器可能会被部分更新。加载内存操作数的顺序是具体实现相关的。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>base := mib.SIB.base ? mib.SIB.base + Disp: 0;
+ptr_value := mib.SIB.index ? mib.SIB.index : 0;
+</pre>
+
+	<h3 id="outside-64-bit-mode">Outside 64-bit Mode<a class="anchor" href="#outside-64-bit-mode">¶</a></h3>
+	<pre>A_BDE[31:0] := (Zero_extend32(base[31:12] « 2) + (BNDCFG[31:12] «12 );
+A_BT[31:0] := LoadFrom(A_BDE);
+IF A_BT[0] equal 0 Then
+    BNDSTATUS := A_BDE | 02H;
+    #BR;
+FI;
+A_DEST[31:0] := (Zero_extend32(base[11:2] « 4) + (A_BT[31:2] « 2 ); // address of Bound table entry
+A_DEST[8][31:0] := ptr_value;
+A_DEST[0][31:0] := BND.LB;
+A_DEST[4][31:0] := BND.UB;
+</pre>
+
+	<h3 id="in-64-bit-mode">In 64-bit Mode<a class="anchor" href="#in-64-bit-mode">¶</a></h3>
+	<pre>A_BDE[63:0] := (Zero_extend64(base[47+MAWA:20] « 3) + (BNDCFG[63:12] «12 );<sup>1</sup>
+A_BT[63:0] := LoadFrom(A_BDE);
+IF A_BT[0] equal 0 Then
+    BNDSTATUS := A_BDE | 02H;
+    #BR;
+FI;
+A_DEST[63:0] := (Zero_extend64(base[19:3] « 5) + (A_BT[63:3] « 3 ); // address of Bound table entry
+A_DEST[16][63:0] := ptr_value;
+A_DEST[0][63:0] := BND.LB;
+A_DEST[8][63:0] := BND.UB;
+</pre>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>BNDSTX: _bnd_store_ptr_bounds(const void **ptr_addr, const void *ptr_val);
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#BR</td>
+			<td>如果边界目录项无效。</td>
+		</tr>
+		<tr>
+			<td rowspan="4">#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>如果启用 Intel MPX 时 ModRM.r/m 编码为 BND4-BND7。</td>
+		</tr>
+		<tr>
+			<td>如果未使用 67H 前缀且 CS.D=0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 67H 前缀且 CS.D=1。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#GP(0)</td>
+			<td>如果边界 table 项的目的有效地址超出 DS 段限制。</td>
+		</tr>
+		<tr>
+			<td>如果 DS 寄存器包含空段选择子。</td>
+		</tr>
+		<tr>
+			<td>如果目的操作数指向不可写的段。</td>
+		</tr>
+		<tr>
+			<td>#PF(故障</td>
+			<td>代码) 如果发生缺页异常。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="3">#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>如果启用 Intel MPX 时 ModRM.r/m 编码为 BND4-BND7。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 16 位寻址。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果边界表项的目的有效地址超出 DS 段限制。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="3">#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>如果启用 Intel MPX 时 ModRM.r/m 编码为 BND4-BND7。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 16 位寻址。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果边界表项的目的有效地址超出 DS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#PF(故障</td>
+			<td>代码) 如果发生缺页异常。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<blockquote>
+		<p>1. 如果 CPL &lt; 3，则使用管理模式下的 MAWA (MAWAS)；该值为 0。如果 CPL = 3，则使用用户模式下的 MAWA (MAWAU)；该值在 CPUID.(EAX=07H,ECX=0H):ECX.MAWAU[bits 21:17] 中枚举。参见《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷附录 E.3.1。</p>
+	</blockquote>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#BR</td>
+			<td>如果边界目录项无效。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#UD</td>
+			<td>如果 ModRM 为 RIP 相对寻址。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>如果启用 Intel MPX 时 ModRM.r/m 和 REX 编码为 BND4-BND15。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果内存地址 (A_BDE 或 A_BTE) 处于非规范形式。</td>
+		</tr>
+		<tr>
+			<td>如果目的操作数指向不可写的段。</td>
+		</tr>
+		<tr>
+			<td>#PF(故障</td>
+			<td>代码) 如果发生缺页异常。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

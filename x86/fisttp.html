@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>FISTTP — 截断存储整数</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+
+	<h1>FISTTP — 截断存储整数</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>DF /1</td>
+			<td>FISTTP m16int</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>截断将 ST(0) 存储到 m16int 中。</td>
+		</tr>
+		<tr>
+			<td>DB /1</td>
+			<td>FISTTP m32int</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>截断将 ST(0) 存储到 m32int 中。</td>
+		</tr>
+		<tr>
+			<td>DD /1</td>
+			<td>FISTTP m64int</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>截断将 ST(0) 存储到 m64int 中。</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>FISTTP 使用截断（chop）作为舍入模式将 ST 中的值转换为有符号整数，将结果传输到目的地，并弹出 ST。FISTTP 接受字、短整数和长整数目的操作数。</p>
+	<p>下表显示了在以整数格式存储各类数字时获得的结果。</p>
+	<figure id="tbl-3-28">
+		<table>
+			<tr>
+				<th>ST(0)</th>
+				<th>目的</th>
+			</tr>
+			<tr>
+				<td>− ∞ 或值对于目的格式过大</td>
+				<td>*</td>
+			</tr>
+			<tr>
+				<td>F ≤ −1</td>
+				<td>−I</td>
+			</tr>
+			<tr>
+				<td>−1 &lt; F &lt; +1</td>
+				<td>0</td>
+			</tr>
+			<tr>
+				<td>F ≥ +1</td>
+				<td>+I</td>
+			</tr>
+			<tr>
+				<td>+ ∞ 或值对于目的格式过大</td>
+				<td>*</td>
+			</tr>
+			<tr>
+				<td>NaN</td>
+				<td>*</td>
+			</tr>
+		</table>
+		<figcaption><a href='fisttp.html#tbl-3-28'>表 3-28</a>. FISTTP 结果</figcaption>
+	</figure>
+	<blockquote>
+		<p>F 表示有限浮点值。</p>
+		<p>I 表示整数。</p>
+		<p>* 表示浮点无效操作 (#IA) 异常。</p>
+	</blockquote>
+	<p>此指令的操作在非 64 位模式和 64 位模式下相同。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>DEST := ST;
+pop ST;
+</pre>
+
+	<h2 id="flags-affected">影响的标志寄存器<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>C1 被清除；C0、C2、C3 未定义。</p>
+
+	<h2 class="exceptions" id="numeric-exceptions">数值异常<a class="anchor" href="#numeric-exceptions">¶</a></h2>
+	<p>无效操作、栈无效（栈下溢）、精确度。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果目的位于不可写段中。</td>
+		</tr>
+		<tr>
+			<td>如果 CS、DS、ES、FS 或 GS 段中的内存操作数有效地址非法。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果 SS 段中的地址非法。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生页错误。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#NM</td>
+			<td>如果 CR0.EM[bit 2] = 1。</td>
+		</tr>
+		<tr>
+			<td>如果 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CPUID.01H:ECX.SSE3[bit 0] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<p>GP(0) 如果操作数的任何部分超出从 0 到 0FFFFH 的有效地址空间。</p>
+	<table>
+		<tr>
+			<td rowspan="2">#NM</td>
+			<td>如果 CR0.EM[bit 2] = 1。</td>
+		</tr>
+		<tr>
+			<td>如果 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CPUID.01H:ECX.SSE3[bit 0] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<p>GP(0) 如果操作数的任何部分超出从 0 到 0FFFFH 的有效地址空间。</p>
+	<table>
+		<tr>
+			<td rowspan="2">#NM</td>
+			<td>如果 CR0.EM[bit 2] = 1。</td>
+		</tr>
+		<tr>
+			<td>如果 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CPUID.01H:ECX.SSE3[bit 0] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生页错误。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且进行了未对齐的内存引用（特权级为 3 时）。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果引用 SS 段的内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#NM</td>
+			<td>CR0.EM[bit 2] 或 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>#MF</td>
+			<td>如果存在未决的 x87 FPU 异常。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生页错误。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete） or 出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

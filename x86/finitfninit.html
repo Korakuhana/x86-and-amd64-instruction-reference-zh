@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>FINIT/FNINIT — 初始化浮点单元</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+
+	<h1>FINIT/FNINIT — 初始化浮点单元</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>9B DB E3</td>
+			<td>FINIT</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>在检查是否存在未屏蔽的挂起浮点异常后，初始化 FPU。</td>
+		</tr>
+		<tr>
+			<td>DB E3</td>
+			<td>FNINIT<sup>1</sup></td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>在不检查是否存在未屏蔽的挂起浮点异常的情况下，初始化 FPU。</td>
+		</tr>
+	</table>
+	<blockquote>
+		<p>1. 参见下文的“IA-32 架构兼容性”部分。</p>
+	</blockquote>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将 FPU 控制、状态、标记（tag）、指令指针和数据指针寄存器设置为其默认状态。FPU 控制字被设置为 037FH（舍入到最接近的数、屏蔽所有异常、64位精度）。状态字被清零（没有设置异常标志，TOP 设置为 0）。寄存器栈中的数据寄存器保持不变，但它们全都被标记为空（11B）。指令指针和数据指针都被清零。</p>
+	<p>FINIT 指令在执行初始化之前会检查并处理任何未屏蔽的挂起浮点异常；而 FNINIT 指令不会。</p>
+	<p>汇编器为 FINIT 指令生成两条指令（FWAIT 指令后跟 FNINIT 指令），处理器分别执行这两条指令。如果其中任一指令产生异常，保存的 EIP 将指向引起该异常的指令。</p>
+	<p>此指令的操作在非 64 位模式和 64 位模式下相同。</p>
+
+	<h2 id="ia-32-architecture-compatibility">IA-32 架构兼容性<a class="anchor" href="#ia-32-architecture-compatibility">¶</a></h2>
+	<p>在 MS-DOS 兼容模式下运行 Pentium 或 Intel486 处理器时，在罕见情况下，FNINIT 指令可能会在执行前被中断以处理挂起的 FPU 异常。有关这些情况的描述，请参阅《Intel® 64 and IA-32 Architectures Software Developer’s Manual, Volume 1》附录 D 中标题为“No-Wait FPU Instructions Can Get FPU Interrupt in Window”的部分。在较新的 Intel 处理器上，除了 Intel Quark™ X1000 处理器外，FNINIT 指令不能以这种方式被中断。</p>
+	<p>在 Intel387 数学协处理器中，FINIT/FNINIT 指令不清除指令指针和数据指针。</p>
+	<p>此指令仅影响 x87 FPU。它不影响 XMM 和 MXCSR 寄存器。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>FPUControlWord := 037FH;
+FPUStatusWord := 0;
+FPUTagWord := FFFFH;
+FPUDataPointer := 0;
+FPUInstructionPointer := 0;
+FPULastInstructionOpcode := 0;
+</pre>
+
+	<h2 id="fpu-flags-affected">影响的 FPU 标志寄存器<a class="anchor" href="#fpu-flags-affected">¶</a></h2>
+	<table>
+		<tr>
+			<td>C0, C1, C2, C3</td>
+			<td>设置为 0。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="floating-point-exceptions">浮点异常<a class="anchor" href="#floating-point-exceptions">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#NM</td>
+			<td>CR0.EM[bit 2] 或 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>#MF</td>
+			<td>如果存在未决 a x87 FPU 异常。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete） or 出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

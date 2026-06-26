@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>EDECCSSA — 递减 TCS.CSSA</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+
+	<h1>EDECCSSA — 递减 TCS.CSSA</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>操作/编码</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID功能标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>EAX = 09H ENCLU[EDECCSSA]</td>
+			<td>IR</td>
+			<td>V/V</td>
+			<td>EDECCSSA</td>
+			<td>此叶函数递减 TCS.CSSA。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>操作/编码</th>
+			<th>EAX</th>
+		</tr>
+		<tr>
+			<td>IR</td>
+			<td>EDECCSSA (输入)</td>
+		</tr>
+	</table>
+
+	<h3 id="description">描述<a class="anchor" href="#description">¶</a></h3>
+	<p>此叶函数通过递减当前 enclave 线程的 TCS.CSSA 来更改当前的 SSA 帧。如果 enclave 已启用 CET 阴影栈 (shadow stacks) 或间接分支跟踪，则 EDECCSSA 还会更改当前的 CET 状态保存帧。此指令叶只能在 enclave 内部执行。</p>
+
+	<h2 id="edeccssa-memory-parameter-semantics">EDECCSSA 内存参数语义<a class="anchor" href="#edeccssa-memory-parameter-semantics">¶</a></h2>
+	<table>
+		<tr>
+			<td>TCS</td>
+		</tr>
+		<tr>
+			<td>Enclave 进行的读/写访问</td>
+		</tr>
+	</table>
+	<p>如果发生以下任何情况，指令将产生异常：</p>
+
+	<h2 id="edeccssa-faulting-conditions">EDECCSSA 异常条件<a class="anchor" href="#edeccssa-faulting-conditions">¶</a></h2>
+	<table>
+		<tr>
+			<td>TCS.CSSA 为 0。</td>
+			<td>TCS 无效、不可用或已被锁定。</td>
+		</tr>
+		<tr>
+			<td>SSA 帧无效或正在使用中。</td>
+			<td></td>
+		</tr>
+	</table>
+
+	<h3 id="concurrency-restrictions">并发限制<a class="anchor" href="#concurrency-restrictions">¶</a></h3>
+	<figure id="tbl-38-60">
+		<table>
+			<tr>
+				<th rowspan="2">叶函数</th>
+				<th rowspan="2">参数</th>
+				<th colspan="3">基本并发限制</th>
+			</tr>
+			<tr>
+				<th>访问权限</th>
+				<th>冲突时</th>
+				<th>SGX_CONFLICT VM Exit 资格</th>
+			</tr>
+			<tr>
+				<td>EDECCSSA</td>
+				<td>TCS [CR_TCS_PA]</td>
+				<td>共享 (Shared)</td>
+				<td></td>
+				<td></td>
+			</tr>
+		</table>
+		<figcaption>表 38-60. EDECCSSA 的基本并发限制</figcaption>
+	</figure>
+
+	<figure id="tbl-38-61">
+		<table>
+			<tr>
+				<th rowspan="3">叶函数</th>
+				<th rowspan="3">参数</th>
+				<th colspan="6">附加并发限制</th>
+			</tr>
+			<tr>
+				<th colspan="2">vs. EACCEPT, EACCEPTCOPY, EMODPE, EMODPR, EMODT</th>
+				<th colspan="2">vs. EADD, EEXTEND, EINIT</th>
+				<th colspan="2">vs. ETRACK, ETRACKC</th>
+			</tr>
+			<tr>
+				<th>访问权限</th>
+				<th>冲突时</th>
+				<th>访问权限</th>
+				<th>冲突时</th>
+				<th>访问权限</th>
+				<th>冲突时</th>
+			</tr>
+			<tr>
+				<td>EDECCSSA</td>
+				<td>TCS [CR_TCS_PA]</td>
+				<td>并发 (Concurrent)</td>
+				<td></td>
+				<td>并发 (Concurrent)</td>
+				<td></td>
+				<td>并发 (Concurrent)</td>
+				<td></td>
+			</tr>
+		</table>
+		<figcaption>表 38-61. EDECCSSA 的附加并发限制</figcaption>
+	</figure>
+
+	<h3 id="operation">操作<a class="anchor" href="#operation">¶</a></h3>
+	<h2 id="temp-variables-in-edeccssa-operational-flow">EDECCSSA 操作流程中的临时变量<a class="anchor" href="#temp-variables-in-edeccssa-operational-flow">¶</a></h2>
+	<table>
+		<tr>
+			<th>名称</th>
+			<th>类型</th>
+			<th>大小 (位)</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>TMP_SSA</td>
+			<td>有效地址</td>
+			<td>32/64</td>
+			<td>当前 SSA 帧的地址。</td>
+		</tr>
+		<tr>
+			<td>TMP_XSIZE</td>
+			<td>整数</td>
+			<td>64</td>
+			<td>基于 SECS.ATTRIBUTES.XFRM 的 XSAVE 区域大小。</td>
+		</tr>
+		<tr>
+			<td>TMP_SSA_PAGE</td>
+			<td>有效地址</td>
+			<td>32/64</td>
+			<td>用于循环遍历目标帧中 SSA 页面的指针。</td>
+		</tr>
+		<tr>
+			<td>TMP_GPR</td>
+			<td>有效地址</td>
+			<td>32/64</td>
+			<td>目标 SSA 帧中 GPR 区域的地址。</td>
+		</tr>
+		<tr>
+			<td>TMP_XSAVE_PAGE_PA_n</td>
+			<td>物理地址</td>
+			<td>32/64</td>
+			<td>目标 SSA 帧中第 n 个页面的物理地址。</td>
+		</tr>
+		<tr>
+			<td>TMP_CET_SAVE_AREA</td>
+			<td>有效地址</td>
+			<td>32/64</td>
+			<td>当前 CET 保存区域的地址。</td>
+		</tr>
+		<tr>
+			<td>TMP_CET_SAVE_PAGE</td>
+			<td>有效地址</td>
+			<td>32/64</td>
+			<td>当前 CET 保存区域页面的地址。</td>
+		</tr>
+	</table>
+
+	<p>IF (CR_TCS_PA.CSSA = 0)</p>
+	<p>THEN #GP(0); FI;</p>
+	<p>(* Compute linear address of SSA frame *)</p>
+	<p>TMP_SSA := CR_TCS_PA.OSSA + CR_ACTIVE_SECS.BASEADDR + 4096 * CR_ACTIVE_SECS.SSAFRAMESIZE * (CR_TCS_PA.CSSA - 1);</p>
+	<p>TMP_XSIZE := compute_XSAVE_frame_size(CR_ACTIVE_SECS.ATTRIBUTES.XFRM);</p>
+	<p>FOR EACH TMP_SSA_PAGE = TMP_SSA to TMP_SSA + TMP_XSIZE</p>
+	<p>(* Check page is read/write accessible *)</p>
+	<p>Check that DS:TMP_SSA_PAGE is read/write accessible;</p>
+	<p>If a fault occurs, release locks, abort and deliver that fault;</p>
+	<p>IF (DS:TMP_SSA_PAGE does not resolve to EPC page)</p>
+	<p>THEN #PF(DS:TMP_SSA_PAGE); FI;</p>
+	<p>IF (EPCM(DS:TMP_SSA_PAGE).VALID = 0)</p>
+	<p>THEN #PF(DS:TMP_SSA_PAGE); FI;</p>
+	<p>IF (EPCM(DS:TMP_SSA_PAGE).BLOCKED = 1)</p>
+	<p>THEN #PF(DS:TMP_SSA_PAGE); FI;</p>
+	<p>IF ((EPCM(DS:TMP_SSA_PAGE).PENDING = 1) or (EPCM(DS:TMP_SSA_PAGE_.MODIFIED = 1))</p>
+	<p>THEN #PF(DS:TMP_SSA_PAGE); FI;</p>
+	<p>IF ( ( EPCM(DS:TMP_SSA_PAGE).ENCLAVEADDRESS ≠ DS:TMPSSA_PAGE) or</p>
+	<p>(EPCM(DS:TMP_SSA_PAGE).PT ≠ PT_REG) or</p>
+	<p>(EPCM(DS:TMP_SSA_PAGE).ENCLAVESECS ≠ EPCM(CR_TCS_PA).ENCLAVESECS) or</p>
+	<p>(EPCM(DS:TMP_SSA_PAGE).R = 0) or (EPCM(DS:TMP_SSA_PAGE).W = 0))</p>
+	<p>THEN #PF(DS:TMP_SSA_PAGE); FI;</p>
+	<p>TMP_XSAVE_PAGE_PA_n := Physical_Address(DS:TMP_SSA_PAGE);</p>
+	<p>ENDFOR</p>
+	<p>(* Compute address of GPR area*)</p>
+	<p>TMP_GPR := TMP_SSA + 4096 * CR_ACTIVE_SECS.SSAFRAMESIZE - sizeof(GPRSGX_AREA);</p>
+	<p>Check that DS:TMP_SSA_PAGE is read/write accessible;</p>
+	<p>If a fault occurs, release locks, abort and deliver that fault;</p>
+	<p>IF (DS:TMP_GPR does not resolve to EPC page)</p>
+	<p>THEN #PF(DS:TMP_GPR); FI;</p>
+	<p>IF (EPCM(DS:TMP_GPR).VALID = 0)</p>
+	<p>THEN #PF(DS:TMP_GPR); FI;</p>
+	<p>IF (EPCM(DS:TMP_GPR).BLOCKED = 1)</p>
+	<p>THEN #PF(DS:TMP_GPR); FI;</p>
+	<p>IF ((EPCM(DS:TMP_GPR).PENDING = 1) or (EPCM(DS:TMP_GPR).MODIFIED = 1))</p>
+	<p>THEN #PF(DS:TMP_GPR); FI;</p>
+	<p>IF ( ( EPCM(DS:TMP_GPR).ENCLAVEADDRESS ≠ DS:TMP_GPR) or</p>
+	<p>(EPCM(DS:TMP_GPR).PT ≠ PT_REG) or</p>
+	<p>(EPCM(DS:TMP_GPR).ENCLAVESECS ≠ EPCM(CR_TCS_PA).ENCLAVESECS) or</p>
+	<p>(EPCM(DS:TMP_GPR).R = 0) or (EPCM(DS:TMP_GPR).W = 0) )</p>
+	<p>THEN #PF(DS:TMP_GPR); FI;</p>
+	<p>IF (TMP_MODE64 = 0)</p>
+	<p>THEN</p>
+	<p>IF (TMP_GPR + (sizeof(GPRSGX_AREA) -1) is not in DS segment)</p>
+	<p>THEN #GP(0); FI;</p>
+	<p>FI;</p>
+	<p>IF (CPUID.(EAX=12H, ECX=1):EAX[6] = 1)</p>
+	<p>THEN</p>
+	<p>IF ((CR_ACTIVE_SECS.CET_ATTRIBUTES.SH_STK_EN == 1) OR (CR_ACTIVE_SECS.CET_ATTRIBUTES.ENDBR_EN == 1))</p>
+	<p>THEN</p>
+	<p>(* Compute linear address of what will become new CET state save area and cache its PA *)</p>
+	<p>TMP_CET_SAVE_AREA := CR_TCS_PA.OCETSSA + CR_ACTIVE_SECS.BASEADDR + (CR_TCS_PA.CSSA - 1) * 16;</p>
+	<p>TMP_CET_SAVE_PAGE := TMP_CET_SAVE_AREA &amp; ~0xFFF;</p>
+	<p>Check the TMP_CET_SAVE_PAGE page is read/write accessible</p>
+	<p>If fault occurs release locks, abort and deliver fault</p>
+	<p>(* read the EPCM VALID, PENDING, MODIFIED, BLOCKED and PT fields atomically *)</p>
+	<p>IF ((DS:TMP_CET_SAVE_PAGE Does NOT RESOLVE TO EPC PAGE) OR</p>
+	<p>(EPCM(DS:TMP_CET_SAVE_PAGE).VALID = 0) OR</p>
+	<p>(EPCM(DS:TMP_CET_SAVE_PAGE).PENDING = 1) OR</p>
+	<p>(EPCM(DS:TMP_CET_SAVE_PAGE).MODIFIED = 1) OR</p>
+	<p>(EPCM(DS:TMP_CET_SAVE_PAGE).BLOCKED = 1) OR</p>
+	<p>(EPCM(DS:TMP_CET_SAVE_PAGE).R = 0) OR</p>
+	<p>(EPCM(DS:TMP_CET_SAVE_PAGE).W = 0) OR</p>
+	<p>(EPCM(DS:TMP_CET_SAVE_PAGE).ENCLAVEADDRESS ≠ DS:TMP_CET_SAVE_PAGE) OR</p>
+	<p>(EPCM(DS:TMP_CET_SAVE_PAGE).PT ≠ PT_SS_REST) OR</p>
+	<p>(EPCM(DS:TMP_CET_SAVE_PAGE).ENCLAVESECS ≠ EPCM(CR_TCS_PA).ENCLAVESECS))</p>
+	<p>THEN #PF(DS:TMP_CET_SAVE_PAGE); FI;</p>
+	<p>FI;</p>
+	<p>FI;</p>
+	<p>(* At this point, the instruction is guaranteed to complete *)</p>
+	<p>CR_TCS_PA.CSSA := CR_TCS_PA.CSSA - 1;</p>
+	<p>CR_GPR_PA := Physical_Address(DS:TMP_GPR);</p>
+	<p>FOR EACH TMP_XSAVE_PAGE_n</p>
+	<p>CR_XSAVE_PAGE_n := TMP_XSAVE_PAGE_PA_n;</p>
+	<p>ENDFOR</p>
+	<p>IF (CPUID.(EAX=12H, ECX=1):EAX[6] = 1)</p>
+	<p>IF ((TMP_SECS.CET_ATTRIBUTES.SH_STK_EN == 1) OR</p>
+	<p>(TMP_SECS.CET_ATTRIBUTES.ENDBR_EN == 1))</p>
+	<p>THEN</p>
+	<p>CR_CET_SAVE_AREA_PA := Physical_Address(DS:TMP_CET_SAVE_AREA);</p>
+	<p>FI;</p>
+	<p>FI;</p>
+
+	<h3 id="flags-affected">影响的标志寄存器<a class="anchor" href="#flags-affected">¶</a></h3>
+	<p>无。</p>
+
+	<h3 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h3>
+	<table>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果地在 enclave 外部执行。</td>
+		</tr>
+		<tr>
+			<td>如果 CR_TCS_PA.CSSA = 0。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#PF(错误代码)</td>
+			<td>如果访问内存时发生页面错误。</td>
+		</tr>
+		<tr>
+			<td>如果目标 SSA 帧的一个或多个页面不可读/写，或者未解析为有效的 PT_REG EPC 页面。</td>
+		</tr>
+		<tr>
+			<td>如果 enclave 启用了 CET，且目标 CET SSA 帧不可读/写，或者未解析为有效的 PT_REG EPC 页面。</td>
+		</tr>
+	</table>
+
+	<h3 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h3>
+	<table>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果地在 enclave 外部执行。</td>
+		</tr>
+		<tr>
+			<td>如果 CR_TCS_PA.CSSA = 0。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#PF(错误代码)</td>
+			<td>如果访问内存时发生页面错误。</td>
+		</tr>
+		<tr>
+			<td>如果目标 SSA 帧的一个或多个页面不可读/写，或者未解析为有效的 PT_REG EPC 页面。</td>
+		</tr>
+		<tr>
+			<td>如果 enclave 启用了 CET，且目标 CET SSA 帧不可读/写，或者未解析为有效的 PT_REG EPC 页面。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

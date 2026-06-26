@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>LGDT/LIDT — 加载全局/中断描述符表寄存器</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>LGDT/LIDT — 加载全局/中断描述符表寄存器</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>0F 01 /2</td>
+			<td>LGDT m16&amp;32</td>
+			<td>M</td>
+			<td>N.E.</td>
+			<td>Valid</td>
+			<td>加载 m 到 GDTR。</td>
+		</tr>
+		<tr>
+			<td>0F 01 /3</td>
+			<td>LIDT m16&amp;32</td>
+			<td>M</td>
+			<td>N.E.</td>
+			<td>Valid</td>
+			<td>加载 m 到 IDTR。</td>
+		</tr>
+		<tr>
+			<td>0F 01 /2</td>
+			<td>LGDT m16&amp;64</td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>加载 m 到 GDTR。</td>
+		</tr>
+		<tr>
+			<td>0F 01 /3</td>
+			<td>LIDT m16&amp;64</td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>加载 m 到 IDTR。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>M</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将源操作数中的值加载到全局描述符表寄存器（GDTR）或中断描述符表寄存器（IDTR）中。源操作数指定一个 6 字节的内存位置，其中包含全局描述符表（GDT）或中断描述符表（IDT）的基地址（线性地址）和限长（以字节为单位的表大小）。如果操作数大小属性为 32 位，则将 16 位限长（6 字节数据操作数的低 2 字节）和 32 位基地址（数据操作数的高 4 字节）加载到寄存器中。如果操作数大小属性为 16 位，则加载 16 位限长（低 2 字节）和 24 位基地址（第三、第四和第五字节）。在这里，操作数的高位字节不使用，且 GDTR 或 IDTR 中基地址的高位字节用零填充。</p>
+	<p>LGDT 和 LIDT 指令仅在操作系统软件中使用，不用于应用程序。它们是保护模式下唯一能直接加载线性地址（即非段相对地址）和限长的指令。它们通常在实地址模式下执行，以便在切换到保护模式之前进行处理器初始化。</p>
+	<p>在 64 位模式下，指令的操作数大小固定为 8+2 字节（8 字节基地址和 2 字节限长）。请参阅本节开头的汇总图表以获取编码数据和限制。</p>
+	<p>有关存储 GDTR 和 IDTR 内容的信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 2B 卷第 4 章中的“SGDT—存储全局描述符表寄存器”。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF Instruction is LIDT
+    THEN
+        IF OperandSize = 16
+            THEN
+                IDTR(Limit) := SRC[0:15];
+                IDTR(Base) := SRC[16:47] AND 00FFFFFFH;
+            ELSE IF 32-bit Operand Size
+                THEN
+                    IDTR(Limit) := SRC[0:15];
+                    IDTR(Base) := SRC[16:47];
+                FI;
+            ELSE IF 64-bit Operand Size (* In 64-Bit Mode *)
+                THEN
+                    IDTR(Limit) := SRC[0:15];
+                    IDTR(Base) := SRC[16:79];
+                FI;
+        FI;
+    ELSE (* Instruction is LGDT *)
+        IF OperandSize = 16
+            THEN
+                GDTR(Limit) := SRC[0:15];
+                GDTR(Base) := SRC[16:47] AND 00FFFFFFH;
+            ELSE IF 32-bit Operand Size
+                THEN
+                    GDTR(Limit) := SRC[0:15];
+                    GDTR(Base) := SRC[16:47];
+                FI;
+            ELSE IF 64-bit Operand Size (* In 64-Bit Mode *)
+                THEN
+                    GDTR(Limit) := SRC[0:15];
+                    GDTR(Base) := SRC[16:79];
+                FI;
+        FI;
+FI;
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#GP(0)</td>
+			<td>如果当前特权级别不为 0。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>如果 DS、ES、FS 或 GS 寄存器用于访问内存且包含 NULL 段选择子。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数的有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>#GP</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#SS</td>
+			<td>如果内存操作数的有效地址超出 SS 段限制。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>#GP</td>
+			<td>如果当前特权级别不为 0。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果引用 SS 段的内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果当前特权级别不为 0。</td>
+		</tr>
+		<tr>
+			<td>如果内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

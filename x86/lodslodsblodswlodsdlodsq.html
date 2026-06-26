@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns:x86="http://www.felixcloutier.com/x86">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>LODS/LODSB/LODSW/LODSD/LODSQ — 加载字符串</title>
+</head>
+
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>LODS/LODSB/LODSW/LODSD/LODSQ — 加载字符串</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>AC</td>
+			<td>LODS m8</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>对于传统模式，将地址 DS:(E)SI 处的字节加载到 AL 中。对于 64 位模式，将地址 (R)SI 处的字节加载到 AL 中。</td>
+		</tr>
+		<tr>
+			<td>AD</td>
+			<td>LODS m16</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>对于传统模式，将地址 DS:(E)SI 处的字加载到 AX 中。对于 64 位模式，将地址 (R)SI 处的字加载到 AX 中。</td>
+		</tr>
+		<tr>
+			<td>AD</td>
+			<td>LODS m32</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>对于传统模式，将地址 DS:(E)SI 处的双字加载到 EAX 中。对于 64 位模式，将地址 (R)SI 处的双字加载到 EAX 中。</td>
+		</tr>
+		<tr>
+			<td>REX.W + AD</td>
+			<td>LODS m64</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将地址 (R)SI 处的四字加载到 RAX 中。</td>
+		</tr>
+		<tr>
+			<td>AC</td>
+			<td>LODSB</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>对于传统模式，将地址 DS:(E)SI 处的字节加载到 AL 中。对于 64 位模式，将地址 (R)SI 处的字节加载到 AL 中。</td>
+		</tr>
+		<tr>
+			<td>AD</td>
+			<td>LODSW</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>对于传统模式，将地址 DS:(E)SI 处的字加载到 AX 中。对于 64 位模式，将地址 (R)SI 处的字加载到 AX 中。</td>
+		</tr>
+		<tr>
+			<td>AD</td>
+			<td>LODSD</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>对于传统模式，将地址 DS:(E)SI 处的双字加载到 EAX 中。对于 64 位模式，将地址 (R)SI 处的双字加载到 EAX 中。</td>
+		</tr>
+		<tr>
+			<td>REX.W + AD</td>
+			<td>LODSQ</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将地址 (R)SI 处的四字加载到 RAX 中。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>从源操作数中将一个字节、字或双字分别加载到 AL、AX 或 EAX 寄存器中。源操作数是一个内存位置，其地址从 DS:ESI 或 DS:SI 寄存器读取（分别取决于指令的地址大小属性是 32 还是 16）。可以使用段覆盖前缀来覆盖 DS 段。</p>
+	<p>在汇编代码级别，此指令允许两种形式：“显式操作数”形式和“无操作数”形式。显式操作数形式（使用 LODS 助记符指定）允许显式指定源操作数。在此处，源操作数应为指示源值的大小的符号。目标操作数然后自动选择以匹配源操作数的大小（AL 寄存器用于字节操作，AX 用于字操作，EAX 用于双字操作）。提供此显式操作数形式是为了便于编写文档；然而，请注意，此形式提供的文档可能会误导。也就是说，源操作数符号必须指定正确的<b>类型</b>（大小）（字节、字或双字），但不必指定正确的<b>位置</b>。位置始终由 DS:(E)SI 寄存器指定，在执行加载字符串指令之前必须正确加载这些寄存器。</p>
+	<p>无操作数形式提供了 LODS 指令的字节、字和双字版本的“简短形式”。在这里，也假定 DS:(E)SI 是源操作数，并且 AL、AX 或 EAX 寄存器被假定为目标操作数。源和目标操作数的大小由助记符选择：LODSB（字节加载到 AL 寄存器）、LODSW（字加载到 AX）、或者 LODSD（双字加载到 EAX）。</p>
+	<p>在将字节、字或双字从内存位置传输到 AL、AX 或 EAX 寄存器之后，(E)SI 寄存器根据 EFLAGS 寄存器中 DF 标志的设置自动递增或递减。（如果 DF 标志为 0，则 (E)SI 寄存器递增；如果 DF 标志为 1，则 ESI 寄存器递减。）对于字节操作，(E)SI 寄存器递增或递减 1；对于字操作，递增或递减 2；对于双字操作，递增或递减 4。</p>
+	<p>在 64 位模式下，使用 REX.W 前缀可将操作提升为 64 位。LODS/LODSQ 将地址 (R)SI 处的四字加载到 RAX 中。然后根据 EFLAGS 寄存器中 DF 标志的设置，自动递增或递减 (R)SI 寄存器。</p>
+	<p>LODS、LODSB、LODSW 和 LODSD 指令之前可以带有 REP 前缀，用于 ECX 个字节、字或双字的块加载。然而更常见的是，这些指令在 LOOP 结构中使用，因为在下一次传输之前，通常需要对移动到寄存器中的数据进行进一步处理。有关 REP 前缀的描述，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 2B 卷第 4 章中的“REP/REPE/REPZ /REPNE/REPNZ — 重复字符串操作前缀”。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF AL := SRC; (* Byte load *)
+    THEN AL := SRC; (* Byte load *)
+        IF DF = 0
+            THEN (E)SI := (E)SI + 1;
+            ELSE (E)SI := (E)SI – 1;
+        FI;
+ELSE IF AX := SRC; (* Word load *)
+    THEN IF DF = 0
+            THEN (E)SI := (E)SI + 2;
+            ELSE (E)SI := (E)SI – 2;
+        IF;
+    FI;
+ELSE IF EAX := SRC; (* Doubleword load *)
+    THEN IF DF = 0
+            THEN (E)SI := (E)SI + 4;
+            ELSE (E)SI := (E)SI – 4;
+        FI;
+    FI;
+ELSE IF RAX := SRC; (* Quadword load *)
+    THEN IF DF = 0
+            THEN (R)SI := (R)SI + 8;
+            ELSE (R)SI := (R)SI – 8;
+        FI;
+    FI;
+FI;
+</pre>
+
+	<h2 id="flags-affected">影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果内存操作数有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>如果 DS、ES、FS 或 GS 寄存器包含 NULL 段选择器。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>如果内存操作数有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#SS</td>
+			<td>如果内存操作数有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟 8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存操作数有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果引用 SS 段的内存地址是非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存地址是非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+	<footer>
+		<p>
+			本非官方、机械拆分、未经校验的参考文档仅为方便提供，可能存在各种明显或不明显的缺失或错误。任何严肃用途请参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>FST/FSTP — 存储浮点值</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+
+	<h1>FST/FSTP — 存储浮点值</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>D9 /2</td>
+			<td>FST m32fp</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>将 ST(0) 复制到 m32fp。</td>
+		</tr>
+		<tr>
+			<td>DD /2</td>
+			<td>FST m64fp</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>将 ST(0) 复制到 m64fp。</td>
+		</tr>
+		<tr>
+			<td>DD D0+i</td>
+			<td>FST ST(i)</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>将 ST(0) 复制到 ST(i)。</td>
+		</tr>
+		<tr>
+			<td>D9 /3</td>
+			<td>FSTP m32fp</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>将 ST(0) 复制到 m32fp 并弹出寄存器栈。</td>
+		</tr>
+		<tr>
+			<td>DD /3</td>
+			<td>FSTP m64fp</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>将 ST(0) 复制到 m64fp 并弹出寄存器栈。</td>
+		</tr>
+		<tr>
+			<td>DB /7</td>
+			<td>FSTP m80fp</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>将 ST(0) 复制到 m80fp 并弹出寄存器栈。</td>
+		</tr>
+		<tr>
+			<td>DD D8+i</td>
+			<td>FSTP ST(i)</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>将 ST(0) 复制到 ST(i) 并弹出寄存器栈。</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>FST 指令将 ST(0) 寄存器中的值复制到目的操作数，目的操作数可以是内存位置或 FPU 寄存器栈中的另一个寄存器。将值存储在内存中时，该值将被转换为单精度或双精度浮点格式。</p>
+	<p>FSTP 指令执行与 FST 指令相同的操作，然后弹出寄存器栈。为了弹出寄存器栈，处理器将 ST(0) 寄存器标记为空，并将栈指针 (TOP) 递增 1。FSTP 指令还可以将值以双精度扩展浮点格式存储在内存中。</p>
+	<p>如果目的操作数是内存位置，则该操作数指定要存储目的值第一个字节的地址。如果目的操作数是寄存器，则该操作数指定寄存器栈中相对于栈顶的寄存器。</p>
+	<p>如果目的尺寸是单精度或双精度，则将要存储的值的尾数舍入到目的的宽度（根据 FPU 控制字中 RC 字段指定的舍入模式），并且将指数转换为目的格式的宽度和偏差（bias）。如果要存储的值对于目的格式来说太大，则会产生数值溢出异常 (#O)，并且如果该异常未被掩码屏蔽，则不会在目的操作数中存储任何值。如果要存储的值是反常值，则不会产生反常异常 (#D)。这种情况仅被视为数值下溢异常 (#U) 状态。</p>
+	<p>如果要存储的值是 ±0、±∞ 或 NaN，则会截断尾数和指数的最低有效位以适应目的格式。此操作保留该值作为 0、∞ 或 NaN 的身份。</p>
+	<p>如果目的操作数是非空寄存器，则不会产生无效操作异常。</p>
+	<p>此指令的操作在非 64 位模式和 64 位模式下相同。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>DEST := ST(0);
+IF Instruction = FSTP
+    THEN
+        PopRegisterStack;
+FI;
+</pre>
+
+	<h2 id="fpu-flags-affected">影响的 FPU 标志寄存器<a class="anchor" href="#fpu-flags-affected">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">C1</td>
+			<td>如果发生栈下溢，则设置为 0。</td>
+		</tr>
+		<tr>
+			<td>如果产生浮点不精确异常 (#P)，则指示舍入方向：0 := 未向上舍入；1 := 向上舍入。</td>
+		</tr>
+		<tr>
+			<td>C0, C2, C3</td>
+			<td>未定义。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="floating-point-exceptions">浮点异常<a class="anchor" href="#floating-point-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#IS</td>
+			<td>发生栈下溢。</td>
+		</tr>
+		<tr>
+			<td>#IA</td>
+			<td>如果目的结果是 SNaN 值或不受支持的格式，除非目的格式是双精度扩展浮点格式。</td>
+		</tr>
+		<tr>
+			<td>#U</td>
+			<td>结果对于目的格式来说太小。</td>
+		</tr>
+		<tr>
+			<td>#O</td>
+			<td>结果对于目的格式来说太大。</td>
+		</tr>
+		<tr>
+			<td>#P</td>
+			<td>值无法在目的格式中精确表示。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="3">#GP(0)</td>
+			<td>如果目的位于不可写段中。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>如果使用 DS、ES、FS 或 GS 寄存器访问内存且其包含 NULL 段选择子。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#NM</td>
+			<td>CR0.EM[bit 2] 或 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生页错误。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>如果内存操作数有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#SS</td>
+			<td>如果内存操作数有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#NM</td>
+			<td>CR0.EM[bit 2] 或 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存操作数有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#NM</td>
+			<td>CR0.EM[bit 2] 或 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生页错误。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查且进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果引用 SS 段的内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#NM</td>
+			<td>CR0.EM[bit 2] 或 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>#MF</td>
+			<td>如果存在未决的 x87 FPU 异常。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生页错误。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

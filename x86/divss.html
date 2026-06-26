@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>DIVSS — 除以标量单精度浮点值</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	
+	<h1>DIVSS — 除以标量单精度浮点值</h1>
+
+	<table>
+		<tr>
+			<th>指令/指令格式</th>
+			<th>操作/编码</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID功能标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>F3 0F 5E /r DIVSS xmm1, xmm2/m32</td>
+			<td>A</td>
+			<td>V/V</td>
+			<td>SSE</td>
+			<td>将 xmm1 中的低位单精度浮点值除以 xmm2/m32 中的低位单精度浮点值。</td>
+		</tr>
+		<tr>
+			<td>VEX.LIG.F3.0F.WIG 5E /r VDIVSS xmm1, xmm2, xmm3/m32</td>
+			<td>B</td>
+			<td>V/V</td>
+			<td>AVX</td>
+			<td>将 xmm2 中的低位单精度浮点值除以 xmm3/m32 中的低位单精度浮点值。</td>
+		</tr>
+		<tr>
+			<td>EVEX.LLIG.F3.0F.W0 5E /r VDIVSS xmm1 {k1}{z}, xmm2, xmm3/m32{er}</td>
+			<td>C</td>
+			<td>V/V</td>
+			<td>AVX512F</td>
+			<td>将 xmm2 中的低位单精度浮点值除以 xmm3/m32 中的低位单精度浮点值。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>操作/编码</th>
+			<th>元组类型</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>A</td>
+			<td>N/A</td>
+			<td>ModRM:reg (r, w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>B</td>
+			<td>N/A</td>
+			<td>ModRM:reg (w)</td>
+			<td>VEX.vvvv (r)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>C</td>
+			<td>Tuple1 Scalar</td>
+			<td>ModRM:reg (w)</td>
+			<td>EVEX.vvvv (r)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将第一个源操作数中的低位单精度浮点值除以第二个源操作数中的低位单精度浮点值，并将单精度浮点结果存储在目标操作数中。第二个源操作数可以是 XMM 寄存器或 32 位内存位置。</p>
+	<p>128 位传统 SSE 版本：第一个源操作数和目标操作数相同。对应 YMM 目标寄存器的位（MAXVL-1:32）保持不变。</p>
+	<p>VEX.128 编码版本：第一个源操作数是编码在 VEX.vvvv 的 XMM 寄存器。目标操作数高位的三个双字从第一个源操作数复制。目标寄存器的位（MAXVL-1:128）清零。</p>
+	<p>EVEX.128 编码版本：第一个源操作数是编码在 EVEX.vvvv 的 XMM 寄存器。目标操作数在位 127:32 处的双字元素从第一个源操作数复制。目标寄存器的位（MAXVL-1:128）清零。</p>
+	<p>EVEX 版本：根据写掩码更新目标的低双字元素。</p>
+	<p>软件应确保 VDIVSS 编码为 VEX.L=0。将 VDIVSS 编码为 VEX.L=1 可能会在不同的处理器世代中遇到不可预测的行为。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<h3 id="vdivss--evex-encoded-version-">VDIVSS (EVEX 编码版本)<a class="anchor" href="#vdivss--evex-encoded-version-">¶</a></h3>
+	<pre>IF (EVEX.b = 1) AND SRC2 *is a register*
+    THEN
+        SET_ROUNDING_MODE_FOR_THIS_INSTRUCTION(EVEX.RC);
+    ELSE
+        SET_ROUNDING_MODE_FOR_THIS_INSTRUCTION(MXCSR.RC);
+FI;
+IF k1[0] or *no writemask*
+    THEN DEST[31:0] := SRC1[31:0] / SRC2[31:0]
+    ELSE
+        IF *merging-masking* ; merging-masking
+            THEN *DEST[31:0] remains unchanged*
+            ELSE ; zeroing-masking
+                THEN DEST[31:0] := 0
+        FI;
+FI;
+DEST[127:32] := SRC1[127:32]
+DEST[MAXVL-1:128] := 0
+</pre>
+
+	<h3 id="vdivss--vex-128-encoded-version-">VDIVSS (VEX.128 编码版本)<a class="anchor" href="#vdivss--vex-128-encoded-version-">¶</a></h3>
+	<pre>DEST[31:0] := SRC1[31:0] / SRC2[31:0]
+DEST[127:32] := SRC1[127:32]
+DEST[MAXVL-1:128] := 0
+</pre>
+
+	<h3 id="divss--128-bit-legacy-sse-version-">DIVSS (128位传统 SSE 版本)<a class="anchor" href="#divss--128-bit-legacy-sse-version-">¶</a></h3>
+	<pre>DEST[31:0] := DEST[31:0] / SRC[31:0]
+DEST[MAXVL-1:32] (Unmodified)
+</pre>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>VDIVSS __m128 _mm_mask_div_ss(__m128 s, __mmask8 k, __m128 a, __m128 b);
+VDIVSS __m128 _mm_maskz_div_ss( __mmask8 k, __m128 a, __m128 b);
+VDIVSS __m128 _mm_div_round_ss( __m128 a, __m128 b, int);
+VDIVSS __m128 _mm_mask_div_round_ss(__m128 s, __mmask8 k, __m128 a, __m128 b, int);
+VDIVSS __m128 _mm_maskz_div_round_ss( __mmask8 k, __m128 a, __m128 b, int);
+DIVSS __m128 _mm_div_ss(__m128 a, __m128 b);
+</pre>
+
+	<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+	<p>溢出、欠幅、无效、除以零、精度、非正规化。</p>
+
+	<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+	<p>VEX 编码指令，请参见《Intel® 64 and IA-32 Architectures Software Developer’s Manual》卷 2 中的“Type 3 Class Exception Conditions”。</p>
+	<p>EVEX 编码指令，请参见《Intel® 64 and IA-32 Architectures Software Developer’s Manual》卷 2 中的“Type E3 Class Exception Conditions”。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

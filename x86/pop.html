@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns:x86="http://www.felixcloutier.com/x86">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>POP — 从栈中弹出一个值</title>
+</head>
+
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>POP — 从栈中弹出一个值</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>8F /0</td>
+			<td>POP r/m16</td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将栈顶弹出到 m16；递增栈指针。</td>
+		</tr>
+		<tr>
+			<td>8F /0</td>
+			<td>POP r/m32</td>
+			<td>M</td>
+			<td>N.E.</td>
+			<td>Valid</td>
+			<td>将栈顶弹出到 m32；递增栈指针。</td>
+		</tr>
+		<tr>
+			<td>8F /0</td>
+			<td>POP r/m64</td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将栈顶弹出到 m64；递增栈指针。无法编码 32 位操作数大小。</td>
+		</tr>
+		<tr>
+			<td>58+ rw</td>
+			<td>POP r16</td>
+			<td>O</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将栈顶弹出到 r16；递增栈指针。</td>
+		</tr>
+		<tr>
+			<td>58+ rd</td>
+			<td>POP r32</td>
+			<td>O</td>
+			<td>N.E.</td>
+			<td>Valid</td>
+			<td>将栈顶弹出到 r32；递增栈指针。</td>
+		</tr>
+		<tr>
+			<td>58+ rd</td>
+			<td>POP r64</td>
+			<td>O</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将栈顶弹出到 r64；递增栈指针。无法编码 32 位操作数大小。</td>
+		</tr>
+		<tr>
+			<td>1F</td>
+			<td>POP DS</td>
+			<td>ZO</td>
+			<td>Invalid</td>
+			<td>Valid</td>
+			<td>将栈顶弹出到 DS；递增栈指针。</td>
+		</tr>
+		<tr>
+			<td>07</td>
+			<td>POP ES</td>
+			<td>ZO</td>
+			<td>Invalid</td>
+			<td>Valid</td>
+			<td>将栈顶弹出到 ES；递增栈指针。</td>
+		</tr>
+		<tr>
+			<td>17</td>
+			<td>POP SS</td>
+			<td>ZO</td>
+			<td>Invalid</td>
+			<td>Valid</td>
+			<td>将栈顶弹出到 SS；递增栈指针。</td>
+		</tr>
+		<tr>
+			<td>0F A1</td>
+			<td>POP FS</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将栈顶弹出到 FS；将栈指针递增 16 位。</td>
+		</tr>
+		<tr>
+			<td>0F A1</td>
+			<td>POP FS</td>
+			<td>ZO</td>
+			<td>N.E.</td>
+			<td>Valid</td>
+			<td>将栈顶弹出到 FS；将栈指针递增 32 位。</td>
+		</tr>
+		<tr>
+			<td>0F A1</td>
+			<td>POP FS</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将栈顶弹出到 FS；将栈指针递增 64 位。</td>
+		</tr>
+		<tr>
+			<td>0F A9</td>
+			<td>POP GS</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将栈顶弹出到 GS；将栈指针递增 16 位。</td>
+		</tr>
+		<tr>
+			<td>0F A9</td>
+			<td>POP GS</td>
+			<td>ZO</td>
+			<td>N.E.</td>
+			<td>Valid</td>
+			<td>将栈顶弹出到 GS；将栈指针递增 32 位。</td>
+		</tr>
+		<tr>
+			<td>0F A9</td>
+			<td>POP GS</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将栈顶弹出到 GS；将栈指针递增 64 位。</td>
+		</tr>
+	</table>
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>M</td>
+			<td>ModRM:r/m (w)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>O</td>
+			<td>opcode + rd (w)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+	<h2 id="description">描述<a class="anchor" href="#description">
+			¶
+		</a></h2>
+	<p>将栈顶的值加载到目的操作数（或显式操作码）指定的位置，然后递增栈指针。目的操作数可以是一个通用寄存器、内存位置或段寄存器。</p>
+	<p>地址和操作数大小的确定和使用如下：</p>
+	<ul>
+		<li>地址大小。当前代码段描述符中的 D 标志决定默认的地址大小；它可以通过指令前缀（67H）进行覆盖。地址大小仅在写入内存中的目的操作数时使用。</li>
+	</ul>
+	<ul>
+		<li>操作数大小。当前代码段描述符中的 D 标志决定默认的操作数大小；它可以通过指令前缀（66H 或 REX.W）进行覆盖。操作数大小（16、32 或 64 位）决定栈指针递增的量（2、4 或 8）。</li>
+	</ul>
+	<ul>
+		<li>栈地址大小。在 64 位模式之外，当前栈段描述符中的 B 标志决定栈指针的大小（16 或 32 位）；在 64 位模式下，栈指针的大小始终为 64 位。</li>
+	</ul>
+	<p>栈地址大小决定从内存中的栈读取数据以及递增栈指针时栈指针的宽度。（如上所述，栈指针递增的量由操作数大小决定。）</p>
+	<p>如果目的操作数是段寄存器 DS、ES、FS、GS 或 SS 之一，则加载到寄存器中的值必须是有效的段选择子。在保护模式下，将段选择子弹入段寄存器会自动将与该段选择子关联的描述符信息加载到段寄存器的隐藏（阴影）部分，并导致对选择子和描述符信息进行验证。</p>
+	<p>可以将 NULL 值（0000-0003）弹入 DS、ES、FS 或 GS 寄存器，而不会导致通用保护故障。然而，任何随后尝试引用其相应段寄存器加载了 NULL 值的段的操作都会引发通用保护异常（#GP）。在这种情况下，不会发生内存引用，并且段寄存器的保存值为 NULL。</p>
+	<p>POP 指令不能将值弹入 CS 寄存器。要从栈中加载 CS 寄存器，请使用 RET 指令。</p>
+	<p>如果 ESP 寄存器被用作寻址内存中目的操作数的基址寄存器，则 POP 指令在递增 ESP 寄存器之后计算操作数的有效地址。对于因为 POP 指令而导致 ESP 缠绕回 0H 的 16 位栈情况，产生内存写入的位置是特定于处理器系列的。</p>
+	<p>POP ESP 指令在将旧栈顶的数据写入目的地之前递增栈指针（ESP）。</p>
+	<p>使用 POP 指令加载 SS 寄存器会抑制或禁止某些调试异常，并禁止在下一条指令边界上的中断。（该禁止在引发异常或执行下一条指令后结束。）这种行为允许在发生事件之前通过下一条指令（POP ESP）将栈指针加载到 ESP 寄存器中。参见 Intel® 64 和 IA-32 架构软件开发人员手册第 3A 卷第 6.8.3 节“切换栈时屏蔽异常和中断”。Intel 建议软件使用 LSS 指令同时加载 SS 寄存器和 ESP。</p>
+	<p>在 64 位模式下，使用 REX.R 形式的 REX 前缀允许访问额外的寄存器（R8-R15）。处于 64 位模式时，使用 32 位操作数的 POP 无法编码，且向 DS、ES、SS 的 POP 无效。参见本节开头的汇总图表以获取编码数据和限制。</p>
+	<h2 id="operation">操作<a class="anchor" href="#operation">
+			¶
+		</a></h2>
+	<pre>IF StackAddrSize = 32
+    THEN
+        IF OperandSize = 32
+                THEN
+                    DEST := SS:ESP; (* Copy a doubleword *)
+                    ESP := ESP + 4;
+                ELSE (* OperandSize = 16*)
+                    DEST := SS:ESP; (* Copy a word *)
+                    ESP := ESP + 2;
+        FI;
+    ELSE IF StackAddrSize = 64
+        THEN
+                IF OperandSize = 64
+                    THEN
+                        DEST := SS:RSP; (* Copy quadword *)
+                        RSP := RSP + 8;
+                    ELSE (* OperandSize = 16*)
+                        DEST := SS:RSP; (* Copy a word *)
+                        RSP := RSP + 2;
+                FI;
+        FI;
+    ELSE StackAddrSize = 16
+        THEN
+                IF OperandSize = 16
+                    THEN
+                        DEST := SS:SP; (* Copy a word *)
+                        SP := SP + 2;
+                    ELSE (* OperandSize = 32 *)
+                        DEST := SS:SP; (* Copy a doubleword *)
+                        SP := SP + 4;
+                FI;
+FI;
+Loading a segment register while in protected mode results in special actions, as described in the following listing.
+These checks are performed on the segment selector and the segment descriptor it points to.
+64-BIT_MODE
+IF FS, or GS is loaded with non-NULL selector;
+    THEN
+        IF segment selector index is outside descriptor table limits
+                OR segment is not a data or readable code segment
+                OR ((segment is a data or nonconforming code segment)
+                    AND ((RPL &gt; DPL) or (CPL &gt; DPL))
+                        THEN #GP(selector);
+                IF segment not marked present
+                    THEN #NP(selector);
+        ELSE
+                SegmentRegister := segment selector;
+                SegmentRegister := segment descriptor;
+        FI;
+FI;
+IF FS, or GS is loaded with a NULL selector;
+        THEN
+                SegmentRegister := segment selector;
+                SegmentRegister := segment descriptor;
+FI;
+PREOTECTED MODE OR COMPATIBILITY MODE;
+IF SS is loaded;
+    THEN
+        IF segment selector is NULL
+                THEN #GP(0);
+        FI;
+        IF segment selector index is outside descriptor table limits
+                or segment selector's RPL ≠ CPL
+                or segment is not a writable data segment
+                or DPL ≠ CPL
+                    THEN #GP(selector);
+        FI;
+        IF segment not marked present
+                THEN #SS(selector);
+                ELSE
+                    SS := segment selector;
+                    SS := segment descriptor;
+        FI;
+FI;
+IF DS, ES, FS, or GS is loaded with non-NULL selector;
+    THEN
+        IF segment selector index is outside descriptor table limits
+                or segment is not a data or readable code segment
+                or ((segment is a data or nonconforming code segment)
+                and ((RPL &gt; DPL) or (CPL &gt; DPL))
+                    THEN #GP(selector);
+        FI;
+        IF segment not marked present
+                THEN #NP(selector);
+                ELSE
+                    SegmentRegister := segment selector;
+                    SegmentRegister := segment descriptor;
+            FI;
+FI;
+IF DS, ES, FS, or GS is loaded with a NULL selector
+    THEN
+        SegmentRegister := segment selector;
+        SegmentRegister := segment descriptor;
+FI;
+</pre>
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">
+			¶
+		</a></h2>
+	<p>无。</p>
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td rowspan="4">#GP(0)</td>
+			<td>如果试图使用 NULL 段选择子加载 SS 寄存器。</td>
+		</tr>
+		<tr>
+			<td>如果目的操作数处于不可写的段中。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段界限。</td>
+		</tr>
+		<tr>
+			<td>如果 DS、ES、FS 或 GS 寄存器被用于访问内存且它包含 NULL 段选择子。</td>
+		</tr>
+		<tr>
+			<td rowspan="5">#GP(选择子)</td>
+			<td>如果段选择子索引超出描述符表限制。</td>
+		</tr>
+		<tr>
+			<td>如果正在加载 SS 寄存器，并且段选择子的 RPL 和段描述符的 DPL 不等于 CPL。</td>
+		</tr>
+		<tr>
+			<td>如果正在加载 SS 寄存器，并且指向的段是不可写的数据段。</td>
+		</tr>
+		<tr>
+			<td>如果正在加载 DS、ES、FS 或 GS 寄存器，并且指向的段不是数据或可读代码段。</td>
+		</tr>
+		<tr>
+			<td>如果正在加载 DS、ES、FS 或 GS 寄存器，且指向的段是数据或非一致性代码段，但 RPL 和 CPL 都大于 DPL。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#SS(0)</td>
+			<td>如果当前的栈顶不在栈段内。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数的有效地址超出 SS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#SS(选择子)</td>
+			<td>如果正在加载 SS 寄存器，且指向的段被标记为不存在。</td>
+		</tr>
+		<tr>
+			<td>#NP</td>
+			<td>如果正在加载 DS、ES、FS 或 GS 寄存器，且指向的段被标记为不存在。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果当当前特权级别为 3 且启用了对齐检查时，进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果当启用了对齐检查时，进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">
+			¶
+		</a></h2>
+	<p>与保护模式下的异常相同。</p>
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果栈地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#GP(选择子)</td>
+			<td>如果描述符超出了描述符表限制。</td>
+		</tr>
+		<tr>
+			<td>如果正在加载 FS 或 GS 寄存器，并且指向的段不是数据或可读代码段。</td>
+		</tr>
+		<tr>
+			<td>如果正在加载 FS 或 GS 寄存器，且指向的段是数据或非一致性代码段，但 RPL 和 CPL 都大于 DPL。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果当启用了对齐检查时，进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#NP</td>
+			<td>如果正在加载 FS 或 GS 寄存器，且指向的段被标记为不存在。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>如果正在加载 DS、ES 或 SS 寄存器。</td>
+		</tr>
+	</table>
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span
+				style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a
+				href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+				64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+
+</html>

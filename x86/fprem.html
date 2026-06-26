@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>FPREM — 部分余数</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+
+	<h1>FPREM — 部分余数</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>D9 F8</td>
+			<td>FPREM</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>用 ST(0) 除以 ST(1) 得到的余数替换 ST(0)。</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>计算用 ST(0) 寄存器中的值（被除数）除以 ST(1) 寄存器中的值（除数或模数）得到的余数，并将结果存储在 ST(0) 中。余数代表以下值：</p>
+	<p>Remainder := ST(0) − (Q ∗ ST(1))</p>
+	<p>这里，Q 是通过将 [ST(0) / ST(1)] 的浮点数商向零截断而获得的整数值。余数的符号与被除数的符号相同。余数的大小（绝对值）小于模数的大小，除非计算了部分余数（如下所述）。</p>
+	<p>此指令产生精确的结果；不发生不精确结果异常，且舍入控制不起作用。下表显示了在计算各类数字的余数时获得的结果，假设没有发生下溢。</p>
+
+	<figure id="tbl-3-31">
+		<table>
+			<tr>
+				<th colspan="9">目的 ST(1)</th>
+			</tr>
+			<tr>
+				<td rowspan="8"><strong>源 ST(0)</strong></td>
+				<td></td>
+				<td>-∞</td>
+				<td>-F</td>
+				<td>-0</td>
+				<td>+0</td>
+				<td>+F</td>
+				<td>+∞</td>
+				<td>NaN</td>
+			</tr>
+			<tr>
+				<td>-∞</td>
+				<td>*</td>
+				<td>*</td>
+				<td>*</td>
+				<td>*</td>
+				<td>*</td>
+				<td>*</td>
+				<td>NaN</td>
+			</tr>
+			<tr>
+				<td>-F</td>
+				<td>ST(0)</td>
+				<td>-F 或 -0</td>
+				<td>*</td>
+				<td>*</td>
+				<td>-F 或 -0</td>
+				<td>ST(0)</td>
+				<td>NaN</td>
+			</tr>
+			<tr>
+				<td>-0</td>
+				<td>-0</td>
+				<td>-0</td>
+				<td>*</td>
+				<td>*</td>
+				<td>-0</td>
+				<td>-0</td>
+				<td>NaN</td>
+			</tr>
+			<tr>
+				<td>+0</td>
+				<td>+0</td>
+				<td>+0</td>
+				<td>*</td>
+				<td>*</td>
+				<td>+0</td>
+				<td>+0</td>
+				<td>NaN</td>
+			</tr>
+			<tr>
+				<td>+F</td>
+				<td>ST(0)</td>
+				<td>+F 或 +0</td>
+				<td>*</td>
+				<td>*</td>
+				<td>+F 或 +0</td>
+				<td>ST(0)</td>
+				<td>NaN</td>
+			</tr>
+			<tr>
+				<td>+∞</td>
+				<td>*</td>
+				<td>*</td>
+				<td>*</td>
+				<td>*</td>
+				<td>*</td>
+				<td>*</td>
+				<td>NaN</td>
+			</tr>
+			<tr>
+				<td>NaN</td>
+				<td>NaN</td>
+				<td>NaN</td>
+				<td>NaN</td>
+				<td>NaN</td>
+				<td>NaN</td>
+				<td>NaN</td>
+				<td>NaN</td>
+			</tr>
+		</table>
+		<figcaption><a href='fprem.html#tbl-3-31'>表 3-31</a>. FPREM 结果</figcaption>
+	</figure>
+	<blockquote>
+		<p>F 表示有限浮点值。</p>
+		<p>* 表示浮点无效算术操作数 (#IA) 异常。</p>
+	</blockquote>
+	<p>当结果为 0 时，其符号与被除数的符号相同。当模数为 ∞ 时，结果等于 ST(0) 中的值。</p>
+	<p>FPREM 指令不计算 IEEE Std 754 中指定的余数。IEEE 指定的余数可以使用 FPREM1 指令计算。提供 FPREM 指令是为了与 Intel 8087 和 Intel 287 数学协处理器兼容。</p>
+	<p>FPREM 指令因其计算余数的方式而得名“部分余数”。此指令通过迭代相减得出余数。但是，在执行一次该指令时，它最多只能将 ST(0) 的指数减少 63。如果指令成功产生小于模数的余数，则操作完成，并清除 FPU 状态字中的 C2 标志。否则，设置 C2，且 ST(0) 中的结果被称为部分余数。部分余数的指数将比原始被除数的指数至少小 32。软件可以重新执行该指令（使用 ST(0) 中的部分余数作为被除数），直到清除 C2。（请注意，在执行此类余数计算循环时，需要使用 FPU 的更高优先级中断例程可以强制在循环中的指令之间进行上下文切换。）</p>
+	<p>FPREM 指令的一个重要用途是减少周期函数的自变量。当变量减少（reduction）完成时，该指令将商的三个最低有效位存储在 FPU 状态字的 C3、C1 和 C0 标志中。此信息在正切函数的自变量减少（使用 π/4 的模数）中非常重要，因为它将原始角度定位在单位圆的八个扇区中的正确位置。</p>
+	<p>此指令的操作在非 64 位模式和 64 位模式下相同。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>D := exponent(ST(0)) – exponent(ST(1));
+IF D &lt; 64
+    THEN
+        Q := Integer(TruncateTowardZero(ST(0) / ST(1)));
+        ST(0) := ST(0) – (ST(1) ∗ Q);
+        C2 := 0;
+        C0, C3, C1 := LeastSignificantBits(Q); (* Q2, Q1, Q0 *)
+    ELSE
+        C2 := 1;
+        N := An implementation-dependent number between 32 and 63;
+        QQ := Integer(TruncateTowardZero((ST(0) / ST(1)) / 2<sup>(D − N)</sup>));
+        ST(0) := ST(0) – (ST(1) ∗ QQ ∗ 2<sup>(D − N)</sup>);
+FI;
+</pre>
+	<h2 id="fpu-flags-affected">影响的 FPU 标志寄存器<a class="anchor" href="#fpu-flags-affected">¶</a></h2>
+	<table>
+		<tr>
+			<td>C0</td>
+			<td>设置为商的第 2 位 (Q2)。</td>
+		</tr>
+		<tr>
+			<td>C1</td>
+			<td>如果发生栈下溢，则设置为 0；否则，设置为商的最低有效位 (Q0)。</td>
+		</tr>
+		<tr>
+			<td>C2</td>
+			<td>如果变量减少完成，则设置为 0；如果未完成，则设置为 1。</td>
+		</tr>
+		<tr>
+			<td>C3</td>
+			<td>设置为商的第 1 位 (Q1)。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="floating-point-exceptions">浮点异常<a class="anchor" href="#floating-point-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#IS</td>
+			<td>发生栈下溢。</td>
+		</tr>
+		<tr>
+			<td>#IA</td>
+			<td>源操作数是 SNaN 值、模数为 0、被除数为 ∞，或是不受支持的格式。</td>
+		</tr>
+		<tr>
+			<td>#D</td>
+			<td>源操作数是反常（denormal）值。</td>
+		</tr>
+		<tr>
+			<td>#U</td>
+			<td>结果对于目的格式过小。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#NM</td>
+			<td>CR0.EM[bit 2] 或 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>#MF</td>
+			<td>如果存在未决的 x87 FPU 异常。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete） or 出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

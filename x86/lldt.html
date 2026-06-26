@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>LLDT — 加载局部描述符表寄存器</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>LLDT — 加载局部描述符表寄存器</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>0F 00 /2</td>
+			<td>LLDT r/m16</td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将段选择子 r/m16 加载到 LDTR 中。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>M</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将源操作数加载到局部描述符表寄存器（LDTR）的段选择子字段中。源操作数（通用寄存器或内存位置）包含一个指向局部描述符表（LDT）的段选择子。在 LDTR 中加载段选择子之后，处理器使用该段选择子在全局描述符表（GDT）中定位该 LDT 的段描述符。然后，它将 LDT 的段限长和基地址从段描述符加载到 LDTR 中。段寄存器 DS, ES, SS, FS, GS 和 CS 不受此指令影响，当前任务的任务状态段（TSS）中的 LDTR 字段也不受影响。</p>
+	<p>如果源操作数的第 2-15 位为 0，则 LDTR 被标记为无效，并且 LLDT 指令静默完成。然而，随后所有对 LDT 中描述符的引用（除了 LAR, VERR, VERW 或 LSL 指令之外）都会引起通用保护异常（#GP）。</p>
+	<p>操作数大小属性对此指令没有影响。</p>
+	<p>LLDT 指令供操作系统软件使用；不应在应用程序中使用。该指令只能在保护模式或 64 位模式下执行。</p>
+	<p>在 64 位模式下，操作数大小固定为 16 位。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF SRC(Offset) &gt; descriptor table limit
+    THEN #GP(segment selector); FI;
+IF segment selector is valid
+    Read segment descriptor;
+    IF SegmentDescriptor(Type) ≠ LDT
+        THEN #GP(segment selector); FI;
+    IF segment descriptor is not present
+        THEN #NP(segment selector); FI;
+    LDTR(SegmentSelector) := SRC;
+    LDTR(SegmentDescriptor) := GDTSegmentDescriptor;
+ELSE LDTR := INVALID
+FI;
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="3">#GP(0)</td>
+			<td>如果当前特权级别不为 0。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>如果 DS、ES、FS 或 GS 寄存器包含 NULL 段选择子。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#GP(选择子)</td>
+			<td>如果选择子操作数不指向全局描述符表，或者 GDT 中的项不是局部描述符表。</td>
+		</tr>
+		<tr>
+			<td>段选择子超出 GDT 限制。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数的有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#NP(选择子)</td>
+			<td>如果 LDT 描述符不存在。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>在实地址模式下无法识别 LLDT 指令。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>在虚拟-8086 模式下无法识别 LLDT 指令。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果引用 SS 段的内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果当前特权级别不为 0。</td>
+		</tr>
+		<tr>
+			<td>如果内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#GP(选择子)</td>
+			<td>如果选择子操作数不指向全局描述符表，或者 GDT 中的项不是局部描述符表。</td>
+		</tr>
+		<tr>
+			<td>段选择子超出 GDT 限制。</td>
+		</tr>
+		<tr>
+			<td>#NP(选择子)</td>
+			<td>如果 LDT 描述符不存在。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

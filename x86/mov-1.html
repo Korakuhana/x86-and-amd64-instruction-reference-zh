@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>MOV — 传送数据到/自控制寄存器</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>MOV — 传送数据到/自控制寄存器</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>0F 20/r MOV r32, CR0–CR7</td>
+			<td>MR</td>
+			<td>N.E.</td>
+			<td>Valid</td>
+			<td>将控制寄存器移动到 r32。</td>
+		</tr>
+		<tr>
+			<td>0F 20/r MOV r64, CR0–CR7</td>
+			<td>MR</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将扩展控制寄存器移动到 r64。</td>
+		</tr>
+		<tr>
+			<td>REX.R + 0F 20 /0 MOV r64, CR8</td>
+			<td>MR</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将扩展 CR8 移动到 r64。<sup>1</sup></td>
+		</tr>
+		<tr>
+			<td>0F 22 /r MOV CR0–CR7, r32</td>
+			<td>RM</td>
+			<td>N.E.</td>
+			<td>Valid</td>
+			<td>将 r32 移动到控制寄存器。</td>
+		</tr>
+		<tr>
+			<td>0F 22 /r MOV CR0–CR7, r64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 r64 移动到扩展控制寄存器。</td>
+		</tr>
+		<tr>
+			<td>REX.R + 0F 22 /0 MOV CR8, r64</td>
+			<td>RM</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 r64 移动到扩展 CR8。<sup>1</sup></td>
+		</tr>
+	</table>
+	<blockquote>
+		<p>1. 除 MOV CR8 外，MOV CR* 指令均为序列化指令。在架构上未将 MOV CR8 定义为序列化指令。欲了解更多信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 3A 卷第 9 章。</p>
+	</blockquote>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>MR</td>
+			<td>ModRM:r/m (w)</td>
+			<td>ModRM:reg (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>RM</td>
+			<td>ModRM:reg (w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将控制寄存器（CR0、CR2、CR3、CR4 或 CR8）的内容移动到通用寄存器，或将通用寄存器的内容移动到控制寄存器。在非 64 位模式下，不论操作数大小属性如何，这些指令的操作数大小始终为 32 位。在支持 64 位的处理器上，在 64 位模式之外执行 MOV 到 CR 会将控制寄存器的高 32 位清零。（有关控制寄存器中标志和字段的详细描述，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 3A 卷第 2 章中的“控制寄存器”。）此指令只能在当前特权级别为 0 时执行。</p>
+	<p>在操作码级别，ModR/M 字节内的 reg 字段指定加载或读取哪个控制寄存器。mod 字段中的 2 个位被忽略。r/m 字段指定加载或读取的通用寄存器。CR0、CR3 和 CR4 中的一些位是保留的，必须写为零。试图在 CR0[31:0] 中设置任何保留位的操作将被忽略。试图在 CR0[63:32] 中设置任何保留位会导致通用保护异常 #GP(0)。当未启用 PCID 时，不使用 CR3 的第 2:0 位和第 11:5 位，试图设置它们的行为将被忽略。试图在 CR3[63:MAXPHYADDR] 中设置任何保留位会导致 #GP(0)。试图在 CR4 中设置任何保留位会导致 #GP(0)。在 Pentium 4、Intel Xeon 和 P6 系列处理器上，在对 CR0 进行任何加载后，CR0.ET保持置位；试图清除该位的行为没有影响。</p>
+	<p>在某些情况下，这些指令具有使 TLB 和分页结构缓存中的项无效的副作用。详情请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 3A 卷第 4.10.4.1 节“使 TLB 和分页结构缓存无效的操作”。</p>
+	<p>以下副作用是针对 Pentium 4、Intel Xeon 和 P6 处理器系列的特定实现：当修改寄存器 CR0 中的 PE 或 PG，或寄存器 CR4 中的 PSE 或 PAE 时，所有 TLB 项都会被冲刷，包括全局项。软件不应在所有的 Intel 64 或 IA-32 处理器上依赖此功能。</p>
+	<p>在 64 位模式下，指令的默认操作大小为 64 位。必须使用 REX.R 前缀来访问 CR8。使用 REX.B 允许访问额外的寄存器（R8-R15）。忽略使用 REX.W 前缀或 66H 前缀。使用 REX.R 前缀指定 CR8 以外的寄存器会导致无效操作码异常。请参阅本节开头的汇总图表以获取编码数据和限制。</p>
+	<p>如果 CR4.PCIDE = 1，则 MOV 到 CR3 的源操作数的第 63 位决定了该指令是否使 TLB 和分页结构缓存中的项无效（参见《Intel® 64 和 IA-32 架构软件开发人员手册》第 3A 卷第 4.10.4.1 节“使 TLB 和分页结构缓存无效的操作”）。该指令不会修改 CR3 的第 63 位，该位是保留位且始终为 0。</p>
+	<p>有关此指令在 VMX 非根操作中行为的更多信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 3C 卷第 26 章中的“VMX 非根操作中指令行为的变化”。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>DEST := SRC;
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>OF, SF, ZF, AF, PF 和 CF 标志未定义。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="6">#GP(0)</td>
+			<td>如果当前特权级别不为 0。</td>
+		</tr>
+		<tr>
+			<td>如果试图在 CR0 中写入无效的位组合（例如当 PE 标志设为 0 时将 PG 标志设为 1，或者当 CD 标志设为 0 时将 NW 标志设为 1）。</td>
+		</tr>
+		<tr>
+			<td>如果试图在 CR4 中的任何保留位写入 1。</td>
+		</tr>
+		<tr>
+			<td>如果试图在 CR4.PCIDE 中写入 1。</td>
+		</tr>
+		<tr>
+			<td>如果页目录指针表（PDPT）中设置了任何保留位，并且控制寄存器的加载导致 PDPT 被加载到处理器中。</td>
+		</tr>
+		<tr>
+			<td>如果试图激活 IA-32e 模式，且当前 CS 的 L 位被置位，或者 TR 引用了 16 位 TSS。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>如果试图访问 CR1, CR5, CR6, CR7, 或 CR9–CR15。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="4">#GP</td>
+			<td>如果试图在 CR4 中的任何保留位写入 1。</td>
+		</tr>
+		<tr>
+			<td>如果试图在 CR4.PCIDE 中写入 1。</td>
+		</tr>
+		<tr>
+			<td>如果试图在 CR0 中写入无效的位组合（例如当 PE 标志设为 0 时将 PG 标志设为 1）。</td>
+		</tr>
+		<tr>
+			<td>如果试图激活 IA-32e 模式，且当前 CS 的 L 位被置位，或者 TR 引用了 16 位 TSS。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>如果试图访问 CR1, CR5, CR6, CR7, 或 CR9–CR15。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>在虚拟-8086 模式下无法执行这些指令。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="5">#GP(0)</td>
+			<td>如果当前特权级别不为 0。</td>
+		</tr>
+		<tr>
+			<td>如果试图在 CR0 中写入无效的位组合（例如当 PE 标志设为 0 时将 PG 标志设为 1，或者当 CD 标志设为 0 时将 NW 标志设为 1）。</td>
+		</tr>
+		<tr>
+			<td>如果试图在 CR3[11:0] != 000H 时将 CR4.PCIDE 从 0 更改为 1。</td>
+		</tr>
+		<tr>
+			<td>如果试图在 CR4.PCIDE = 1 时清除 CR0.PG[bit 31]。</td>
+		</tr>
+		<tr>
+			<td>如果试图通过清除 CR4.PAE[bit 5] 来退出 IA-32e 模式。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>如果试图访问 CR1, CR5, CR6, CR7, 或 CR9–CR15。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="8">#GP(0)</td>
+			<td>如果当前特权级别不为 0。</td>
+		</tr>
+		<tr>
+			<td>如果试图在 CR0 中写入无效的位组合（例如当 PE 标志设为 0 时将 PG 标志设为 1，或者当 CD 标志设为 0 时将 NW 标志设为 1）。</td>
+		</tr>
+		<tr>
+			<td>如果试图在 CR3[11:0] != 000H 时将 CR4.PCIDE 从 0 更改为 1。</td>
+		</tr>
+		<tr>
+			<td>如果试图清除 CR0.PG[bit 31]。</td>
+		</tr>
+		<tr>
+			<td>如果试图在 CR4 中的任何保留位写入 1。</td>
+		</tr>
+		<tr>
+			<td>如果试图在 CR8 中的任何保留位写入 1。</td>
+		</tr>
+		<tr>
+			<td>如果试图在 CR3[63:MAXPHYADDR] 中的任何保留位写入 1。</td>
+		</tr>
+		<tr>
+			<td>如果试图通过清除 CR4.PAE[bit 5] 来退出 IA-32e 模式。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>如果试图访问 CR1, CR5, CR6, CR7, 或 CR9–CR15。</td>
+		</tr>
+		<tr>
+			<td>如果 REX.R 前缀用于指定 CR8 以外的寄存器。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

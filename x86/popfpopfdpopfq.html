@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns:x86="http://www.felixcloutier.com/x86">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>POPF/POPFD/POPFQ — 出栈到 EFLAGS 寄存器</title>
+</head>
+
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>POPF/POPFD/POPFQ — 出栈到 EFLAGS 寄存器</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>9D</td>
+			<td>POPF</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将栈顶弹出到 EFLAGS 的低 16 位中。</td>
+		</tr>
+		<tr>
+			<td>9D</td>
+			<td>POPFD</td>
+			<td>ZO</td>
+			<td>N.E.</td>
+			<td>Valid</td>
+			<td>将栈顶弹出到 EFLAGS 中。</td>
+		</tr>
+		<tr>
+			<td>9D</td>
+			<td>POPFQ</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将栈顶弹出并零扩展到 RFLAGS 中。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>从栈顶弹出一个双字（POPFD）（如果当前操作数大小属性为 32）并将该值存储在 EFLAGS 寄存器中；或者从栈顶弹出一个字（如果操作数大小属性为 16）并将该值存储在 EFLAGS 寄存器的低 16 位（即 FLAGS 寄存器）中。这些指令的作用与 PUSHF/PUSHFD/PUSHFQ 指令相反。</p>
+	<p>助记符 POPF（弹出标志）和 POPFD（弹出双字标志）指向相同的操作码。POPF 指令旨在在操作数大小属性为 16 时使用；POPFD 指令旨在在操作数大小属性为 32 时使用。某些汇编器可能会在下述情况下强制确定操作数大小：POPF 为 16，POPFD 为 32。其他汇编器可能将这些助记符视为同义词（POPF/POPFD），并使用操作数大小属性的设置来确定要从栈中弹出的值的大小。</p>
+	<p>POPF/POPFD 对 EFLAGS 寄存器的影响因操作模式而异。有关详细信息，请参阅<a href="#tbl-4-16">表 4-16</a>及下方的说明。</p>
+	<p>在特权级别为 0 的保护模式、兼容模式或 64 位模式下运行（或在实地址模式下，等效于特权级别 0）时，可以修改 EFLAGS 寄存器中除 RF<sup>1</sup>、VIP、VIF 和 VM 之外的所有非保留标志。VIP、VIF 和 VM 保持不受影响。</p>
+	<p>当在保护模式、兼容模式或 64 位模式下运行，特权级别大于 0 但小于或等于 IOPL 时，可以修改除 IOPL 字段和 RF、IF、VIP、VIF、VM 之外的所有标志；这些保持不受影响。仅当操作数大小属性为 32 时，才能修改 AC 和 ID 标志。只有在至少与 IOPL 具有相同特权的级别执行时，才会更改中断标志（IF）。如果在特权不足的情况下执行 POPF/POPFD 指令，则不会发生异常，但特权位不会改变。</p>
+	<p>在没有虚拟 8086 模式扩展（CR4.VME = 0）的虚拟 8086 模式（EFLAGS.VM = 1）下运行时，只有在 IOPL = 3 时才能使用 POPF/POPFD 指令；否则，会发生一般保护性异常（#GP）。如果启用了虚拟 8086 模式扩展（CR4.VME = 1），则可以在 IOPL &lt; 3 的虚拟 8086 模式下执行 POPF（但不能执行 POPFD）。</p>
+	<p>（通过设置 CR4.PVI 启用的保护模式虚拟中断功能以与虚拟 8086 模式扩展相同的方式影响 CLI 和 STI 指令。然而，POPF 不受 CR4.PVI 的影响。）</p>
+	<p>在 64 位模式下，分配的助记符是 POPFQ（请注意，32 位操作数无法编码）。POPFQ 从栈中弹出 64 位。RFLAGS 的保留位（包括 RFLAGS 的高 32 位）不受影响。</p>
+	<p>有关 EFLAGS 寄存器的更多信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷的第 3 章。</p>
+	<blockquote>
+		<p>1. 执行 POPF 后，RF 始终为零。这是因为 POPF 与所有指令一样，在开始执行时会清除 RF。</p>
+	</blockquote>
+
+	<figure id="tbl-4-16">
+		<table>
+			<tr>
+				<th rowspan="3">模式</th>
+				<th rowspan="3">操作数大小</th>
+				<th rowspan="3">CPL</th>
+				<th rowspan="3">IOPL</th>
+				<th colspan="17">标志位</th>
+				<th rowspan="3">说明</th>
+			</tr>
+			<tr>
+				<th>21</th>
+				<th>20</th>
+				<th>19</th>
+				<th>18</th>
+				<th>17</th>
+				<th>16</th>
+				<th>14</th>
+				<th>13:12</th>
+				<th>11</th>
+				<th>10</th>
+				<th>9</th>
+				<th>8</th>
+				<th>7</th>
+				<th>6</th>
+				<th>4</th>
+				<th>2</th>
+				<th>0</th>
+			</tr>
+			<tr>
+				<th>ID</th>
+				<th>VIP</th>
+				<th>VIF</th>
+				<th>AC</th>
+				<th>VM</th>
+				<th>RF</th>
+				<th>NT</th>
+				<th>IOPL</th>
+				<th>OF</th>
+				<th>DF</th>
+				<th>IF</th>
+				<th>TF</th>
+				<th>SF</th>
+				<th>ZF</th>
+				<th>AF</th>
+				<th>PF</th>
+				<th>CF</th>
+			</tr>
+			<tr>
+				<td rowspan="2"><strong>实地址模式 (CR0.PE = 0)</strong></td>
+				<td>16</td>
+				<td>0</td>
+				<td>0-3</td>
+				<td>N</td>
+				<td>N</td>
+				<td>N</td>
+				<td>N</td>
+				<td>N</td>
+				<td>0</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>32</td>
+				<td>0</td>
+				<td>0-3</td>
+				<td>S</td>
+				<td>N</td>
+				<td>N</td>
+				<td>S</td>
+				<td>N</td>
+				<td>0</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td rowspan="6"><strong>保护、兼容与64位模式 (CR0.PE = 1 EFLAGS.VM = 0)</strong></td>
+				<td>16</td>
+				<td>0</td>
+				<td>0-3</td>
+				<td>N</td>
+				<td>N</td>
+				<td>N</td>
+				<td>N</td>
+				<td>N</td>
+				<td>0</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>16</td>
+				<td>1-3</td>
+				<td>&lt;CPL</td>
+				<td>N</td>
+				<td>N</td>
+				<td>N</td>
+				<td>N</td>
+				<td>N</td>
+				<td>0</td>
+				<td>S</td>
+				<td>N</td>
+				<td>S</td>
+				<td>S</td>
+				<td>N</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>16</td>
+				<td>1-3</td>
+				<td>≥CPL</td>
+				<td>N</td>
+				<td>N</td>
+				<td>N</td>
+				<td>N</td>
+				<td>N</td>
+				<td>0</td>
+				<td>S</td>
+				<td>N</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>32, 64</td>
+				<td>0</td>
+				<td>0-3</td>
+				<td>S</td>
+				<td>N</td>
+				<td>N</td>
+				<td>S</td>
+				<td>N</td>
+				<td>0</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>32, 64</td>
+				<td>1-3</td>
+				<td>&lt;CPL</td>
+				<td>S</td>
+				<td>N</td>
+				<td>N</td>
+				<td>S</td>
+				<td>N</td>
+				<td>0</td>
+				<td>S</td>
+				<td>N</td>
+				<td>S</td>
+				<td>S</td>
+				<td>N</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>32, 64</td>
+				<td>1-3</td>
+				<td>≥CPL</td>
+				<td>S</td>
+				<td>N</td>
+				<td>N</td>
+				<td>S</td>
+				<td>N</td>
+				<td>0</td>
+				<td>S</td>
+				<td>N</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td rowspan="4"><strong>虚拟-8086 (CR0.PE = 1 EFLAGS.VM = 1 CR4.VME = 0)</strong></td>
+				<td>16</td>
+				<td>3</td>
+				<td>0-2</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>1</td>
+			</tr>
+			<tr>
+				<td>16</td>
+				<td>3</td>
+				<td>3</td>
+				<td>N</td>
+				<td>N</td>
+				<td>N</td>
+				<td>N</td>
+				<td>N</td>
+				<td>0</td>
+				<td>S</td>
+				<td>N</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>32</td>
+				<td>3</td>
+				<td>0-2</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>1</td>
+			</tr>
+			<tr>
+				<td>32</td>
+				<td>3</td>
+				<td>3</td>
+				<td>S</td>
+				<td>N</td>
+				<td>N</td>
+				<td>S</td>
+				<td>N</td>
+				<td>0</td>
+				<td>S</td>
+				<td>N</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td rowspan="4"><strong>VME (CR0.PE = 1 EFLAGS.VM = 1 CR4.VME = 1)</strong></td>
+				<td>16</td>
+				<td>3</td>
+				<td>0-2</td>
+				<td>N/X</td>
+				<td>N/X</td>
+				<td>SV/X</td>
+				<td>N/X</td>
+				<td>N/X</td>
+				<td>0/X</td>
+				<td>S/X</td>
+				<td>N/X</td>
+				<td>S/X</td>
+				<td>S/X</td>
+				<td>N/X</td>
+				<td>S/X</td>
+				<td>S/X</td>
+				<td>S/X</td>
+				<td>S/X</td>
+				<td>S/X</td>
+				<td>S/X</td>
+				<td>2,3</td>
+			</tr>
+			<tr>
+				<td>16</td>
+				<td>3</td>
+				<td>3</td>
+				<td>N</td>
+				<td>N</td>
+				<td>N</td>
+				<td>N</td>
+				<td>N</td>
+				<td>0</td>
+				<td>S</td>
+				<td>N</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>32</td>
+				<td>3</td>
+				<td>0-2</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>X</td>
+				<td>1</td>
+			</tr>
+			<tr>
+				<td>32</td>
+				<td>3</td>
+				<td>3</td>
+				<td>S</td>
+				<td>N</td>
+				<td>N</td>
+				<td>S</td>
+				<td>N</td>
+				<td>0</td>
+				<td>S</td>
+				<td>N</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td>S</td>
+				<td></td>
+			</tr>
+		</table>
+		<figcaption>表 4-16. POPF/POPFD 对 EFLAGS 寄存器的影响</figcaption>
+	</figure>
+
+	<blockquote>
+		<p>1. #GP 故障 - 无标志更新</p>
+		<p>2. 如果 EFLAGS 寄存器中的 VIP=1 且栈上 FLAGS 值中的 IF=1，则 #GP 故障，且无标志更新</p>
+		<p>3. 如果栈上 FLAGS 值中的 TF=1，则 #GP 故障，且无标志更新</p>
+	</blockquote>
+
+	<table>
+		<tr>
+			<th colspan="2">说明键</th>
+		</tr>
+		<tr>
+			<td><strong>S</strong></td>
+			<td>从栈中更新</td>
+		</tr>
+		<tr>
+			<td><strong>SV</strong></td>
+			<td>从栈上 FLAGS 值中的 IF（第 9 位）进行更新</td>
+		</tr>
+		<tr>
+			<td><strong>N</strong></td>
+			<td>数值无变化</td>
+		</tr>
+		<tr>
+			<td><strong>X</strong></td>
+			<td>不更新 EFLAGS</td>
+		</tr>
+		<tr>
+			<td><strong>0</strong></td>
+			<td>数值被清除</td>
+		</tr>
+	</table>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF EFLAGS.VM = 0 (* Not in Virtual-8086 Mode *)
+    THEN IF CPL = 0 OR CR0.PE = 0
+        THEN
+            IF OperandSize = 32;
+                THEN
+                    EFLAGS := Pop(); (* 32-bit pop *)
+                    (* All non-reserved flags except RF, VIP, VIF, and VM can be modified;
+                    VIP, VIF, VM, and all reserved bits are unaffected. RF is cleared. *)
+                ELSE IF (Operandsize = 64)
+                    RFLAGS = Pop(); (* 64-bit pop *)
+                    (* All non-reserved flags except RF, VIP, VIF, and VM can be modified;
+                    VIP, VIF, VM, and all reserved bits are unaffected. RF is cleared. *)
+                ELSE (* OperandSize = 16 *)
+                    EFLAGS[15:0] := Pop(); (* 16-bit pop *)
+                    (* All non-reserved flags can be modified. *)
+            FI;
+        ELSE (* CPL &gt; 0 *)
+            IF OperandSize = 32
+                THEN
+                    IF CPL &gt; IOPL
+                        THEN
+                            EFLAGS := Pop(); (* 32-bit pop *)
+                            (* All non-reserved bits except IF, IOPL, VIP, VIF, VM, and RF can be modified;
+                            IF, IOPL, VIP, VIF, VM, and all reserved bits are unaffected; RF is cleared. *)
+                        ELSE
+                            EFLAGS := Pop(); (* 32-bit pop *)
+                            (* All non-reserved bits except IOPL, VIP, VIF, VM, and RF can be modified;
+                            IOPL, VIP, VIF, VM, and all reserved bits are unaffected; RF is cleared. *)
+                    FI;
+                ELSE IF (Operandsize = 64)
+                    IF CPL &gt; IOPL
+                        THEN
+                            RFLAGS := Pop(); (* 64-bit pop *)
+                            (* All non-reserved bits except IF, IOPL, VIP, VIF, VM, and RF can be modified;
+                            IF, IOPL, VIP, VIF, VM, and all reserved bits are unaffected; RF is cleared. *)
+                        ELSE
+                            RFLAGS := Pop(); (* 64-bit pop *)
+                            (* All non-reserved bits except IOPL, VIP, VIF, VM, and RF can be modified;
+                            IOPL, VIP, VIF, VM, and all reserved bits are unaffected; RF is cleared. *)
+                    FI;
+                ELSE (* OperandSize = 16 *)
+                    EFLAGS[15:0] := Pop(); (* 16-bit pop *)
+                    (* All non-reserved bits except IOPL can be modified; IOPL and all
+                    reserved bits are unaffected. *)
+            FI;
+        FI;
+    ELSE (* In virtual-8086 mode *)
+        IF IOPL = 3
+            THEN
+                IF OperandSize = 32
+                    THEN
+                        EFLAGS := Pop();
+                        (* All non-reserved bits except IOPL, VIP, VIF, VM, and RF can be modified;
+                        VIP, VIF, VM, IOPL, and all reserved bits are unaffected. RF is cleared. *)
+                    ELSE
+                        EFLAGS[15:0] := Pop(); FI;
+                        (* All non-reserved bits except IOPL can be modified; IOPL and all reserved bits are unaffected. *)
+                FI;
+            ELSE (* IOPL &lt; 3 *)
+                IF (Operandsize = 32) OR (CR4.VME = 0)
+                    THEN #GP(0); (* Trap to virtual-8086 monitor. *)
+                    ELSE (* Operandsize = 16 and CR4.VME = 1 *)
+                        tempFLAGS := Pop();
+                        IF (EFLAGS.VIP = 1 AND tempFLAGS[9] = 1) OR tempFLAGS[8] = 1
+                            THEN #GP(0);
+                            ELSE
+                                EFLAGS.VIF := tempFLAGS[9];
+                                EFLAGS[15:0] := tempFLAGS;
+                                (* All non-reserved bits except IOPL and IF can be modified;
+                                IOPL, IF, and all reserved bits are unaffected. *)
+                        FI;
+                FI;
+        FI;
+FI;
+</pre>
+
+	<h2 id="flags-affected">影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>所有标志位都可能受影响；有关详细信息，请参阅“操作”部分。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果栈顶不在栈段边界内。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查且在 CPL = 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS</td>
+			<td>如果栈顶不在栈段边界内。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟 8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="5">#GP(0)</td>
+			<td>如果 IOPL &lt; 3 并且未启用 VME。</td>
+		</tr>
+		<tr>
+			<td>如果 IOPL &lt; 3 并且使用了 32 位操作数大小。</td>
+		</tr>
+		<tr>
+			<td>如果 IOPL &lt; 3，EFLAGS.VIP = 1，并且栈上的 FLAGS 值中设置了第 9 位（IF）。</td>
+		</tr>
+		<tr>
+			<td>如果 IOPL &lt; 3 并且栈上的 FLAGS 值中设置了第 8 位（TF）。</td>
+		</tr>
+		<tr>
+			<td>如果尝试使用操作数大小覆盖前缀执行 POPF/POPFD 指令。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果栈顶不在栈段边界内。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查且进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果栈地址是非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+	<footer>
+		<p>
+			本非官方、机械拆分、未经校验的参考文档仅为方便提供，可能存在各种明显或不明显的缺失或错误。任何严肃用途请参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+
+</html>

@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>CMPPD — 比较打包双精度浮点值</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>CMPPD — 比较打包双精度浮点值</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op / En</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>66 0F C2 /r ib CMPPD xmm1, xmm2/m128, imm8</td>
+			<td>A</td>
+			<td>V/V</td>
+			<td>SSE2</td>
+			<td>使用 imm8 的 bits 2:0 作为比较关系谓词，比较 xmm2/m128 和 xmm1 中的打包双精度浮点值。</td>
+		</tr>
+		<tr>
+			<td>VEX.128.66.0F.WIG C2 /r ib VCMPPD xmm1, xmm2, xmm3/m128, imm8</td>
+			<td>B</td>
+			<td>V/V</td>
+			<td>AVX</td>
+			<td>使用 imm8 的 bits 4:0 作为比较关系谓词，比较 xmm3/m128 和 xmm2 中的打包双精度浮点值。</td>
+		</tr>
+		<tr>
+			<td>VEX.256.66.0F.WIG C2 /r ib VCMPPD ymm1, ymm2, ymm3/m256, imm8</td>
+			<td>B</td>
+			<td>V/V</td>
+			<td>AVX</td>
+			<td>使用 imm8 的 bits 4:0 作为比较关系谓词，比较 ymm3/m256 和 ymm2 中的打包双精度浮点值。</td>
+		</tr>
+		<tr>
+			<td>EVEX.128.66.0F.W1 C2 /r ib VCMPPD k1 {k2}, xmm2, xmm3/m128/m64bcst, imm8</td>
+			<td>C</td>
+			<td>V/V</td>
+			<td>AVX512VL AVX512F</td>
+			<td>使用 imm8 的 bits 4:0 作为比较关系谓词，在使用写掩码 k2 的情况下比较 xmm3/m128/m64bcst 和 xmm2 中的打包双精度浮点值，并将结果保存在掩码寄存器 k1 中。</td>
+		</tr>
+		<tr>
+			<td>EVEX.256.66.0F.W1 C2 /r ib VCMPPD k1 {k2}, ymm2, ymm3/m256/m64bcst, imm8</td>
+			<td>C</td>
+			<td>V/V</td>
+			<td>AVX512VL AVX512F</td>
+			<td>使用 imm8 的 bits 4:0 作为比较关系谓词，在使用写掩码 k2 的情况下比较 ymm3/m256/m64bcst 和 ymm2 中的打包双精度浮点值，并将结果保存在掩码寄存器 k1 中。</td>
+		</tr>
+		<tr>
+			<td>EVEX.512.66.0F.W1 C2 /r ib VCMPPD k1 {k2}, zmm2, zmm3/m512/m64bcst{sae}, imm8</td>
+			<td>C</td>
+			<td>V/V</td>
+			<td>AVX512F</td>
+			<td>使用 imm8 的 bits 4:0 作为比较关系谓词，在使用写掩码 k2 的情况下比较 zmm3/m512/m64bcst 和 zmm2 中的打包双精度浮点值，并将结果保存在掩码寄存器 k1 中。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>元组类型</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>A</td>
+			<td>N/A</td>
+			<td>ModRM:reg (r, w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>imm8</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>B</td>
+			<td>N/A</td>
+			<td>ModRM:reg (w)</td>
+			<td>VEX.vvvv (r)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>imm8</td>
+		</tr>
+		<tr>
+			<td>C</td>
+			<td>Full</td>
+			<td>ModRM:reg (w)</td>
+			<td>EVEX.vvvv (r)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>imm8</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>对第二源操作数和第一源操作数中的打包双精度浮点值进行 SIMD 比较，并将比较结果返回给目的操作数。比较关系谓词操作数（即立即数字节）指定在两个源操作数中的每对打包值上执行的比较类型。</p>
+	<p>EVEX 编码版本：第一源操作数（第二操作数）是 ZMM/YMM/XMM 寄存器。第二源操作数可以是 ZMM/YMM/XMM 寄存器、512/256/128 位内存位置，或者从 64 位内存位置广播的 512/256/128 位向量。目的操作数（第一操作数）是 opmask（操作掩码）寄存器。在写掩码 k2 的作用下，比较结果被写入目的操作数。每个比较结果都是单个掩码位，1 表示比较为真，0 表示比较为假。</p>
+	<p>VEX.256 编码版本：第一源操作数（第二操作数）是 YMM 寄存器。第二源操作数（第三操作数）可以是 YMM 寄存器或 256 位内存位置。目的操作数（第一操作数）是 YMM 寄存器。执行四次比较，并将结果写入目的操作数。每次比较的结果是全 1 的四字掩码（比较为真）或全 0（比较为假）。</p>
+	<p>128 位传统 SSE 版本：第一源与目的操作数（第一操作数）是 XMM 寄存器。第二源操作数（第二操作数）可以是 XMM 寄存器或 128 位内存位置。对应的 ZMM 目的寄存器的 bits (MAXVL-1:128) 保持不变。执行两次比较，结果写入目的操作数的 bits 127:0。每次比较的结果是全 1 的四字掩码（比较为真）或全 0（比较为假）。</p>
+	<p>VEX.128 编码版本：第一源操作数（第二操作数）是 XMM 寄存器。第二源操作数（第三操作数）可以是 XMM 寄存器或 128 位内存位置。目的 ZMM 寄存器的 bits (MAXVL-1:128) 清零。执行两次比较，结果写入目的操作数的 bits 127:0。</p>
+	<p>比较关系谓词操作数是 8 位立即数：</p>
+	<ul>
+		<li>对于使用 VEX 或 EVEX 前缀编码的指令，bits 4:0 定义了要执行的比较类型（参见<a href='cmppd.html#tbl-3-1'>表 3-1</a>）。立即数的 bits 5 到 7 保留。</li>
+		<li>对于未使用 VEX 前缀的指令编码，bits 2:0 定义了要进行的比较类型（参见<a href='cmppd.html#tbl-3-1'>表 3-1</a> 的前 8 行）。立即数的 bits 3 到 7 保留。</li>
+	</ul>
+
+	<figure id="tbl-3-1">
+		<table>
+			<tr>
+				<th rowspan="2">关系谓词</th>
+				<th rowspan="2">imm8 值</th>
+				<th rowspan="2">描述</th>
+				<th colspan="4">结果：A 是第一操作数，B 是第二操作数</th>
+				<th rowspan="2">在 QNAN 上触发 #IA</th>
+			</tr>
+			<tr>
+				<th>A &gt; B</th>
+				<th>A &lt; B</th>
+				<th>A = B</th>
+				<th>无序<sup>1</sup></th>
+			</tr>
+			<tr>
+				<td>EQ_OQ (EQ)</td>
+				<td>0H</td>
+				<td>等于（有序，无信号）</td>
+				<td>假</td>
+				<td>假</td>
+				<td>真</td>
+				<td>假</td>
+				<td>否</td>
+			</tr>
+			<tr>
+				<td>LT_OS (LT)</td>
+				<td>1H</td>
+				<td>小于（有序，有信号）</td>
+				<td>假</td>
+				<td>真</td>
+				<td>假</td>
+				<td>假</td>
+				<td>是</td>
+			</tr>
+			<tr>
+				<td>LE_OS (LE)</td>
+				<td>2H</td>
+				<td>小于或等于（有序，有信号）</td>
+				<td>假</td>
+				<td>真</td>
+				<td>真</td>
+				<td>假</td>
+				<td>是</td>
+			</tr>
+			<tr>
+				<td>UNORD_Q (UNORD)</td>
+				<td>3H</td>
+				<td>无序（无信号）</td>
+				<td>假</td>
+				<td>假</td>
+				<td>假</td>
+				<td>真</td>
+				<td>否</td>
+			</tr>
+			<tr>
+				<td>NEQ_UQ (NEQ)</td>
+				<td>4H</td>
+				<td>不等于（无序，无信号）</td>
+				<td>真</td>
+				<td>真</td>
+				<td>假</td>
+				<td>真</td>
+				<td>否</td>
+			</tr>
+			<tr>
+				<td>NLT_US (NLT)</td>
+				<td>5H</td>
+				<td>不小于（无序，有信号）</td>
+				<td>真</td>
+				<td>假</td>
+				<td>真</td>
+				<td>真</td>
+				<td>是</td>
+			</tr>
+			<tr>
+				<td>NLE_US (NLE)</td>
+				<td>6H</td>
+				<td>不小于或等于（无序，有信号）</td>
+				<td>真</td>
+				<td>假</td>
+				<td>假</td>
+				<td>真</td>
+				<td>是</td>
+			</tr>
+			<tr>
+				<td>ORD_Q (ORD)</td>
+				<td>7H</td>
+				<td>有序（无信号）</td>
+				<td>真</td>
+				<td>真</td>
+				<td>真</td>
+				<td>假</td>
+				<td>否</td>
+			</tr>
+			<tr>
+				<td>EQ_UQ</td>
+				<td>8H</td>
+				<td>等于（无序，无信号）</td>
+				<td>假</td>
+				<td>假</td>
+				<td>真</td>
+				<td>真</td>
+				<td>否</td>
+			</tr>
+			<tr>
+				<td>NGE_US (NGE)</td>
+				<td>9H</td>
+				<td>不大于或等于（无序，有信号）</td>
+				<td>假</td>
+				<td>真</td>
+				<td>假</td>
+				<td>真</td>
+				<td>是</td>
+			</tr>
+			<tr>
+				<td>NGT_US (NGT)</td>
+				<td>AH</td>
+				<td>不大于（无序，有信号）</td>
+				<td>假</td>
+				<td>真</td>
+				<td>真</td>
+				<td>真</td>
+				<td>是</td>
+			</tr>
+			<tr>
+				<td>FALSE_OQ(FALSE)</td>
+				<td>BH</td>
+				<td>假（有序，无信号）</td>
+				<td>假</td>
+				<td>假</td>
+				<td>假</td>
+				<td>假</td>
+				<td>否</td>
+			</tr>
+			<tr>
+				<td>NEQ_OQ</td>
+				<td>CH</td>
+				<td>不等于（有序，无信号）</td>
+				<td>真</td>
+				<td>真</td>
+				<td>假</td>
+				<td>假</td>
+				<td>否</td>
+			</tr>
+			<tr>
+				<td>GE_OS (GE)</td>
+				<td>DH</td>
+				<td>大于或等于（有序，有信号）</td>
+				<td>真</td>
+				<td>假</td>
+				<td>真</td>
+				<td>假</td>
+				<td>是</td>
+			</tr>
+			<tr>
+				<td>GT_OS (GT)</td>
+				<td>EH</td>
+				<td>大于（有序，有信号）</td>
+				<td>真</td>
+				<td>假</td>
+				<td>假</td>
+				<td>假</td>
+				<td>是</td>
+			</tr>
+			<tr>
+				<td>TRUE_UQ(TRUE)</td>
+				<td>FH</td>
+				<td>真（无序，无信号）</td>
+				<td>真</td>
+				<td>真</td>
+				<td>真</td>
+				<td>真</td>
+				<td>否</td>
+			</tr>
+			<tr>
+				<td>EQ_OS</td>
+				<td>10H</td>
+				<td>等于（有序，有信号）</td>
+				<td>假</td>
+				<td>假</td>
+				<td>真</td>
+				<td>假</td>
+				<td>是</td>
+			</tr>
+			<tr>
+				<td>LT_OQ</td>
+				<td>11H</td>
+				<td>小于（有序，无信号）</td>
+				<td>假</td>
+				<td>真</td>
+				<td>假</td>
+				<td>假</td>
+				<td>否</td>
+			</tr>
+			<tr>
+				<td>LE_OQ</td>
+				<td>12H</td>
+				<td>小于或等于（有序，无信号）</td>
+				<td>假</td>
+				<td>真</td>
+				<td>真</td>
+				<td>假</td>
+				<td>否</td>
+			</tr>
+			<tr>
+				<td>UNORD_S</td>
+				<td>13H</td>
+				<td>无序（有信号）</td>
+				<td>假</td>
+				<td>假</td>
+				<td>假</td>
+				<td>真</td>
+				<td>是</td>
+			</tr>
+			<tr>
+				<td>NEQ_US</td>
+				<td>14H</td>
+				<td>不等于（无序，有信号）</td>
+				<td>真</td>
+				<td>真</td>
+				<td>假</td>
+				<td>真</td>
+				<td>是</td>
+			</tr>
+			<tr>
+				<td>NLT_UQ</td>
+				<td>15H</td>
+				<td>不小于（无序，无信号）</td>
+				<td>真</td>
+				<td>假</td>
+				<td>真</td>
+				<td>真</td>
+				<td>否</td>
+			</tr>
+			<tr>
+				<td>NLE_UQ</td>
+				<td>16H</td>
+				<td>不小于或等于（无序，无信号）</td>
+				<td>真</td>
+				<td>假</td>
+				<td>假</td>
+				<td>真</td>
+				<td>否</td>
+			</tr>
+			<tr>
+				<td>ORD_S</td>
+				<td>17H</td>
+				<td>有序（有信号）</td>
+				<td>真</td>
+				<td>真</td>
+				<td>真</td>
+				<td>假</td>
+				<td>是</td>
+			</tr>
+			<tr>
+				<td>EQ_US</td>
+				<td>18H</td>
+				<td>等于（无序，有信号）</td>
+				<td>假</td>
+				<td>假</td>
+				<td>真</td>
+				<td>真</td>
+				<td>是</td>
+			</tr>
+			<tr>
+				<td>NGE_UQ</td>
+				<td>19H</td>
+				<td>不大于或等于（无序，无信号）</td>
+				<td>假</td>
+				<td>真</td>
+				<td>假</td>
+				<td>真</td>
+				<td>否</td>
+			</tr>
+			<tr>
+				<td>NGT_UQ</td>
+				<td>1AH</td>
+				<td>不大于（无序，无信号）</td>
+				<td>假</td>
+				<td>真</td>
+				<td>真</td>
+				<td>真</td>
+				<td>否</td>
+			</tr>
+			<tr>
+				<td>FALSE_OS</td>
+				<td>1BH</td>
+				<td>假（有序，有信号）</td>
+				<td>假</td>
+				<td>假</td>
+				<td>假</td>
+				<td>假</td>
+				<td>是</td>
+			</tr>
+			<tr>
+				<td>NEQ_OS</td>
+				<td>1CH</td>
+				<td>不等于（有序，有信号）</td>
+				<td>真</td>
+				<td>真</td>
+				<td>假</td>
+				<td>假</td>
+				<td>是</td>
+			</tr>
+			<tr>
+				<td>GE_OQ</td>
+				<td>1DH</td>
+				<td>大于或等于（有序，无信号）</td>
+				<td>真</td>
+				<td>假</td>
+				<td>真</td>
+				<td>假</td>
+				<td>否</td>
+			</tr>
+			<tr>
+				<td>GT_OQ</td>
+				<td>1EH</td>
+				<td>大于（有序，无信号）</td>
+				<td>真</td>
+				<td>假</td>
+				<td>假</td>
+				<td>假</td>
+				<td>否</td>
+			</tr>
+			<tr>
+				<td>TRUE_US</td>
+				<td>1FH</td>
+				<td>真（无序，有信号）</td>
+				<td>真</td>
+				<td>真</td>
+				<td>真</td>
+				<td>真</td>
+				<td>是</td>
+			</tr>
+		</table>
+		<figcaption><a href='cmppd.html#tbl-3-1'>表 3-1</a>. CMPPD 和 CMPPS 指令的比较关系谓词</figcaption>
+	</figure>
+
+	<blockquote>
+		<p>1. 如果操作数 A 或 B 中有任意一个是 NaN。</p>
+	</blockquote>
+	<p>当被比较的两个源操作数中至少有一个是 NaN 时，无序（unordered）关系为真；当两个源操作数均不是 NaN 时，有序（ordered）关系为真。</p>
+	<p>后续使用目的操作数中的掩码结果作为输入操作数的计算指令不会产生异常，因为全 0 掩码对应浮点值 +0.0，而全 1 掩码对应 QNaN。</p>
+	<p>请注意，具有 “CPUID.1H:ECX.AVX = 0” 的处理器未实现 “大于”、“大于或等于”、“不大于” 和 “不大于或等于” 关系谓词。这些比较可以通过使用相反关系（即使用 “不小于或等于” 来进行 “大于” 比较）或通过软件模拟来完成。使用软件模拟时，程序必须交换操作数（必要时复制寄存器以保护现在将存于目的寄存器中的数据），然后使用不同的谓词执行比较。要用于这些模拟的谓词列在《Intel® 64 和 IA-32 架构软件开发人员手册》第 2A 卷中表 3-7（位于 cli.html 对应章节）的前 8 行中的 Emulation 标题下。</p>
+	<p>编译器和汇编器除了三操作数 CMPPD 指令之外，对于具有 “CPUID.1H:ECX.AVX = 0” 的处理器，还可以实现以下双操作数伪操作。参见<a href='cmppd.html#tbl-3-2'>表 3-2</a>。编译器应将保留的 imm8 值视为非法语法。</p>
+
+	<figure id="tbl-3-2">
+		<table>
+			<tr>
+				<th>伪操作</th>
+				<th>CMPPD 实现</th>
+			</tr>
+			<tr>
+				<td>CMPEQPD xmm1, xmm2</td>
+				<td>CMPPD xmm1, xmm2, 0</td>
+			</tr>
+			<tr>
+				<td>CMPLTPD xmm1, xmm2</td>
+				<td>CMPPD xmm1, xmm2, 1</td>
+			</tr>
+			<tr>
+				<td>CMPLEPD xmm1, xmm2</td>
+				<td>CMPPD xmm1, xmm2, 2</td>
+			</tr>
+			<tr>
+				<td>CMPUNORDPD xmm1, xmm2</td>
+				<td>CMPPD xmm1, xmm2, 3</td>
+			</tr>
+			<tr>
+				<td>CMPNEQPD xmm1, xmm2</td>
+				<td>CMPPD xmm1, xmm2, 4</td>
+			</tr>
+			<tr>
+				<td>CMPNLTPD xmm1, xmm2</td>
+				<td>CMPPD xmm1, xmm2, 5</td>
+			</tr>
+			<tr>
+				<td>CMPNLEPD xmm1, xmm2</td>
+				<td>CMPPD xmm1, xmm2, 6</td>
+			</tr>
+			<tr>
+				<td>CMPORDPD xmm1, xmm2</td>
+				<td>CMPPD xmm1, xmm2, 7</td>
+			</tr>
+		</table>
+		<figcaption><a href='cmppd.html#tbl-3-2'>表 3-2</a>. 伪操作和 CMPPD 实现</figcaption>
+	</figure>
+
+	<p>处理器未实现的大于关系在软件中需要多于一条指令来模拟，因此不应被实现为伪操作。（对于这些关系，程序员应当反转相应小于关系的操作数，并使用移动指令确保掩码被移动到正确的目的寄存器，且源操作数保持完整。）</p>
+	<p>具有 “CPUID.1H:ECX.AVX = 1” 的处理器实现了表 3-3 中所示的全部 32 个谓词，不再需要软件模拟。编译器和汇编器除了四操作数 VCMPPD 指令之外，还可以实现以下三操作数伪操作。参见表 3-3，其中 reg1、reg2 和 reg3 记号表示 XMM 寄存器或 YMM 寄存器。编译器应将保留的 imm8 值视为非法语法。或者，内部函数可以将伪操作映射到预定义常量，以支持更简单的内部函数接口。编译器和汇编器可以类似地通过扩展表 3-3 中列出的语法，为 EVEX 编码的 VCMPPD 指令实现三操作数伪操作。</p>
+
+	<figure id="tbl-3-3">
+		<table>
+			<tr>
+				<th>伪操作</th>
+				<th>CMPPD 实现</th>
+			</tr>
+			<tr>
+				<td>VCMPEQPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 0</em></td>
+			</tr>
+			<tr>
+				<td>VCMPLTPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 1</em></td>
+			</tr>
+			<tr>
+				<td>VCMPLEPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 2</em></td>
+			</tr>
+			<tr>
+				<td>VCMPUNORDPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 3</em></td>
+			</tr>
+			<tr>
+				<td>VCMPNEQPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 4</em></td>
+			</tr>
+			<tr>
+				<td>VCMPNLTPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 5</em></td>
+			</tr>
+			<tr>
+				<td>VCMPNLEPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 6</em></td>
+			</tr>
+			<tr>
+				<td>VCMPORDPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 7</em></td>
+			</tr>
+			<tr>
+				<td>VCMPEQ_UQPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 8</em></td>
+			</tr>
+			<tr>
+				<td>VCMPNGEPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 9</em></td>
+			</tr>
+			<tr>
+				<td>VCMPNGTPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 0AH</em></td>
+			</tr>
+			<tr>
+				<td>VCMPFALSEPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 0BH</em></td>
+			</tr>
+			<tr>
+				<td>VCMPNEQ_OQPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 0CH</em></td>
+			</tr>
+			<tr>
+				<td>VCMPGEPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 0DH</em></td>
+			</tr>
+			<tr>
+				<td>VCMPGTPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 0EH</em></td>
+			</tr>
+			<tr>
+				<td>VCMPTRUEPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 0FH</em></td>
+			</tr>
+			<tr>
+				<td>VCMPEQ_OSPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 10H</em></td>
+			</tr>
+			<tr>
+				<td>VCMPLT_OQPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 11H</em></td>
+			</tr>
+			<tr>
+				<td>VCMPLE_OQPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 12H</em></td>
+			</tr>
+			<tr>
+				<td>VCMPUNORD_SPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 13H</em></td>
+			</tr>
+			<tr>
+				<td>VCMPNEQ_USPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 14H</em></td>
+			</tr>
+			<tr>
+				<td>VCMPNLT_UQPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 15H</em></td>
+			</tr>
+			<tr>
+				<td>VCMPNLE_UQPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 16H</em></td>
+			</tr>
+			<tr>
+				<td>VCMPORD_SPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 17H</em></td>
+			</tr>
+			<tr>
+				<td>VCMPEQ_USPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 18H</em></td>
+			</tr>
+			<tr>
+				<td>VCMPNGE_UQPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 19H</em></td>
+			</tr>
+			<tr>
+				<td>VCMPNGT_UQPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 1AH</em></td>
+			</tr>
+			<tr>
+				<td>VCMPFALSE_OSPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 1BH</em></td>
+			</tr>
+			<tr>
+				<td>VCMPNEQ_OSPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 1CH</em></td>
+			</tr>
+			<tr>
+				<td>VCMPGE_OQPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 1DH</em></td>
+			</tr>
+			<tr>
+				<td>VCMPGT_OQPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 1EH</em></td>
+			</tr>
+			<tr>
+				<td>VCMPTRUE_USPD <em>reg1, reg2, reg3</em></td>
+				<td>VCMPPD <em>reg1, reg2, reg3, 1FH</em></td>
+			</tr>
+		</table>
+		<figcaption><a href='cmppd.html#tbl-3-3'>表 3-3</a>. 伪操作和 VCMPPD 实现</figcaption>
+	</figure>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>CASE (COMPARISON PREDICATE) OF
+0: OP3 := EQ_OQ; OP5 := EQ_OQ;
+    1: OP3 := LT_OS; OP5 := LT_OS;
+    2: OP3 := LE_OS; OP5 := LE_OS;
+    3: OP3 := UNORD_Q; OP5 := UNORD_Q;
+    4: OP3 := NEQ_UQ; OP5 := NEQ_UQ;
+    5: OP3 := NLT_US; OP5 := NLT_US;
+    6: OP3 := NLE_US; OP5 := NLE_US;
+    7: OP3 := ORD_Q; OP5 := ORD_Q;
+    8: OP5 := EQ_UQ;
+    9: OP5 := NGE_US;
+    10: OP5 := NGT_US;
+    11: OP5 := FALSE_OQ;
+    12: OP5 := NEQ_OQ;
+    13: OP5 := GE_OS;
+    14: OP5 := GT_OS;
+    15: OP5 := TRUE_UQ;
+    16: OP5 := EQ_OS;
+    17: OP5 := LT_OQ;
+    18: OP5 := LE_OQ;
+    19: OP5 := UNORD_S;
+    20: OP5 := NEQ_US;
+    21: OP5 := NLT_UQ;
+    22: OP5 := NLE_UQ;
+    23: OP5 := ORD_S;
+    24: OP5 := EQ_US;
+    25: OP5 := NGE_UQ;
+    26: OP5 := NGT_UQ;
+    27: OP5 := FALSE_OS;
+    28: OP5 := NEQ_OS;
+    29: OP5 := GE_OQ;
+    30: OP5 := GT_OQ;
+    31: OP5 := TRUE_US;
+    DEFAULT: Reserved;
+ESAC;
+</pre>
+
+	<h3 id="vcmppd--evex-encoded-versions-">VCMPPD (EVEX Encoded Versions)<a class="anchor" href="#vcmppd--evex-encoded-versions-">¶</a></h3>
+	<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k2[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN
+                    CMP := SRC1[i+63:i] OP5 SRC2[63:0]
+                ELSE
+                    CMP := SRC1[i+63:i] OP5 SRC2[i+63:i]
+            FI;
+            IF CMP = TRUE
+                THEN DEST[j] := 1;
+                ELSE DEST[j] := 0; FI;
+        ELSE DEST[j] := 0
+                        ; zeroing-masking only
+    FI;
+ENDFOR
+DEST[MAX_KL-1:KL] := 0
+</pre>
+
+	<h3 id="vcmppd--vex-256-encoded-version-">VCMPPD (VEX.256 Encoded Version)<a class="anchor" href="#vcmppd--vex-256-encoded-version-">¶</a></h3>
+	<pre>CMP0 := SRC1[63:0] OP5 SRC2[63:0];
+CMP1 := SRC1[127:64] OP5 SRC2[127:64];
+CMP2 := SRC1[191:128] OP5 SRC2[191:128];
+CMP3 := SRC1[255:192] OP5 SRC2[255:192];
+IF CMP0 = TRUE
+    THEN DEST[63:0] := FFFFFFFFFFFFFFFFH;
+    ELSE DEST[63:0] := 0000000000000000H; FI;
+IF CMP1 = TRUE
+    THEN DEST[127:64] := FFFFFFFFFFFFFFFFH;
+    ELSE DEST[127:64] := 0000000000000000H; FI;
+IF CMP2 = TRUE
+    THEN DEST[191:128] := FFFFFFFFFFFFFFFFH;
+    ELSE DEST[191:128] := 0000000000000000H; FI;
+IF CMP3 = TRUE
+    THEN DEST[255:192] := FFFFFFFFFFFFFFFFH;
+    ELSE DEST[255:192] := 0000000000000000H; FI;
+DEST[MAXVL-1:256] := 0
+</pre>
+
+	<h3 id="vcmppd--vex-128-encoded-version-">VCMPPD (VEX.128 Encoded Version)<a class="anchor" href="#vcmppd--vex-128-encoded-version-">¶</a></h3>
+	<pre>CMP0 := SRC1[63:0] OP5 SRC2[63:0];
+CMP1 := SRC1[127:64] OP5 SRC2[127:64];
+IF CMP0 = TRUE
+    THEN DEST[63:0] := FFFFFFFFFFFFFFFFH;
+    ELSE DEST[63:0] := 0000000000000000H; FI;
+IF CMP1 = TRUE
+    THEN DEST[127:64] := FFFFFFFFFFFFFFFFH;
+    ELSE DEST[127:64] := 0000000000000000H; FI;
+DEST[MAXVL-1:128] := 0
+</pre>
+
+	<h3 id="cmppd--128-bit-legacy-sse-version-">CMPPD (128-bit Legacy SSE Version)<a class="anchor" href="#cmppd--128-bit-legacy-sse-version-">¶</a></h3>
+	<pre>CMP0 := SRC1[63:0] OP3 SRC2[63:0];
+CMP1 := SRC1[127:64] OP3 SRC2[127:64];
+IF CMP0 = TRUE
+    THEN DEST[63:0] := FFFFFFFFFFFFFFFFH;
+    ELSE DEST[63:0] := 0000000000000000H; FI;
+IF CMP1 = TRUE
+    THEN DEST[127:64] := FFFFFFFFFFFFFFFFH;
+    ELSE DEST[127:64] := 0000000000000000H; FI;
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>VCMPPD __mmask8 _mm512_cmp_pd_mask( __m512d a, __m512d b, int imm);
+VCMPPD __mmask8 _mm512_cmp_round_pd_mask( __m512d a, __m512d b, int imm, int sae);
+VCMPPD __mmask8 _mm512_mask_cmp_pd_mask( __mmask8 k1, __m512d a, __m512d b, int imm);
+VCMPPD __mmask8 _mm512_mask_cmp_round_pd_mask( __mmask8 k1, __m512d a, __m512d b, int imm, int sae);
+VCMPPD __mmask8 _mm256_cmp_pd_mask( __m256d a, __m256d b, int imm);
+VCMPPD __mmask8 _mm256_mask_cmp_pd_mask( __mmask8 k1, __m256d a, __m256d b, int imm);
+VCMPPD __mmask8 _mm_cmp_pd_mask( __m128d a, __m128d b, int imm);
+VCMPPD __mmask8 _mm_mask_cmp_pd_mask( __mmask8 k1, __m128d a, __m128d b, int imm);
+VCMPPD __m256 _mm256_cmp_pd(__m256d a, __m256d b, int imm)
+(V)CMPPD __m128 _mm_cmp_pd(__m128d a, __m128d b, int imm)
+</pre>
+
+	<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+	<p>如果存在 SNaN 操作数则触发无效异常；如果存在 QNaN 且谓词如<a href='cmppd.html#tbl-3-1'>表 3-1</a>所列，则触发无效异常；非规范化值异常。</p>
+
+	<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+	<p>VEX 编码的指令，参见 <span class="not-imported">表 2-19</span>，“Type 2 类异常条件”。</p>
+	<p>EVEX 编码的指令，参见 <span class="not-imported">表 2-46</span>，“Type E2 类异常条件”。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

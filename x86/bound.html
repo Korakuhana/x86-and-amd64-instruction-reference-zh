@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>BOUND — 检查数组索引是否超出边界</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>BOUND — 检查数组索引是否超出边界</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>62 /r</td>
+			<td>BOUND r16, m16&amp;16</td>
+			<td>RM</td>
+			<td>Invalid</td>
+			<td>Valid</td>
+			<td>检查 r16（数组索引）是否在 m16&amp;16 指定的边界内。</td>
+		</tr>
+		<tr>
+			<td>62 /r</td>
+			<td>BOUND r32, m32&amp;32</td>
+			<td>RM</td>
+			<td>Invalid</td>
+			<td>Valid</td>
+			<td>检查 r32（数组索引）是否在 m32&amp;32 指定的边界内。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>RM</td>
+			<td>ModRM:reg (r)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>BOUND 指令确定第一个操作数（数组索引）是否在第二个操作数（边界操作数）指定的数组边界内。数组索引是位于寄存器中的有符号整数。边界操作数是一个内存位置，包含一对有符号的双字整数（当操作数大小属性为 32 时）或一对有符号的字整数（当操作数大小属性为 16 时）。第一个双字（或字）是数组的下界，第二个双字（或字）是数组的上界。数组索引必须大于或等于下界，且小于或等于上界。如果索引不在边界内，则会发出 BOUND 范围超出异常（#BR）。当产生此异常时，保存的返回指令指针指向该 BOUND 指令。</p>
+	<p>边界限制数据结构（包含数组下限和上限的两个字或双字）通常放置在数组本身之前，使得限制可以通过距数组开头的恒定偏移量来寻址。因为数组的地址已经存在于寄存器中，所以这种做法避免了获取数组边界有效地址的额外总线周期。</p>
+	<p>此指令在兼容模式和传统模式下如上所述执行。在 64 位模式下无效。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF 64bit Mode
+    THEN
+        #UD;
+    ELSE
+        IF (ArrayIndex &lt; LowerBound OR ArrayIndex &gt; UpperBound) THEN
+        (* Below lower bound or above upper bound *)
+            IF &lt;equation for PL enabled&gt; THEN BNDSTATUS := 0
+            #BR;
+        FI;
+FI;
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#BR</td>
+			<td>如果边界测试失败。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果第二个操作数不是内存位置。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>如果 DS、ES、FS 或 GS 寄存器包含空段选择子。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数的有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生页错误。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+	</table>
+
+	<h2 id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#BR</td>
+			<td>如果边界测试失败。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果第二个操作数不是内存位置。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>#GP</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#SS</td>
+			<td>如果内存操作数的有效地址超出 SS 段限制。</td>
+		</tr>
+	</table>
+
+	<h2 id="virtual-8086-mode-exceptions">虚拟 8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#BR</td>
+			<td>如果边界测试失败。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果第二个操作数不是内存位置。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数的有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生页错误。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且进行了未对齐的内存引用。</td>
+		</tr>
+	</table>
+
+	<h2 id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果处于 64 位模式。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

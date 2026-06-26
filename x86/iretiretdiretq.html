@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>IRET/IRETD/IRETQ — 中断返回</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>IRET/IRETD/IRETQ — 中断返回</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>CF</td>
+			<td>IRET</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>中断返回（16位操作数大小）。</td>
+		</tr>
+		<tr>
+			<td>CF</td>
+			<td>IRETD</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>中断返回（32位操作数大小）。</td>
+		</tr>
+		<tr>
+			<td>REX.W + CF</td>
+			<td>IRETQ</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>中断返回（64位操作数大小）。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>从异常或中断处理程序返回程序控制权，将其交给被异常、外部中断或软件生成的中断所中断的程序或过程。这些指令也用于执行从嵌套任务的返回。（当使用 CALL 指令发起任务切换，或者当中断或异常导致切换到中断或异常处理程序时，就会创建嵌套任务。）请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 3A 卷第 8 章中标题为“任务链接”的部分。</p>
+	<p>IRET 和 IRETD 是相同操作码的助记符。IRETD 助记符（双字中断返回）旨在用于使用 32 位操作数大小从中断返回时；然而，大多数汇编器在两种操作数大小时均交替使用 IRET 助记符。</p>
+	<p>在实地址模式下，IRET 指令执行向被中断程序或过程的远返回。在此操作期间，处理器分别从栈中弹出返回指令指针、返回代码段选择子和 EFLAGS 映像到 EIP、CS 和 EFLAGS 寄存器，然后恢复执行被中断的程序或过程。</p>
+	<p>在保护模式下，IRET 指令的行为取决于 EFLAGS 寄存器中的 NT（嵌套任务）和 VM 标志，以及存储在当前栈上的 EFLAGS 映像中的 VM 标志。根据这些标志的设置，处理器执行以下类型的中断返回：</p>
+	<ul>
+		<li>从虚拟-8086模式返回。</li>
+		<li>返回到虚拟-8086模式。</li>
+		<li>同特权级返回。</li>
+		<li>跨特权级返回。</li>
+		<li>从嵌套任务返回（任务切换）。</li>
+	</ul>
+	<p>如果清除 NT 标志（EFLAGS 寄存器），则 IRET 指令执行从中断过程的远返回，而不进行任务切换。被返回的代码段的特权级必须等于或低于中断处理程序例程的特权级（由从栈中弹出的代码段选择子的 RPL 字段指示）。</p>
+	<p>与实地址模式下的中断返回一样，IRET 指令分别从栈中弹出返回指令指针、返回代码段选择子和 EFLAGS 映像到 EIP、CS 和 EFLAGS 寄存器，然后恢复被中断的程序或过程的执行。如果返回到另一个特权级，IRET 指令在恢复程序执行之前还会从栈中弹出栈指针和 SS。如果返回到虚拟-8086 模式，处理器还会从栈中弹出数据段寄存器。</p>
+	<p>如果设置了 NT 标志，IRET 指令执行从嵌套任务（使用 CALL 指令、中断或异常调用的任务）返回到调用任务或被中断任务的任务切换。执行 IRET 指令的任务的更新状态保存在其 TSS 中。如果稍后重新进入该任务，则执行 IRET 指令之后的代码。</p>
+	<p>如果设置了 NT 标志且处理器处于 IA-32e 模式，IRET 指令将引发通用保护异常。</p>
+	<p>如果不可屏蔽中断（NMI）被阻塞（参见《Intel® 64 和 IA-32 架构软件开发人员手册》第 3A 卷第 6.7.1 节“处理多个 NMI”），执行 IRET 指令将解除对 NMI 的阻塞。</p>
+	<p>即使指令引发故障，这种解除阻塞也会发生。在这种情况下，在调用异常处理程序之前解除对 NMI 的屏蔽。</p>
+	<p>在 64 位模式下，指令的默认操作大小为 32 位。使用 REX.W 前缀可将操作提升至 64 位（IRETQ）。请参阅本节开头的汇总图表以获取编码数据和限制。</p>
+	<p>有关 CET 的详细信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷第 6 章“过程调用、中断和异常”和第 17 章“控制流强制技术（CET）”。</p>
+	<p><strong>指令顺序。</strong> IRET 是一个序列化指令。请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 3A 卷第 9.3 节。</p>
+	<p>有关此指令在 VMX 非根操作中行为的更多信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 3C 卷第 26 章中的“VMX 非根操作中指令行为的变化”。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF PE = 0
+    THEN GOTO REAL-ADDRESS-MODE;
+ELSIF (IA32_EFER.LMA = 0)
+    THEN
+            IF (EFLAGS.VM = 1)
+                        THEN GOTO RETURN-FROM-VIRTUAL-8086-MODE;
+                        ELSE GOTO PROTECTED-MODE;
+            FI;
+    ELSE GOTO IA-32e-MODE;
+FI;
+REAL-ADDRESS-MODE;
+    IF OperandSize = 32
+            THEN
+                        EIP := Pop();
+                        CS := Pop(); (* 32-bit pop, high-order 16 bits discarded *)
+                        tempEFLAGS := Pop();
+                        EFLAGS := (tempEFLAGS AND 257FD5H) OR (EFLAGS AND 1A0000H);
+            ELSE (* OperandSize = 16 *)
+                        EIP := Pop(); (* 16-bit pop; clear upper 16 bits *)
+                        CS := Pop(); (* 16-bit pop *)
+                        EFLAGS[15:0] := Pop();
+    FI;
+    END;
+RETURN-FROM-VIRTUAL-8086-MODE:
+(* Processor is in virtual-8086 mode when IRET is executed and stays in virtual-8086 mode *)
+    IF IOPL = 3 (* Virtual mode: PE = 1, VM = 1, IOPL = 3 *)
+            THEN IF OperandSize = 32
+                        THEN
+                                EIP := Pop();
+                                CS := Pop(); (* 32-bit pop, high-order 16 bits discarded *)
+                                EFLAGS := Pop();
+                                (* VM, IOPL,VIP and VIF EFLAG bits not modified by pop *)
+                                IF EIP not within CS limit
+                                    THEN #GP(0); FI;
+                        ELSE (* OperandSize = 16 *)
+                                EIP := Pop(); (* 16-bit pop; clear upper 16 bits *)
+                                CS := Pop(); (* 16-bit pop *)
+                                EFLAGS[15:0] := Pop(); (* IOPL in EFLAGS not modified by pop *)
+                                IF EIP not within CS limit
+                                    THEN #GP(0); FI;
+                        FI;
+            ELSE
+                        #GP(0); (* Trap to virtual-8086 monitor: PE = 1, VM = 1, IOPL &lt; 3 *)
+    FI;
+END;
+PROTECTED-MODE:
+    IF NT = 1
+            THEN GOTO TASK-RETURN; (* PE = 1, VM = 0, NT = 1 *)
+    FI;
+    IF OperandSize = 32
+            THEN
+                        EIP := Pop();
+                        CS := Pop(); (* 32-bit pop, high-order 16 bits discarded *)
+                        tempEFLAGS := Pop();
+            ELSE (* OperandSize = 16 *)
+                        EIP := Pop(); (* 16-bit pop; clear upper bits *)
+                        CS := Pop(); (* 16-bit pop *)
+                        tempEFLAGS := Pop(); (* 16-bit pop; clear upper bits *)
+    FI;
+    IF tempEFLAGS(VM) = 1 and CPL = 0
+            THEN GOTO RETURN-TO-VIRTUAL-8086-MODE;
+            ELSE GOTO PROTECTED-MODE-RETURN;
+    FI;
+TASK-RETURN:(*PE=1,VM =0,NT =1*)
+    SWITCH-TASKS (without nesting) to TSS specified in link field of current TSS;
+    Mark the task just abandoned as NOT BUSY;
+    IF EIP is not within CS limit
+            THEN #GP(0); FI;
+END;
+RETURN-TO-VIRTUAL-8086-MODE:
+    (* Interrupted procedure was in virtual-8086 mode: PE = 1, CPL=0, VM = 1 in flag image *)
+    (* If shadow stack or indirect branch tracking at CPL3 then #GP(0) *)
+    IF CR4.CET AND (IA32_U_CET.ENDBR_EN OR IA32_U_CET.SHSTK_EN)
+            THEN #GP(0); FI;
+    shadowStackEnabled = ShadowStackEnabled(CPL)
+    IF EIP not within CS limit
+            THEN #GP(0); FI;
+    EFLAGS := tempEFLAGS;
+    ESP := Pop();
+    SS := Pop(); (* Pop 2 words; throw away high-order word *)
+    ES := Pop(); (* Pop 2 words; throw away high-order word *)
+    DS := Pop(); (* Pop 2 words; throw away high-order word *)
+    FS := Pop(); (* Pop 2 words; throw away high-order word *)
+    GS := Pop(); (* Pop 2 words; throw away high-order word *)
+    IF shadowStackEnabled
+            (* check if 8 byte aligned *)
+            IF SSP AND 0x7 != 0
+                        THEN #CP(FAR-RET/IRET); FI;
+    FI;
+    CPL := 3;
+    (* Resume execution in Virtual-8086 mode *)
+    tempOldSSP = SSP;
+    (* Now past all faulting points; safe to free the token. The token free is done using the old SSP
+        * and using a supervisor override as old CPL was a supervisor privilege level *)
+    IF shadowStackEnabled
+            expected_token_value = tempOldSSP | BUSY_BIT (* busy bit - bit position 0 - must be set *)
+            new_token_value = tempOldSSP (* clear the busy bit *)
+            shadow_stack_lock_cmpxchg8b(tempOldSSP, new_token_value, expected_token_value)
+    FI;
+END;
+PROTECTED-MODE-RETURN: (* PE = 1 *)
+    IF CS(RPL) &gt; CPL
+            THEN GOTO RETURN-TO-OUTER-PRIVILEGE-LEVEL;
+            ELSE GOTO RETURN-TO-SAME-PRIVILEGE-LEVEL; FI;
+END;
+RETURN-TO-OUTER-PRIVILEGE-LEVEL:
+    IF OperandSize = 32
+            THEN
+                        tempESP := Pop();
+                        tempSS := Pop(); (* 32-bit pop, high-order 16 bits discarded *)
+    ELSE IF OperandSize = 16
+            THEN
+                        tempESP := Pop(); (* 16-bit pop; clear upper bits *)
+                        tempSS := Pop(); (* 16-bit pop *)
+            ELSE (* OperandSize = 64 *)
+                        tempRSP := Pop();
+                        tempSS := Pop(); (* 64-bit pop, high-order 48 bits discarded *)
+    FI;
+    IF new mode ≠ 64-Bit Mode
+            THEN
+                        IF EIP is not within CS limit
+                                THEN #GP(0); FI;
+            ELSE (* new mode = 64-bit mode *)
+                        IF RIP is non-canonical
+                                    THEN #GP(0); FI;
+    FI;
+    EFLAGS (CF, PF, AF, ZF, SF, TF, DF, OF, NT) := tempEFLAGS;
+    IF OperandSize = 32 or OperandSize = 64
+            THEN EFLAGS(RF, AC, ID) := tempEFLAGS; FI;
+    IF CPL ≤ IOPL
+            THEN EFLAGS(IF) := tempEFLAGS; FI;
+    IF CPL = 0
+            THEN
+                        EFLAGS(IOPL) := tempEFLAGS;
+                        IF OperandSize = 32 or OperandSize = 64
+                                THEN EFLAGS(VIF, VIP) := tempEFLAGS; FI;
+    FI;
+    IF ShadowStackEnabled(CPL)
+            (* check if 8 byte aligned *)
+            IF SSP AND 0x7 != 0
+                        THEN #CP(FAR-RET/IRET); FI;
+            IF CS(RPL) != 3
+                        THEN
+                                tempSsCS = shadow_stack_load 8 bytes from SSP+16;
+                                tempSsLIP = shadow_stack_load 8 bytes from SSP+8;
+                                tempSSP = shadow_stack_load 8 bytes from SSP;
+                                SSP = SSP + 24;
+                                (* Do 64 bit compare to detect bits beyond 15 being set *)
+                                tempCS = CS; (* zero padded to 64 bit *)
+                                IF tempCS != tempSsCS
+                                    THEN #CP(FAR-RET/IRET); FI;
+                                (* Do 64 bit compare; pad CSBASE+RIP with 0 for 32 bit LIP *)
+                                IF CSBASE + RIP != tempSsEIP
+                                    THEN #CP(FAR-RET/IRET); FI;
+                                (* check if 4 byte aligned *)
+                                IF tempSSP AND 0x3 != 0
+                                    THEN #CP(FAR-RET/IRET); FI;
+            FI;
+    FI;
+    tempOldCPL = CPL;
+    CPL := CS(RPL);
+            IF OperandSize = 64
+                        THEN
+                                RSP := tempRSP;
+                                SS := tempSS;
+            ELSE
+                        ESP := tempESP;
+                        SS := tempSS;
+            FI;
+            IF new mode != 64-Bit Mode
+                        THEN
+                                IF EIP is not within CS limit
+                                    THEN #GP(0); FI;
+            ELSE (* new mode = 64-bit mode *)
+                        IF RIP is non-canonical
+                                THEN #GP(0); FI;
+            FI;
+            tempOldSSP = SSP;
+            IF ShadowStackEnabled(CPL)
+                        IF CPL = 3
+                                THEN tempSSP := IA32_PL3_SSP; FI;
+            IF ((IA32_EFER.LMA AND CS.L) = 0 AND tempSSP[63:32] != 0) OR
+                    ((IA32_EFER.LMA AND CS.L) = 1 AND tempSSP is not canonical relative to the current paging mode)
+                        THEN #GP(0); FI;
+            SSP := tempSSP
+            FI;
+            (* Now past all faulting points; safe to free the token. The token free is done using the old SSP
+                * and using a supervisor override as old CPL was a supervisor privilege level *)
+            IF ShadowStackEnabled(tempOldCPL)
+                        expected_token_value = tempOldSSP | BUSY_BIT (* busy bit - bit position 0 - must be set *)
+                        new_token_value = tempOldSSP (* clear the busy bit *)
+                        shadow_stack_lock_cmpxchg8b(tempOldSSP, new_token_value, expected_token_value)
+            FI;
+    FOR each SegReg in (ES, FS, GS, and DS)
+            DO
+                        tempDesc := descriptor cache for SegReg (* hidden part of segment register *)
+                        IF (SegmentSelector == NULL) OR (tempDesc(DPL) &lt; CPL AND tempDesc(Type) is (data or non-conforming code)))
+                                THEN (* Segment register invalid *)
+                                    SegmentSelector := 0; (*Segment selector becomes null*)
+                        FI;
+            OD;
+END;
+RETURN-TO-SAME-PRIVILEGE-LEVEL: (* PE = 1, RPL = CPL *)
+    IF new mode ≠ 64-Bit Mode
+            THEN
+                        IF EIP is not within CS limit
+                                THEN #GP(0); FI;
+            ELSE (* new mode = 64-bit mode *)
+                        IF RIP is non-canonical
+                                    THEN #GP(0); FI;
+    FI;
+    EFLAGS (CF, PF, AF, ZF, SF, TF, DF, OF, NT) := tempEFLAGS;
+    IF OperandSize = 32 or OperandSize = 64
+            THEN EFLAGS(RF, AC, ID) := tempEFLAGS; FI;
+    IF CPL ≤ IOPL
+            THEN EFLAGS(IF) := tempEFLAGS; FI;
+    IF CPL = 0
+                THEN
+                            EFLAGS(IOPL) := tempEFLAGS;
+                            IF OperandSize = 32 or OperandSize = 64
+                                THEN EFLAGS(VIF, VIP) := tempEFLAGS; FI;
+    FI;
+    IF ShadowStackEnabled(CPL)
+            IF SSP AND 0x7 != 0 (* check if aligned to 8 bytes *)
+                        THEN #CP(FAR-RET/IRET); FI;
+            tempSsCS = shadow_stack_load 8 bytes from SSP+16;
+            tempSsLIP = shadow_stack_load 8 bytes from SSP+8;
+            tempSSP = shadow_stack_load 8 bytes from SSP;
+            SSP = SSP + 24;
+            tempCS = CS; (* zero padded to 64 bit *)
+            IF tempCS != tempSsCS (* 64 bit compare; CS zero padded to 64 bits *)
+                        THEN #CP(FAR-RET/IRET); FI;
+            IF CSBASE + RIP != tempSsLIP (* 64 bit compare; CSBASE+RIP zero padded to 64 bit for 32 bit LIP *)
+                        THEN #CP(FAR-RET/IRET); FI;
+            IF tempSSP AND 0x3 != 0 (* check if aligned to 4 bytes *)
+                        THEN #CP(FAR-RET/IRET); FI;
+            IF ((IA32_EFER.LMA AND CS.L) = 0 AND tempSSP[63:32] != 0) OR
+                    ((IA32_EFER.LMA AND CS.L) = 1 AND tempSSP is not canonical relative to the current paging mode)
+                        THEN #GP(0); FI;
+    FI;
+    IF ShadowStackEnabled(CPL)
+            IF IA32_EFER.LMA = 1
+            (* In IA-32e-mode the IRET may be switching stacks if the interrupt/exception was delivered
+                through an IDT with a non-zero IST *)
+            (* In IA-32e mode for same CPL IRET there is always a stack switch. The below check verifies if the
+                stack switch was to self stack and if so, do not try to free the token on this shadow stack. If the
+                tempSSP was not to same stack then there was a stack switch so do attempt to free the token *)
+                        IF tempSSP != SSP
+                                THEN
+                                    expected_token_value = SSP | BUSY_BIT (* busy bit - bit position 0 - must be set *)
+                                    new_token_value = SSP (* clear the busy bit *)
+                                    shadow_stack_lock_cmpxchg8b(SSP, new_token_value, expected_token_value)
+                        FI;
+            FI;
+            SSP := tempSSP
+    FI;
+END;
+IA-32e-MODE:
+    IF NT = 1
+            THEN #GP(0);
+    ELSE IF OperandSize = 32
+            THEN
+                        EIP := Pop();
+                        CS := Pop();
+                        tempEFLAGS := Pop();
+            ELSE IF OperandSize = 16
+                        THEN
+                                EIP := Pop(); (* 16-bit pop; clear upper bits *)
+                                CS := Pop(); (* 16-bit pop *)
+                                tempEFLAGS := Pop(); (* 16-bit pop; clear upper bits *)
+                        FI;
+            ELSE (* OperandSize = 64 *)
+                        THEN
+                                    RIP := Pop();
+                                    CS := Pop(); (* 64-bit pop, high-order 48 bits discarded *)
+                                    tempRFLAGS := Pop();
+    FI;
+    IF CS.RPL &gt; CPL
+            THEN GOTO RETURN-TO-OUTER-PRIVILEGE-LEVEL;
+            ELSE
+                        IF instruction began in 64-Bit Mode
+                                THEN
+                                    IF OperandSize = 32
+                                        THEN
+                                            ESP := Pop();
+                                            SS := Pop(); (* 32-bit pop, high-order 16 bits discarded *)
+                                    ELSE IF OperandSize = 16
+                                        THEN
+                                            ESP := Pop(); (* 16-bit pop; clear upper bits *)
+                                            SS := Pop(); (* 16-bit pop *)
+                                        ELSE (* OperandSize = 64 *)
+                                            RSP := Pop();
+                                            SS := Pop(); (* 64-bit pop, high-order 48 bits discarded *)
+                                    FI;
+                        FI;
+                        GOTO RETURN-TO-SAME-PRIVILEGE-LEVEL; FI;
+END;
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>EFLAGS 寄存器中的所有标志和字段都有可能被修改，具体取决于处理器的操作模式。如果执行从嵌套任务返回到前一个任务，EFLAGS 寄存器将根据前一个任务的 TSS 中存储的 EFLAGS 映像进行修改。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果返回代码段或栈段选择子为 NULL。</td>
+		</tr>
+		<tr>
+			<td>如果返回指令指针不在返回代码段限制范围内。</td>
+		</tr>
+		<tr>
+			<td rowspan="11">#GP(选择子)</td>
+			<td>如果段选择子索引超出其描述符表限制。</td>
+		</tr>
+		<tr>
+			<td>如果返回代码段选择子的 RPL 小于 CPL。</td>
+		</tr>
+		<tr>
+			<td>如果一致代码段的 DPL 大于返回代码段选择子的 RPL。</td>
+		</tr>
+		<tr>
+			<td>如果非一致代码段的 DPL 不等于代码段选择子的 RPL。</td>
+		</tr>
+		<tr>
+			<td>如果栈段描述符的 DPL 不等于返回代码段选择子的 RPL。</td>
+		</tr>
+		<tr>
+			<td>如果栈段不是可写的数据段。</td>
+		</tr>
+		<tr>
+			<td>如果栈段选择子的 RPL 不等于返回代码段选择子的 RPL。</td>
+		</tr>
+		<tr>
+			<td>如果代码段的段描述符未指示其为代码段。</td>
+		</tr>
+		<tr>
+			<td>如果 TSS 的段选择子的本地/全局位设为本地（Local）。</td>
+		</tr>
+		<tr>
+			<td>如果 TSS 段描述符指定 TSS 为非繁忙状态（Not busy）。</td>
+		</tr>
+		<tr>
+			<td>如果 TSS 段描述符指定 TSS 不可用（Not available）。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#SS(0)</td>
+			<td>如果栈的顶部字节超出栈限制。</td>
+		</tr>
+		<tr>
+			<td>如果返回栈段不存在（Not present）。</td>
+		</tr>
+		<tr>
+			<td>#NP(选择子)</td>
+			<td>如果返回代码段不存在（Not present）。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#CP</td>
+			<td>(Far-RET/IRET) 如果来自阴影栈（返回到 CPL &lt; 3 时）或来自 IA32_PL3_SSP（返回到 CPL 3 时）的前一个 SSP 没有 4 字节对齐。</td>
+		</tr>
+		<tr>
+			<td>如果返回到 32 位或兼容模式，并且来自阴影栈（返回到 CPL &lt; 3 时）或来自 IA32_PL3_SSP（返回到 CPL 3 时）的前一个 SSP 超过 4GB。</td>
+		</tr>
+		<tr>
+			<td>如果来自栈的返回指令指针与来自阴影栈的返回指令指针不匹配。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>如果返回指令指针不在返回代码段限制范围内。</td>
+		</tr>
+		<tr>
+			<td>#SS</td>
+			<td>如果栈的顶部字节超出栈限制。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果返回指令指针不在返回代码段限制范围内。</td>
+		</tr>
+		<tr>
+			<td>如果 IOPL 不等于 3。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果栈的顶部字节超出栈限制。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查并且进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果 EFLAGS.NT[bit 14] = 1。</td>
+		</tr>
+	</table>
+	<p>其他异常与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="7">#GP(0)</td>
+			<td>如果 EFLAGS.NT[bit 14] = 1。</td>
+		</tr>
+		<tr>
+			<td>如果返回代码段选择子为 NULL。</td>
+		</tr>
+		<tr>
+			<td>如果返回到兼容模式时，栈段选择子为 NULL。</td>
+		</tr>
+		<tr>
+			<td>如果返回到 CPL3 64位模式时，栈段选择子为 NULL。</td>
+		</tr>
+		<tr>
+			<td>如果返回到非 CPL3 64位模式时，NULL 栈段选择子的 RPL 不等于 CPL。</td>
+		</tr>
+		<tr>
+			<td>如果返回指令指针不在返回代码段限制范围内。</td>
+		</tr>
+		<tr>
+			<td>如果返回指令指针为非规范形式。</td>
+		</tr>
+		<tr>
+			<td rowspan="10">#GP(选择子)</td>
+			<td>如果段选择子索引超出其描述符表限制。</td>
+		</tr>
+		<tr>
+			<td>如果段描述符的内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>如果代码段的段描述符未指示其为代码段。</td>
+		</tr>
+		<tr>
+			<td>如果拟议的新代码段描述符同时设置了 D 位和 L 位。</td>
+		</tr>
+		<tr>
+			<td>如果非一致代码段的 DPL 不等于代码段选择子的 RPL。</td>
+		</tr>
+		<tr>
+			<td>如果 CPL 大于代码段选择子的 RPL。</td>
+		</tr>
+		<tr>
+			<td>如果一致代码段的 DPL 大于返回代码段选择子的 RPL。</td>
+		</tr>
+		<tr>
+			<td>如果栈段不是可写的数据段。</td>
+		</tr>
+		<tr>
+			<td>如果栈段描述符的 DPL 不等于返回代码段选择子的 RPL。</td>
+		</tr>
+		<tr>
+			<td>如果栈段选择子的 RPL 不等于返回代码段选择子的 RPL。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#SS(0)</td>
+			<td>如果尝试从栈中弹出值时违反了 SS 限制。</td>
+		</tr>
+		<tr>
+			<td>如果尝试从栈中弹出值导致引用了非规范形式的地址。</td>
+		</tr>
+		<tr>
+			<td>如果返回栈段不存在（Not present）。</td>
+		</tr>
+		<tr>
+			<td>#NP(选择子)</td>
+			<td>如果返回代码段不存在（Not present）。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐 of 内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#CP</td>
+			<td>(Far-RET/IRET) 如果来自阴影栈（返回到 CPL &lt; 3 时）或来自 IA32_PL3_SSP（返回到 CPL 3时）的前一个 SSP 没有 4 字节对齐。</td>
+		</tr>
+		<tr>
+			<td>如果返回到 32 位或兼容模式，并且来自阴影栈（返回到 CPL &lt; 3 时）或来自 IA32_PL3_SSP（返回到 CPL 3 时）的前一个 SSP 超过 4GB。</td>
+		</tr>
+		<tr>
+			<td>如果来自栈的返回指令指针与来自阴影栈的返回指令指针不匹配。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>DAA — 加法后的十进制调整 AL</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>DAA — 加法后的十进制调整 AL</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>27</td>
+			<td>DAA</td>
+			<td>ZO</td>
+			<td>Invalid</td>
+			<td>Valid</td>
+			<td>加法后的十进制调整 AL。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>调整两个组合 BCD 值的和以产生组合 BCD 结果。AL 寄存器是隐式源和目的操作数。仅当 DAA 指令跟在将两个两位数组合 BCD 值相加（二进制加法）并将字节结果存储在 AL 寄存器中的 ADD 指令之后时才有用。然后，DAA 指令调整 AL 寄存器的内容以包含正确的两位数组合 BCD 结果。如果检测到十进制进位，则相应地设置 CF 和 AF 标志。</p>
+	<p>该指令在兼容模式和传统模式下如上所述执行。在 64 位模式下无效。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF 64-Bit Mode
+    THEN
+        #UD;
+    ELSE
+        old_AL := AL;
+        old_CF := CF;
+        CF := 0;
+        IF (((AL AND 0FH) &gt; 9) or AF = 1)
+                THEN
+                    AL := AL + 6;
+                    CF := old_CF or (Carry from AL := AL + 6);
+                    AF := 1;
+                ELSE
+                    AF := 0;
+        FI;
+        IF ((old_AL &gt; 99H) or (old_CF = 1))
+            THEN
+                    AL := AL + 60H;
+                    CF := 1;
+            ELSE
+                    CF := 0;
+        FI;
+FI;
+</pre>
+
+	<h2 id="example">示例<a class="anchor" href="#example">¶</a></h2>
+	<p>ADD AL, BL 执行前：AL=79H BL=35H EFLAGS(OSZAPC)=XXXXXX</p>
+	<p>执行后：AL=AEH BL=35H EFLAGS(0SZAPC)=110000</p>
+	<p>DAA 执行前：AL=AEH BL=35H EFLAGS(OSZAPC)=110000</p>
+	<p>执行后：AL=14H BL=35H EFLAGS(0SZAPC)=X00111</p>
+	<p>DAA 执行前：AL=2EH BL=35H EFLAGS(OSZAPC)=110000</p>
+	<p>执行后：AL=34H BL=35H EFLAGS(0SZAPC)=X00101</p>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>如果值的调整导致结果的任何一位中产生十进制进位，则设置 CF 和 AF 标志（参见上面的“操作”部分）。SF、ZF 和 PF 标志根据结果进行设置。OF 标志是未定义的。</p>
+
+	<h2 id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 id="virtual-8086-mode-exceptions">虚拟 8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果处于 64 位模式。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>CLDEMOTE — 高速缓存行降级</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>CLDEMOTE — 高速缓存行降级</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID 功能标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>NP 0F 1C /0 CLDEMOTE m8</td>
+			<td>A</td>
+			<td>V/V</td>
+			<td>CLDEMOTE</td>
+			<td>向硬件发出提示：将包含 m8 的高速缓存行移动到更远级别的缓存中，而不写回内存。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<sup>1</sup><a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<blockquote>
+		<p>1. ModR/M 字节的 Mod 字段的值不能为 11B。</p>
+	</blockquote>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>A</td>
+			<td>ModRM:r/m (w)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>向硬件发出提示：应当将包含由内存操作数指定的线性地址的高速缓存行，从最靠近处理器核心的缓存移动（“降级”）到离处理器核心更远的级别。这可能会加速同一一致性域中其他核心对该行的后续访问，尤其是如果该行是由执行降级操作的核心写入的。以这种方式移动该行是一种性能优化，也就是说，它是一个不修改架构状态的提示。硬件可以选择在高速缓存层次结构的哪个级别保留该行（例如，典型服务器设计中的 L3）。源操作数是一个字节内存位置。</p>
+	<p>CLDEMOTE 指令的可用性由 CPUID 功能标志 CLDEMOTE（子叶 07H 中 ECX 寄存器的第 25 位，请参阅“CPUID — CPU 识别”）是否存在来指示。在不支持 CLDEMOTE 指令的处理器上（包括传统的硬件），该指令将被视为 NOP。</p>
+	<p>CLDEMOTE 指令相对于对同一缓存行的存储是有序的，但相对于对不同缓存行的其他指令是有序的，包括内存屏障、CLDEMOTE、CLWB 或 CLFLUSHOPT 指令。由于 CLDEMOTE 将相对于同一缓存行的存储按顺序退休，因此软件应确保在发出 CLDEMOTE 之后，同一核心不会立即再次访问该行，以避免缓存数据移动惩罚。</p>
+	<p>包含受影响缓存行的页面的有效内存类型决定了其效果；可缓存类型很可能会产生数据移动操作，而不可缓存类型可能会导致该指令被忽略。</p>
+	<p>推测性获取可以发生在任何时间且不与指令执行挂钩。CLDEMOTE 指令相对于 PREFETCHh 指令或任何推测性获取机制是无序的。也就是说，数据可以在引用该缓存行的 CLDEMOTE 指令执行之前、期间或之后被推测性地加载到缓存行中。</p>
+	<p>与 CLFLUSH、CLFLUSHOPT 和 CLWB 指令不同，CLDEMOTE 不能保证将修改后的数据写回内存。</p>
+	<p>在某些情况下，CLDEMOTE 指令可能会被硬件忽略，它不能提供保证。</p>
+	<p>CLDEMOTE 指令可以在所有特权级别下使用。In某些处理器实现中，CLDEMOTE 指令可能会在页表中设置 A（已访问）位，但不设置 D（脏）位。</p>
+	<p>如果在高速缓存中未找到该行，该指令将被视为 NOP。</p>
+	<p>在某些实现中，CLDEMOTE 指令在使用事务同步扩展（TSX）时可能总是会导致事务中止。然而，程序员绝不能依赖 CLDEMOTE 指令来强制进行事务中止。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>Cache_Line_Demote(m8);
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 id="c-c++-compiler-intrinsic-equivalent">C/C++ 编译器等效固有函数<a class="anchor" href="#c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>CLDEMOTE void _cldemote(const void*);
+</pre>
+
+	<h2 id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 id="virtual-8086-mode-exceptions">虚拟 8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<p>与实地址模式下的异常相同。</p>
+
+	<h2 id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

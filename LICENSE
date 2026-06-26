@@ -1,0 +1,32 @@
+Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+
+================================================================================
+
+The code, management scripts, and Chinese translation texts compiled in this repository are licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0).
+
+Under this license, you are free to:
+1. Share — copy and redistribute the material in any medium or format.
+2. Adapt — remix, transform, and build upon the material.
+
+Under the following terms:
+* Attribution (BY) — You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
+* NonCommercial (NC) — You may not use the material for commercial purposes.
+* ShareAlike (SA) — If you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original.
+
+For detailed terms, please visit: https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+================================================================================
+Copyright & Disclaimer
+================================================================================
+
+1. [Original Copyright Ownership]
+   The original English documentation compiled in this repository is sourced from the static webpage reference site maintained by Felix Cloutier (https://www.felixcloutier.com/x86/).
+   The ultimate copyright of all technical data, including but not limited to x86/x64 instruction set definitions, pseudo-code operations (Operation section), register diagrams, and architectural parameters, belongs to Intel Corporation and their respective original copyright holders.
+
+2. [Non-Commercial Limitation]
+   This Chinese translation project is created solely for personal technical interest, AI-assisted translation exploration, and personal academic or research exchange. Any commercial exploitation, distribution, or profitable use of the contents (including webpages, scripts, and translation text) of this repository is strictly prohibited.
+
+3. [Disclaimer of Warranty]
+   This Chinese translation is generated with the assistance of artificial intelligence. The translator and maintainers of this project make no warranties, express or implied, regarding the absolute accuracy, completeness, timeliness, or reliability of the translated texts.
+   Users may encounter discrepancies due to translation inaccuracies, formatting mismatches, or technical misunderstandings. Under no circumstances shall the translator or project maintainers be held liable for any direct, indirect, incidental, or consequential damages (including program malfunction, hardware damage, commercial loss, or safety risks) arising out of the use of or inability to use this documentation.
+   For commercial, production-level, or safety-critical software development, please consult the official and authoritative English version of the "Intel® 64 and IA-32 Architectures Software Developer's Manual" (SDM) published by Intel Corporation.

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>FCMOVcc — 浮点条件传送</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+
+	<h1>FCMOVcc — 浮点条件传送</h1>
+
+	<p><strong>操作码<sup>1</sup></strong></p>
+	<table>
+		<tr>
+			<th></th>
+			<th>指令</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>DA C0+i</td>
+			<td>FCMOVB ST(0), ST(i)</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>如果低于则传送 (CF=1)。</td>
+		</tr>
+		<tr>
+			<td>DA C8+i</td>
+			<td>FCMOVE ST(0), ST(i)</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>如果相等则传送 (ZF=1)。</td>
+		</tr>
+		<tr>
+			<td>DA D0+i</td>
+			<td>FCMOVBE ST(0), ST(i)</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>如果低于或相等则传送 (CF=1 或 ZF=1)。</td>
+		</tr>
+		<tr>
+			<td>DA D8+i</td>
+			<td>FCMOVU ST(0), ST(i)</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>如果无序则传送 (PF=1)。</td>
+		</tr>
+		<tr>
+			<td>DB C0+i</td>
+			<td>FCMOVNB ST(0), ST(i)</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>如果不低于则传送 (CF=0)。</td>
+		</tr>
+		<tr>
+			<td>DB C8+i</td>
+			<td>FCMOVNE ST(0), ST(i)</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>如果不相等则传送 (ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>DB D0+i</td>
+			<td>FCMOVNBE ST(0), ST(i)</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>如果不低于且不相等则传送 (CF=0 且 ZF=0)。</td>
+		</tr>
+		<tr>
+			<td>DB D8+i</td>
+			<td>FCMOVNU ST(0), ST(i)</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>如果不是无序则传送 (PF=0)。</td>
+		</tr>
+	</table>
+	<blockquote>
+		<p>1. 见下方的 IA-32 架构兼容性部分。</p>
+	</blockquote>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>测试 EFLAGS 寄存器中的状态标志，如果给定的测试条件为真，则将源操作数（第二个操作数）传送到目的操作数（第一个操作数）。每个助记符的条件在上面的描述列以及《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷第 8 章中给出。源操作数始终在 ST(i) 寄存器中，目的操作数始终是 ST(0)。</p>
+	<p>FCMOVcc 指令对于优化小型 IF 结构非常有用。它们还有助于消除 IF 操作的分支开销以及处理器分支预测错误的可能性。</p>
+	<p>处理器可能不支持 FCMOVcc 指令。软件可以通过使用 CPUID 指令检查处理器的功能信息来检查是否支持 FCMOVcc 指令（参见本章中的“COMISS — 比较标量有序单精度浮点值并设置 EFLAGS”）。如果同时设置了 CMOV 和 FPU 功能位，则支持 FCMOVcc 指令。</p>
+	<p>此指令的操作在非 64 位模式和 64 位模式下相同。</p>
+
+	<h2 id="ia-32-architecture-compatibility">IA-32 架构兼容性<a class="anchor" href="#ia-32-architecture-compatibility">¶</a></h2>
+	<p>FCMOVcc 指令是在 P6 系列处理器中引入到 IA-32 架构的，在早期的 IA-32 处理器中不可用。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF condition TRUE
+	THEN ST(0) := ST(i);
+FI;
+</pre>
+
+	<h2 id="fpu-flags-affected">影响的 FPU 标志寄存器<a class="anchor" href="#fpu-flags-affected">¶</a></h2>
+	<table>
+		<tr>
+			<td>C1</td>
+			<td>如果发生栈下溢，则设置为 0。</td>
+		</tr>
+		<tr>
+			<td>C0, C2, C3</td>
+			<td>未定义。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="floating-point-exceptions">浮点异常<a class="anchor" href="#floating-point-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#IS</td>
+			<td>发生栈下溢。</td>
+		</tr>
+	</table>
+
+	<h2 id="integer-flags-affected">影响的整数标志寄存器<a class="anchor" href="#integer-flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#NM</td>
+			<td>CR0.EM[bit 2] 或 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete） or 出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

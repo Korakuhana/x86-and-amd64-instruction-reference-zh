@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>EEXIT — 退出 Enclave</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+
+	<h1>EEXIT — 退出 Enclave</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>操作/编码</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID功能标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>EAX = 04H ENCLU[EEXIT]</td>
+			<td>IR</td>
+			<td>V/V</td>
+			<td>SGX1</td>
+			<td>此叶函数用于退出 enclave。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>操作/编码</th>
+			<th>EAX</th>
+			<th>RBX</th>
+			<th>RCX</th>
+		</tr>
+		<tr>
+			<td>IR</td>
+			<td>EEXIT (输入)</td>
+			<td>enclave 外部的目标地址 (输入)</td>
+			<td>当前 AEP 的地址 (输出)</td>
+		</tr>
+	</table>
+
+	<h3 id="description">描述<a class="anchor" href="#description">¶</a></h3>
+	<p>ENCLU[EEXIT] 指令退出当前执行的 enclave 并分支到 RBX 中指定的地址。RCX 接收当前的 AEP。如果 RBX 不在 CS 段（32位模式）内或非规范形式（64位模式），将导致 #GP(0)。</p>
+
+	<h2 id="eexit-memory-parameter-semantics">EEXIT 内存参数语义<a class="anchor" href="#eexit-memory-parameter-semantics">¶</a></h2>
+	<table>
+		<tr>
+			<td>目标地址</td>
+		</tr>
+		<tr>
+			<td>非 Enclave 的读和执行访问</td>
+		</tr>
+	</table>
+	<p>如果 RBX 指定了 enclave 内部的地址，该指令将正常完成。下一条指令的获取将在非 enclave 模式下发生，但会尝试从 enclave 内部获取。该获取将返回固定的数据模式。</p>
+	<p>如果任何寄存器中包含机密数据，清除这些寄存器是 enclave 软件的责任。</p>
+	<p>如果在进入 enclave 时修改了 XCR0，它将恢复为最近一次执行 EENTER 或 ERESUME 时的值。</p>
+	<p>如果 enclave 是 opt-out，则从先前在 EENTER 时保存的值中加载 RFLAGS.TF。</p>
+	<p>代码和数据断点取消抑制。</p>
+	<p>性能监控计数器取消抑制。</p>
+
+	<h3 id="concurrency-restrictions">并发限制<a class="anchor" href="#concurrency-restrictions">¶</a></h3>
+	<figure id="tbl-38-64">
+		<table>
+			<tr>
+				<th rowspan="2">叶函数</th>
+				<th rowspan="2">参数</th>
+				<th colspan="3">基本并发限制</th>
+			</tr>
+			<tr>
+				<th>访问权限</th>
+				<th>冲突时</th>
+				<th>SGX_CONFLICT VM Exit 资格</th>
+			</tr>
+			<tr>
+				<td>EEXIT</td>
+				<td></td>
+				<td>并发</td>
+				<td></td>
+				<td></td>
+			</tr>
+		</table>
+		<figcaption>表 38-64. EEXIT 的基本并发限制</figcaption>
+	</figure>
+
+	<figure id="tbl-38-65">
+		<table>
+			<tr>
+				<th rowspan="3">叶函数</th>
+				<th rowspan="3">参数</th>
+				<th colspan="6">附加并发限制</th>
+			</tr>
+			<tr>
+				<th colspan="2">vs. EACCEPT, EACCEPTCOPY, EMODPE, EMODPR, EMODT</th>
+				<th colspan="2">vs. EADD, EEXTEND, EINIT</th>
+				<th colspan="2">vs. ETRACK, ETRACKC</th>
+			</tr>
+			<tr>
+				<th>访问权限</th>
+				<th>冲突时</th>
+				<th>访问权限</th>
+				<th>冲突时</th>
+				<th>访问权限</th>
+				<th>冲突时</th>
+			</tr>
+			<tr>
+				<td>EEXIT</td>
+				<td></td>
+				<td>并发</td>
+				<td></td>
+				<td>并发</td>
+				<td></td>
+				<td>并发</td>
+				<td></td>
+			</tr>
+		</table>
+		<figcaption>表 38-65. EEXIT 的附加并发限制</figcaption>
+	</figure>
+
+	<h3 id="operation">操作<a class="anchor" href="#operation">¶</a></h3>
+	<h2 id="temp-variables-in-eexit-operational-flow">EEXIT 操作流程中的临时变量<a class="anchor" href="#temp-variables-in-eexit-operational-flow">¶</a></h2>
+	<table>
+		<tr>
+			<th>名称</th>
+			<th>类型</th>
+			<th>大小 (位)</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>TMP_RIP</td>
+			<td>有效地址</td>
+			<td>32/64</td>
+			<td>保存的 CRIP 副本，用于创建 LBR 时使用。</td>
+		</tr>
+	</table>
+
+	<p>TMP_MODE64 := ((IA32_EFER.LMA = 1) &amp;&amp; (CS.L = 1));</p>
+	<p>IF (TMP_MODE64 = 1)</p>
+	<p>THEN</p>
+	<p>IF (RBX is not canonical) THEN #GP(0); FI;</p>
+	<p>ELSE</p>
+	<p>IF (RBX &gt; CS limit) THEN #GP(0); FI;</p>
+	<p>FI;</p>
+	<p>TMP_RIP := CRIP;</p>
+	<p>RIP := RBX;</p>
+	<p>(* Return current AEP in RCX *)</p>
+	<p>RCX := CR_TCS_PA.AEP;</p>
+	<p>(* Do the FS/GS swap *)</p>
+	<p>FS.selector := CR_SAVE_FS.selector;</p>
+	<p>FS.base := CR_SAVE_FS.base;</p>
+	<p>FS.limit := CR_SAVE_FS.limit;</p>
+	<p>FS.access_rights := CR_SAVE_FS.access_rights;</p>
+	<p>GS.selector := CR_SAVE_GS.selector;</p>
+	<p>GS.base := CR_SAVE_GS.base;</p>
+	<p>GS.limit := CR_SAVE_GS.limit;</p>
+	<p>GS.access_rights := CR_SAVE_GS.access_rights;</p>
+	<p>(* Restore XCR0 if needed *)</p>
+	<p>IF (CR4.OSXSAVE = 1)</p>
+	<p>XCR0 := CR_SAVE__XCR0;</p>
+	<p>FI;</p>
+	<p>Unsuppress_all_code_breakpoints_that_are_outside_ELRANGE;</p>
+	<p>IF (CR_DBGOPTIN = 0)</p>
+	<p>THEN</p>
+	<p>UnSuppress_all_code_breakpoints_that_overlap_with_ELRANGE;</p>
+	<p>Restore suppressed breakpoint matches;</p>
+	<p>RFLAGS.TF := CR_SAVE_TF;</p>
+	<p>UnSuppress_montior_trap_flag;</p>
+	<p>UnSuppress_LBR_Generation;</p>
+	<p>UnSuppress_performance monitoring_activity;</p>
+	<p>Restore performance monitoring counter AnyThread demotion to MyThread in enclave back to AnyThread</p>
+	<p>FI;</p>
+	<p>IF RFLAGS.TF = 1</p>
+	<p>THEN Pend Single-Step #DB at the end of EEXIT;</p>
+	<p>FI;</p>
+	<p>IF the “monitor trap flag” VM-execution control is set</p>
+	<p>THEN pend a MTF VM exit at the end of EEXIT;</p>
+	<p>FI;</p>
+	<p>IF (CPUID.(EAX=12H, ECX=1):EAX[6] = 1)</p>
+	<p>THEN</p>
+	<p>(* Record PREVSSP *)</p>
+	<p>IF (IA32_U_CET.SH_STK_EN == 1)</p>
+	<p>THEN CR_TCS_PA.PREVSSP = SSP; FI;</p>
+	<p>FI;</p>
+	<p>IF ((CPUID.(EAX=7H, ECX=0):EDX[CET_IBT] = 1) OR (CPUID.(EAX=7, ECX=0):ECX[CET_SS] = 1)</p>
+	<p>THEN</p>
+	<p>(* Restore enclosing app’s CET state from the save registers *)</p>
+	<p>IA32_U_CET := CR_SAVE_IA32_U_CET;</p>
+	<p>IF CPUID.(EAX=07H, ECX=00h):ECX[CET_SS] = 1</p>
+	<p>THEN SSP := CR_SAVE_SSP; FI;</p>
+	<p>(* Update enclosing app’s TRACKER if enclosing app has indirect branch tracking enabled *)</p>
+	<p>IF (CR4.CET = 1 AND IA32_U_CET.ENDBR_EN = 1)</p>
+	<p>THEN</p>
+	<p>IA32_U_CET.TRACKER := WAIT_FOR_ENDBRANCH;</p>
+	<p>IA32_U_CET.SUPPRESS := 0</p>
+	<p>FI;</p>
+	<p>FI;</p>
+	<p>CR_ENCLAVE_MODE := 0;</p>
+	<p>CR_TCS_PA.STATE := INACTIVE;</p>
+	<p>(* Assure consistent translations *)</p>
+	<p>Flush_linear_context;</p>
+
+	<h3 id="flags-affected">影响的标志寄存器<a class="anchor" href="#flags-affected">¶</a></h3>
+	<p>RFLAGS.TF 从先前保存在 EENTER 或 ERESUME 中的值中恢复。</p>
+
+	<h3 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h3>
+	<table>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果地在 enclave 外部执行。</td>
+		</tr>
+		<tr>
+			<td>如果 RBX 在 CS 段之外。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误代码)</td>
+			<td>如果访问内存时发生页面错误。</td>
+		</tr>
+	</table>
+
+	<h3 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h3>
+	<table>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果地在 enclave 外部执行。</td>
+		</tr>
+		<tr>
+			<td>如果 RBX 非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误代码)</td>
+			<td>如果访问内存操作数时发生页面错误。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

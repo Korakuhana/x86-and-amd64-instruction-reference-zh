@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>FSCALE — 缩放</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+
+	<h1>FSCALE — 缩放</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th></th>
+			<th>模式</th>
+			<th>传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>D9 FD</td>
+			<td></td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>用 ST(1) 缩放 ST(0)。</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将源操作数中的值截断（向 0 舍入）为整数值，并将该值加到目的操作数的指数上。目的和源操作数是分别位于寄存器 ST(0) 和 ST(1) 中的浮点值。该指令提供了通过 2 的整次幂进行快速乘法或除法的功能。下表显示了在缩放各类数字时获得的结果，假设既没有发生溢出也没有发生下溢。</p>
+
+	<figure id="tbl-3-34">
+		<table>
+			<tr>
+				<th colspan="9">ST(1)</th>
+			</tr>
+			<tr>
+				<td rowspan="8"><strong>ST(0)</strong></td>
+				<td></td>
+				<td>−∞</td>
+				<td>−F</td>
+				<td>−0</td>
+				<td>+0</td>
+				<td>+F</td>
+				<td>+∞</td>
+				<td>NaN</td>
+			</tr>
+			<tr>
+				<td>−∞</td>
+				<td>NaN</td>
+				<td>−∞</td>
+				<td>−∞</td>
+				<td>−∞</td>
+				<td>−∞</td>
+				<td>−∞</td>
+				<td>NaN</td>
+			</tr>
+			<tr>
+				<td>−F</td>
+				<td>−0</td>
+				<td>−F</td>
+				<td>−F</td>
+				<td>−F</td>
+				<td>−F</td>
+				<td>−∞</td>
+				<td>NaN</td>
+			</tr>
+			<tr>
+				<td>−0</td>
+				<td>−0</td>
+				<td>−0</td>
+				<td>−0</td>
+				<td>−0</td>
+				<td>−0</td>
+				<td>NaN</td>
+				<td>NaN</td>
+			</tr>
+			<tr>
+				<td>+0</td>
+				<td>+0</td>
+				<td>+0</td>
+				<td>+0</td>
+				<td>+0</td>
+				<td>+0</td>
+				<td>NaN</td>
+				<td>NaN</td>
+			</tr>
+			<tr>
+				<td>+F</td>
+				<td>+0</td>
+				<td>+F</td>
+				<td>+F</td>
+				<td>+F</td>
+				<td>+F</td>
+				<td>+∞</td>
+				<td>NaN</td>
+			</tr>
+			<tr>
+				<td>+∞</td>
+				<td>NaN</td>
+				<td>+∞</td>
+				<td>+∞</td>
+				<td>+∞</td>
+				<td>+∞</td>
+				<td>+∞</td>
+				<td>NaN</td>
+			</tr>
+			<tr>
+				<td>NaN</td>
+				<td>NaN</td>
+				<td>NaN</td>
+				<td>NaN</td>
+				<td>NaN</td>
+				<td>NaN</td>
+				<td>NaN</td>
+				<td>NaN</td>
+			</tr>
+		</table>
+		<figcaption><a href='fscale.html#tbl-3-34'>表 3-34</a>. FSCALE 结果</figcaption>
+	</figure>
+
+	<blockquote>
+		<p>F 表示有限浮点值。</p>
+	</blockquote>
+
+	<p>在大多数情况下，只有指数会改变，而尾数（significand）保持不变。然而，当 ST(0) 中被缩放的值是反常（denormal）值时，尾数也会改变，结果可能会变成规格化数。类似地，如果缩放操作导致溢出或下溢，则结果尾数将不同于源尾数。</p>
+	<p>FSCALE 指令也可以用于反转 FXTRACT 指令的操作，如以下示例所示：</p>
+	<p>FXTRACT;</p>
+	<p>FSCALE;</p>
+	<p>FSTP ST(1);</p>
+	<p>在此示例中，FXTRACT 指令从 ST(0) 中的值中提取尾数和指数，并将它们分别存储在 ST(0) 和 ST(1) 中。然后，FSCALE 将 ST(0) 中的尾数按 ST(1) 中的指数进行缩放，从而在执行 FXTRACT 操作之前重建原始值。FSTP ST(1) 指令用重建的值覆盖指数（由 FXTRACT 指令提取），这使栈返回到其原始状态，仅占用一个寄存器 [ST(0)]。</p>
+	<p>此指令的操作在非 64 位模式和 64 位模式下相同。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre><sub>ST(0) := ST(0) ∗ 2</sub>RoundTowardZero(ST(1))<sub>;</sub>
+</pre>
+
+	<h2 id="fpu-flags-affected">影响的 FPU 标志寄存器<a class="anchor" href="#fpu-flags-affected">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">C1</td>
+			<td>如果发生栈下溢，则设置为 0。</td>
+		</tr>
+		<tr>
+			<td>如果结果被向上舍入，则设置；否则清除。</td>
+		</tr>
+		<tr>
+			<td>C0, C2, C3</td>
+			<td>未定义。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="floating-point-exceptions">浮点异常<a class="anchor" href="#floating-point-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#IS</td>
+			<td>发生栈下溢。</td>
+		</tr>
+		<tr>
+			<td>#IA</td>
+			<td>源操作数是 SNaN 值或不受支持的格式。</td>
+		</tr>
+		<tr>
+			<td>#D</td>
+			<td>源操作数是反常（denormal）值。</td>
+		</tr>
+		<tr>
+			<td>#U</td>
+			<td>结果对于目的格式来说太小。</td>
+		</tr>
+		<tr>
+			<td>#O</td>
+			<td>结果对于目的格式来说太大。</td>
+		</tr>
+		<tr>
+			<td>#P</td>
+			<td>值无法在目的格式中精确表示。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#NM</td>
+			<td>CR0.EM[bit 2] 或 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>#MF</td>
+			<td>如果存在未决的 x87 FPU 异常。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

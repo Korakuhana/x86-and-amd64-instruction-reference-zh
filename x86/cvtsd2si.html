@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel="stylesheet" type="text/css" href="../style.css" />
+	<title>CVTSD2SI — 将标量双精度浮点值转换为双字整数</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>CVTSD2SI — 将标量双精度浮点值转换为双字整数</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op / En</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>F2 0F 2D /r CVTSD2SI r32, xmm1/m64</td>
+			<td>A</td>
+			<td>V/V</td>
+			<td>SSE2</td>
+			<td>将 xmm1/m64 中的一个双精度浮点值转换为一个有符号双字整数 r32。</td>
+		</tr>
+		<tr>
+			<td>F2 REX.W 0F 2D /r CVTSD2SI r64, xmm1/m64</td>
+			<td>A</td>
+			<td>V/N.E.</td>
+			<td>SSE2</td>
+			<td>将 xmm1/m64 中的一个双精度浮点值转换为一个有符号四字整数，符号扩展到 r64 中。</td>
+		</tr>
+		<tr>
+			<td>VEX.LIG.F2.0F.W0 2D /r <sup>1</sup> VCVTSD2SI r32, xmm1/m64</td>
+			<td>A</td>
+			<td>V/V</td>
+			<td>AVX</td>
+			<td>将 xmm1/m64 中的一个双精度浮点值转换为一个有符号双字整数 r32。</td>
+		</tr>
+		<tr>
+			<td>VEX.LIG.F2.0F.W1 2D /r <sup>1</sup> VCVTSD2SI r64, xmm1/m64</td>
+			<td>A</td>
+			<td>V/N.E.<sup>2</sup></td>
+			<td>AVX</td>
+			<td>将 xmm1/m64 中的一个双精度浮点值转换为一个有符号四字整数，符号扩展到 r64 中。</td>
+		</tr>
+		<tr>
+			<td>EVEX.LLIG.F2.0F.W0 2D /r VCVTSD2SI r32, xmm1/m64{er}</td>
+			<td>B</td>
+			<td>V/V</td>
+			<td>AVX512F</td>
+			<td>将 xmm1/m64 中的一个双精度浮点值转换为一个有符号双字整数 r32。</td>
+		</tr>
+		<tr>
+			<td>EVEX.LLIG.F2.0F.W1 2D /r VCVTSD2SI r64, xmm1/m64{er}</td>
+			<td>B</td>
+			<td>V/N.E.<sup>2</sup></td>
+			<td>AVX512F</td>
+			<td>将 xmm1/m64 中的一个双精度浮点值转换为一个有符号四字整数，符号扩展到 r64 中。</td>
+		</tr>
+	</table>
+	<blockquote>
+		<p>1. 软件应确保将 VCVTSD2SI 编码为 VEX.L=0。将 VCVTSD2SI 编码为 VEX.L=1 可能会在不同的处理器世代中遇到不可预测的行为。</p>
+		<p>2. 非 64 位下的 VEX.W1/EVEX.W1 被忽略；指令的行为就如同使用 W0 版本一样。</p>
+	</blockquote>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>元组类型</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>A</td>
+			<td>N/A</td>
+			<td>ModRM:reg (w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>B</td>
+			<td>Tuple1 Fixed</td>
+			<td>ModRM:reg (w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将源操作数（第二操作数）中的一个双精度浮点值转换为目标操作数（第一操作数）中的有符号双字整数。源操作数可以是 XMM 寄存器或 64 位内存位置。目标操作数是通用寄存器。当源操作数是 XMM 寄存器时，双精度浮点值包含在该寄存器的低四字中。</p>
+	<p>当转换不精确时，返回的值将根据 MXCSR 寄存器中的舍入控制位进行舍入。</p>
+	<p>如果转换后的结果超出有符号双字整数的范围限制（在非 64 位模式或 REX.W/VEX.W/EVEX.W=0 的 64 位模式下），则会引发浮点无效异常，如果该异常被屏蔽，则返回不确定整数值 (80000000H)。</p>
+	<p>如果转换后的结果超出有符号四字整数的范围限制（在 64 位模式且 REX.W/VEX.W/EVEX.W = 1 时），则会引发浮点无效异常，如果该异常被屏蔽，则返回不确定整数值 (80000000_00000000H)。</p>
+	<p>传统 SSE 指令：在 64 位模式下，使用 REX.W 前缀会使指令生成 64 位数据。请参见本节开头的汇总图表以获取编码数据和限制。</p>
+	<p>注意：VEX.vvvv 和 EVEX.vvvv 是保留的，必须为 1111b，否则指令将引发 #UD。</p>
+	<p>软件应确保将 VCVTSD2SI 编码为 VEX.L=0。将 VCVTSD2SI 编码为 VEX.L=1 可能会在不同的处理器世代中遇到不可预测的行为。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<h3 id="vcvtsd2si--evex-encoded-version-">VCVTSD2SI (EVEX Encoded Version)<a class="anchor" href="#vcvtsd2si--evex-encoded-version-">¶</a></h3>
+	<pre>IF SRC *is register* AND (EVEX.b = 1)
+	THEN
+		SET_ROUNDING_MODE_FOR_THIS_INSTRUCTION(EVEX.RC);
+	ELSE
+		SET_ROUNDING_MODE_FOR_THIS_INSTRUCTION(MXCSR.RC);
+FI;
+IF 64-Bit Mode and OperandSize = 64
+	THEN DEST[63:0] := Convert_Double_Precision_Floating_Point_To_Integer(SRC[63:0]);
+	ELSE DEST[31:0] := Convert_Double_Precision_Floating_Point_To_Integer(SRC[63:0]);
+FI
+</pre>
+
+	<h3 id="-v-cvtsd2si">(V)CVTSD2SI<a class="anchor" href="#-v-cvtsd2si">¶</a></h3>
+	<pre>IF 64-Bit Mode and OperandSize = 64
+THEN
+	DEST[63:0] := Convert_Double_Precision_Floating_Point_To_Integer(SRC[63:0]);
+ELSE
+	DEST[31:0] := Convert_Double_Precision_Floating_Point_To_Integer(SRC[63:0]);
+FI;
+</pre>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>VCVTSD2SI int _mm_cvtsd_i32(__m128d);
+VCVTSD2SI int _mm_cvt_roundsd_i32(__m128d, int r);
+VCVTSD2SI __int64 _mm_cvtsd_i64(__m128d);
+VCVTSD2SI __int64 _mm_cvt_roundsd_i64(__m128d, int r);
+CVTSD2SI __int64 _mm_cvtsd_si64(__m128d);
+CVTSD2SI int _mm_cvtsd_si32(__m128d a)
+</pre>
+
+	<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+	<p>无效值，精度。</p>
+
+	<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+	<p>VEX 编码的指令，参见 <span class="not-imported">表 2-20</span>，“第 3 类异常条件”。</p>
+	<p>EVEX 编码的指令，参见 <span class="not-imported">表 2-48</span>，“Type E3NF Class 异常条件”。</p>
+	<p>此外：</p>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果 VEX.vvvv != 1111B 或 EVEX.vvvv != 1111B。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

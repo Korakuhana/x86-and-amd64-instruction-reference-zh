@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>LTR — 加载任务寄存器</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>LTR — 加载任务寄存器</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>0F 00 /3</td>
+			<td>LTR r/m16</td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 r/m16 加载到任务寄存器中。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>M</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将源操作数加载到任务寄存器的段选择子字段中。源操作数（通用寄存器或内存位置）包含一个指向任务状态段（TSS）的段选择子。在任务寄存器中加载段选择子之后，处理器使用该段选择子在全局描述符表（GDT）中定位该 TSS 的段描述符。然后，它将 TSS 的段限长和基地址从段描述符加载到任务寄存器中。由任务寄存器指向的任务被标记为繁忙，但不会发生到该任务的切换。</p>
+	<p>LTR 指令供操作系统软件使用；不应在应用程序中使用。它只能在 CPL 为 0 的保护模式下执行。它通常用于初始化代码中以建立第一个要执行的任务。</p>
+	<p>操作数大小属性对此指令没有影响。</p>
+	<p>在 64 位模式下，操作数大小仍固定为 16 位。该指令引用 16 字节的描述符以加载 64 位基地址。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF SRC is a NULL selector
+    THEN #GP(0);
+IF SRC(Offset) &gt; descriptor table limit OR IF SRC(type) ≠ global
+    THEN #GP(segment selector); FI;
+Read segment descriptor;
+IF segment descriptor is not for an available TSS
+    THEN #GP(segment selector); FI;
+IF segment descriptor is not present
+    THEN #NP(segment selector); FI;
+TSSsegmentDescriptor(busy) := 1;
+(* Locked read-modify-write operation on the entire descriptor when setting busy flag *)
+TaskRegister(SegmentSelector) := SRC;
+TaskRegister(SegmentDescriptor) := TSSSegmentDescriptor;
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="4">#GP(0)</td>
+			<td>如果当前特权级别不为 0。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>如果源操作数包含 NULL 段选择子。</td>
+		</tr>
+		<tr>
+			<td>如果 DS、ES、FS 或 GS 寄存器用于访问内存且包含 NULL 段选择子。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#GP(选择子)</td>
+			<td>如果源选择子指向的段不是 TSS，或者指向已处于繁忙状态的任务的 TSS。</td>
+		</tr>
+		<tr>
+			<td>如果选择子指向 LDT 或超出 GDT 限制。</td>
+		</tr>
+		<tr>
+			<td>#NP(选择子)</td>
+			<td>如果 TSS 描述符被标记为不存在（not present）。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数的有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>在实地址模式下无法识别 LTR 指令。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>在虚拟-8086 模式下无法识别 LTR 指令。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同，并增加了以下异常：</p>
+	<table>
+		<tr>
+			<td>#GP(选择子)</td>
+			<td>如果源选择子指向一个 16 位的 TSS。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果引用 SS 段的内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#GP(0)</td>
+			<td>如果当前特权级别不为 0。</td>
+		</tr>
+		<tr>
+			<td>如果内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>如果源操作数包含 NULL 段选择子。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#GP(选择子)</td>
+			<td>如果源选择子指向的段不是 TSS，或指向 16 位 TSS，或指向已处于繁忙状态的任务的 TSS。</td>
+		</tr>
+		<tr>
+			<td>如果选择子指向 LDT 或超出 GDT 限制。</td>
+		</tr>
+		<tr>
+			<td>如果 16 字节描述符的高 8 字节描述符类型不为零。</td>
+		</tr>
+		<tr>
+			<td>#NP(选择子)</td>
+			<td>如果 TSS 描述符被标记为不存在（not present）。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

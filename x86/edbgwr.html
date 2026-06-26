@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>EDBGWR — 写入调试 Enclave</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+
+	<h1>EDBGWR — 写入调试 Enclave</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>操作/编码</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID功能标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>EAX = 05H ENCLS[EDBGWR]</td>
+			<td>IR</td>
+			<td>V/V</td>
+			<td>SGX1</td>
+			<td>此叶函数向调试 enclave 写入双字/四字。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>操作/编码</th>
+			<th colspan="2">EAX</th>
+			<th>RBX</th>
+			<th>RCX</th>
+		</tr>
+		<tr>
+			<td>IR</td>
+			<td>EDBGWR (输入)</td>
+			<td>返回错误代码 (输出)</td>
+			<td>要写入调试 enclave 的数据 (输入)</td>
+			<td>EPC 中目标内存的地址 (输入)</td>
+		</tr>
+	</table>
+
+	<h3 id="description">描述<a class="anchor" href="#description">¶</a></h3>
+	<p>此叶函数将 EBX/RBX 中的内容复制到属于调试 enclave 的 EPC 页面。在 64 位模式下写入 8 字节，在非 64 位模式下写入 4 字节。数据大小无法覆盖。</p>
+	<p>EPC 内部目标位置的有效地址由寄存器 RCX 提供。</p>
+
+	<h2 id="edbgwr-memory-parameter-semantics">EDBGWR 内存参数语义<a class="anchor" href="#edbgwr-memory-parameter-semantics">¶</a></h2>
+	<table>
+		<tr>
+			<td>EPCQW</td>
+		</tr>
+		<tr>
+			<td>Enclave 允许的写访问</td>
+		</tr>
+	</table>
+	<p>如果发生以下任何情况，指令将产生异常：</p>
+
+	<h2 id="edbgwr-faulting-conditions">EDBGWR 异常条件<a class="anchor" href="#edbgwr-faulting-conditions">¶</a></h2>
+	<table>
+		<tr>
+			<td>RCX 指向一个属于 SECS 的页面。</td>
+			<td>RCX 未解析为自然对齐的线性地址。</td>
+		</tr>
+		<tr>
+			<td>RCX 指向的页面不属于处于调试模式下的 enclave。</td>
+			<td>RCX 指向 TCS 内部且不是 FLAGS 字的位置。</td>
+		</tr>
+		<tr>
+			<td>导致任何段违规的操作数。</td>
+			<td>可能发生页面错误。</td>
+		</tr>
+		<tr>
+			<td>CPL &gt; 0。</td>
+			<td></td>
+		</tr>
+	</table>
+
+	<p>错误代码如下：</p>
+	<figure id="tbl-38-20">
+		<table>
+			<tr>
+				<th>错误代码 (参见表 38-4)</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>No Error</td>
+				<td>EDBGWR 成功。</td>
+			</tr>
+			<tr>
+				<td>SGX_PAGE_NOT_DEBUGGABLE</td>
+				<td>由于 EPC 页面处于 PENDING 或 MODIFIED 状态，因此无法访问该页面。</td>
+			</tr>
+		</table>
+		<figcaption>表 38-20. EDBGWR 在 RAX 中的返回值</figcaption>
+	</figure>
+
+	<p>此指令忽略 enclave 页面上的 EPCM RWX 属性。因此，通过 EDBGRD 违反 EPCM RWX 属性不会导致 #GP。</p>
+
+	<h3 id="concurrency-restrictions">并发限制<a class="anchor" href="#concurrency-restrictions">¶</a></h3>
+	<figure id="tbl-38-21">
+		<table>
+			<tr>
+				<th rowspan="2">叶函数</th>
+				<th rowspan="2">参数</th>
+				<th colspan="3">基本并发限制</th>
+			</tr>
+			<tr>
+				<th>访问权限</th>
+				<th>冲突时</th>
+				<th>SGX_CONFLICT VM Exit 资格</th>
+			</tr>
+			<tr>
+				<td>EDBGWR</td>
+				<td>目标 [DS:RCX]</td>
+				<td>共享 (Shared)</td>
+				<td></td>
+				<td></td>
+			</tr>
+		</table>
+		<figcaption>表 38-21. EDBGWR 的基本并发限制</figcaption>
+	</figure>
+
+	<figure id="tbl-38-22">
+		<table>
+			<tr>
+				<th rowspan="3">叶函数</th>
+				<th rowspan="3">参数</th>
+				<th colspan="6">附加并发限制</th>
+			</tr>
+			<tr>
+				<th colspan="2">vs. EACCEPT, EACCEPTCOPY, EMODPE, EMODPR, EMODT</th>
+				<th colspan="2">vs. EADD, EEXTEND, EINIT</th>
+				<th colspan="2">vs. ETRACK, ETRACKC</th>
+			</tr>
+			<tr>
+				<th>访问权限</th>
+				<th>冲突时</th>
+				<th>访问权限</th>
+				<th>冲突时</th>
+				<th>访问权限</th>
+				<th>冲突时</th>
+			</tr>
+			<tr>
+				<td>EDBGWR</td>
+				<td>目标 [DS:RCX]</td>
+				<td>并发 (Concurrent)</td>
+				<td></td>
+				<td>并发 (Concurrent)</td>
+				<td></td>
+				<td>并发 (Concurrent)</td>
+				<td></td>
+			</tr>
+		</table>
+		<figcaption>表 38-22. EDBGWR 的附加并发限制</figcaption>
+	</figure>
+
+	<h3 id="operation">操作<a class="anchor" href="#operation">¶</a></h3>
+	<h2 id="temp-variables-in-edbgwr-operational-flow">EDBGWR 操作流程中的临时变量<a class="anchor" href="#temp-variables-in-edbgwr-operational-flow">¶</a></h2>
+	<table>
+		<tr>
+			<th>名称</th>
+			<th>类型</th>
+			<th>大小 (位)</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>TMP_MODE64</td>
+			<td>二进制</td>
+			<td>1</td>
+			<td>((IA32_EFER.LMA = 1) &amp;&amp; (CS.L = 1))。</td>
+		</tr>
+		<tr>
+			<td>TMP_SECS</td>
+			<td>物理地址</td>
+			<td>64</td>
+			<td>源操作数所属 enclave 的 SECS 物理地址。</td>
+		</tr>
+	</table>
+
+	<p>TMP_MODE64 := ((IA32_EFER.LMA = 1) &amp;&amp; (CS.L = 1));</p>
+	<p>IF ( (TMP_MODE64 = 1) and (DS:RCX is not 8Byte Aligned) )</p>
+	<p>THEN #GP(0); FI;</p>
+	<p>IF ( (TMP_MODE64 = 0) and (DS:RCX is not 4Byte Aligned) )</p>
+	<p>THEN #GP(0); FI;</p>
+	<p>IF (DS:RCX does not resolve within an EPC)</p>
+	<p>THEN #PF(DS:RCX); FI;</p>
+	<p>(* make sure no other Intel SGX instruction is accessing the same EPCM entry *)</p>
+	<p>IF (Another instruction modifying the same EPCM entry is executing)</p>
+	<p>THEN #GP(0); FI;</p>
+	<p>IF (EPCM(DS:RCX).VALID = 0)</p>
+	<p>THEN #PF(DS:RCX); FI;</p>
+	<p>(* make sure that DS:RCX (DST) is pointing to a PT_REG or PT_TCS or PT_SS_FIRST or PT_SS_REST *)</p>
+	<p>IF ( (EPCM(DS:RCX).PT ≠ PT_REG) and (EPCM(DS:RCX).PT ≠ PT_TCS)</p>
+	<p>and (EPCM(DS:RCX).PT ≠ PT_SS_FIRST) and (EPCM(DS:RCX).PT ≠ PT_SS_REST))</p>
+	<p>THEN #PF(DS:RCX); FI;</p>
+	<p>(* make sure that DS:RCX points to an accessible EPC page *)</p>
+	<p>IF ( (EPCM(DS:RCX).PENDING is not 0) or (EPCM(DS:RCS).MODIFIED is not 0) )</p>
+	<p>THEN</p>
+	<p>RFLAGS.ZF := 1;</p>
+	<p>RAX := SGX_PAGE_NOT_DEBUGGABLE;</p>
+	<p>GOTO DONE;</p>
+	<p>FI;</p>
+	<p>(* If destination is a TCS, then make sure that the offset into the page can only point to the FLAGS field*)</p>
+	<p>IF ( ( EPCM(DS:RCX). PT = PT_TCS) and ((DS:RCX) &amp; FF8H ≠ offset_of_FLAGS &amp; 0FF8H) )</p>
+	<p>THEN #GP(0); FI;</p>
+	<p>(* Locate the SECS for the enclave to which the DS:RCX page belongs *)</p>
+	<p>TMP_SECS := GET_SECS_PHYS_ADDRESS(EPCM(DS:RCX).ENCLAVESECS);</p>
+	<p>(* make sure the enclave owning the PT_REG or PT_TCS page allow debug *)</p>
+	<p>IF (TMP_SECS.ATTRIBUTES.DEBUG = 0)</p>
+	<p>THEN #GP(0); FI;</p>
+	<p>IF ( (TMP_MODE64 = 1) )</p>
+	<p>THEN (DS:RCX)[63:0] := RBX[63:0];</p>
+	<p>ELSE (DS:RCX)[31:0] := EBX[31:0];</p>
+	<p>FI;</p>
+	<p>(* clear EAX and ZF to indicate successful completion *)</p>
+	<p>RAX := 0;</p>
+	<p>RFLAGS.ZF := 0;</p>
+	<p>DONE:</p>
+	<p>(* clear flags *)</p>
+	<p>RFLAGS.CF,PF,AF,OF,SF := 0</p>
+
+	<h3 id="flags-affected">影响的标志寄存器<a class="anchor" href="#flags-affected">¶</a></h3>
+	<p>如果页面为 MODIFIED 或 PENDING，则设置 ZF；RAX 包含错误代码。否则清除 ZF 且 RAX 设置为 0。清除 CF、PF、AF、OF、SF。</p>
+
+	<h3 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h3>
+	<table>
+		<tr>
+			<td rowspan="6">#GP(0)</td>
+			<td>如果 RCX 中的地址违反了 DS 限制或访问权限。</td>
+		</tr>
+		<tr>
+			<td>如果 DS 段不可用。</td>
+		</tr>
+		<tr>
+			<td>如果 RCX 指向的内存位置未 4 字节对齐。</td>
+		</tr>
+		<tr>
+			<td>如果 RCX 中的地址指向属于非调试 enclave 的页面。</td>
+		</tr>
+		<tr>
+			<td>如果 RCX 中的地址指向不是 PT_TCS 或 PT_REG 的页面。</td>
+		</tr>
+		<tr>
+			<td>如果 RCX 中的地址指向 TCS 内部且不是 FLAGS 字的位置。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#PF(错误代码)</td>
+			<td>如果访问内存操作数时发生页面错误。</td>
+		</tr>
+		<tr>
+			<td>如果 RCX 中的地址指向非 EPC 页面。</td>
+		</tr>
+		<tr>
+			<td>如果 RCX 中的地址指向无效的 EPC 页面。</td>
+		</tr>
+	</table>
+
+	<h3 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h3>
+	<table>
+		<tr>
+			<td rowspan="5">#GP(0)</td>
+			<td>如果 RCX 为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>如果 RCX 指向的内存位置未 8 字节对齐。</td>
+		</tr>
+		<tr>
+			<td>如果 RCX 中的地址指向属于非调试 enclave 的页面。</td>
+		</tr>
+		<tr>
+			<td>如果 RCX 中的地址指向不是 PT_TCS 或 PT_REG 的页面。</td>
+		</tr>
+		<tr>
+			<td>如果 RCX 中的地址指向 TCS 内部且不是 FLAGS 字的位置。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#PF(错误代码)</td>
+			<td>如果访问内存操作数时发生页面错误。</td>
+		</tr>
+		<tr>
+			<td>如果 RCX 中的地址指向非 EPC 页面。</td>
+		</tr>
+		<tr>
+			<td>如果 RCX 中的地址指向无效的 EPC 页面。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

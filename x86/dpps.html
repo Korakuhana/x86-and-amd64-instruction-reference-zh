@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>DPPS — 打包单精度浮点值的点积</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	
+	<h1>DPPS — 打包单精度浮点值的点积</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>操作/编码</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID功能标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>66 0F 3A 40 /r ib DPPS xmm1, xmm2/m128, imm8</td>
+			<td>RMI</td>
+			<td>V/V</td>
+			<td>SSE4_1</td>
+			<td>有选择地将 xmm1 中的打包单精度浮点值与 xmm2/m128 中的打包单精度浮点值相乘，相加并有选择地将结果打包单精度浮点值或零值存储到 xmm1。</td>
+		</tr>
+		<tr>
+			<td>VEX.128.66.0F3A.WIG 40 /r ib VDPPS xmm1, xmm2, xmm3/m128, imm8</td>
+			<td>RVMI</td>
+			<td>V/V</td>
+			<td>AVX</td>
+			<td>将 xmm1 中的打包单精度浮点值与 xmm2/mem 中的打包单精度浮点值相乘，有选择地相加并存储到 xmm1。</td>
+		</tr>
+		<tr>
+			<td>VEX.256.66.0F3A.WIG 40 /r ib VDPPS ymm1, ymm2, ymm3/m256, imm8</td>
+			<td>RVMI</td>
+			<td>V/V</td>
+			<td>AVX</td>
+			<td>将 ymm2 中的打包单精度浮点值与 ymm3/mem 中的打包单精度浮点值相乘，有选择地对元素对进行求和并存储到 ymm1。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>操作/编码</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>RMI</td>
+			<td>ModRM:reg (r, w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>imm8</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>RVMI</td>
+			<td>ModRM:reg (w)</td>
+			<td>VEX.vvvv (r)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>imm8</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>根据从立即数操作数（第三操作数）的高 4 位中提取的掩码，有条件地将目标操作数（第一操作数）中的打包单精度浮点值与源操作数（第二操作数）中的打包单精度浮点值相乘。如果 imm8[7:4] 中的条件掩码位为零，则相应的乘法由值 0.0 代替，方式如《Intel® 64 and IA-32 Architectures Software Developer’s Manual》卷 1 第 12.8.4 节所述。</p>
+	<p>将四个生成的单精度值相加得到一个中间结果。根据立即数（第三操作数）的位 [3:0] 指定的广播掩码，将中间结果有条件地广播到目标操作数中。</p>
+	<p>如果广播掩码位为 “1”，则中间结果将复制到目标操作数中相应的双字元素中。如果广播掩码位为零，则目标操作数中对应的元素设置为零。</p>
+	<p>DPPS 遵循《Software Developer’s Manual》卷 1 表 4-7 中规定的 NaN 传递规则。这些规则不包括 NaN 的水平优先级划分。NaN 向目标操作数的水平传播以及这些 NaN 在目标操作数中的定位与实现相关。输入源上的 NaN 或计算生成的 NaN 将使至少一个 NaN 传播到目标操作数。</p>
+	<p>128 位传统 SSE 版本：第二个源可以是 XMM 寄存器或 128 位内存位置。目标操作数与第一个源操作数 XMM 寄存器相同，对应 YMM 寄存器目标操作数的高位（MAXVL-1:128）保持不变。</p>
+	<p>VEX.128 编码版本：第一个源操作数是 XMM 寄存器或 128 位内存位置。目标操作数是 XMM 寄存器。对应 YMM 寄存器目标操作数的高位（MAXVL-1:128）清零。</p>
+	<p>VEX.256 编码版本：第一个源操作数是 YMM 寄存器。第二个源操作数可以是 YMM 寄存器或 256 位内存位置。目标操作数是 YMM 寄存器。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<h3 id="dp_primitive--src1--src2-">DP_primitive (SRC1, SRC2)<a class="anchor" href="#dp_primitive--src1--src2-">¶</a></h3>
+	<pre>IF (imm8[4] = 1)
+    THEN Temp1[31:0] := DEST[31:0] * SRC[31:0]; // update SIMD exception flags
+    ELSE Temp1[31:0] := +0.0; FI;
+IF (imm8[5] = 1)
+    THEN Temp1[63:32] := DEST[63:32] * SRC[63:32]; // update SIMD exception flags
+    ELSE Temp1[63:32] := +0.0; FI;
+IF (imm8[6] = 1)
+    THEN Temp1[95:64] := DEST[95:64] * SRC[95:64]; // update SIMD exception flags
+    ELSE Temp1[95:64] := +0.0; FI;
+IF (imm8[7] = 1)
+    THEN Temp1[127:96] := DEST[127:96] * SRC[127:96]; // update SIMD exception flags
+    ELSE Temp1[127:96] := +0.0; FI;
+Temp2[31:0] := Temp1[31:0] + Temp1[63:32]; // update SIMD exception flags
+/* if unmasked exception reported, execute exception handler*/
+Temp3[31:0] := Temp1[95:64] + Temp1[127:96]; // update SIMD exception flags
+/* if unmasked exception reported, execute exception handler*/
+Temp4[31:0] := Temp2[31:0] + Temp3[31:0]; // update SIMD exception flags
+/* if unmasked exception reported, execute exception handler*/
+IF (imm8[0] = 1)
+    THEN DEST[31:0] := Temp4[31:0];
+    ELSE DEST[31:0] := +0.0; FI;
+IF (imm8[1] = 1)
+    THEN DEST[63:32] := Temp4[31:0];
+    ELSE DEST[63:32] := +0.0; FI;
+IF (imm8[2] = 1)
+    THEN DEST[95:64] := Temp4[31:0];
+    ELSE DEST[95:64] := +0.0; FI;
+IF (imm8[3] = 1)
+    THEN DEST[127:96] := Temp4[31:0];
+    ELSE DEST[127:96] := +0.0; FI;
+</pre>
+
+	<h3 id="dpps--128-bit-legacy-sse-version-">DPPS (128位传统 SSE 版本)<a class="anchor" href="#dpps--128-bit-legacy-sse-version-">¶</a></h3>
+	<pre>DEST[127:0] := DP_Primitive(SRC1[127:0], SRC2[127:0]);
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+
+	<h3 id="vdpps--vex-128-encoded-version-">VDPPS (VEX.128 编码版本)<a class="anchor" href="#vdpps--vex-128-encoded-version-">¶</a></h3>
+	<pre>DEST[127:0] := DP_Primitive(SRC1[127:0], SRC2[127:0]);
+DEST[MAXVL-1:128] := 0
+</pre>
+
+	<h3 id="vdpps--vex-256-encoded-version-">VDPPS (VEX.256 编码版本)<a class="anchor" href="#vdpps--vex-256-encoded-version-">¶</a></h3>
+	<pre>DEST[127:0] := DP_Primitive(SRC1[127:0], SRC2[127:0]);
+DEST[255:128] := DP_Primitive(SRC1[255:128], SRC2[255:128]);
+</pre>
+
+	<h2 id="flags-affected">影响的标志寄存器<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>(V)DPPS __m128 _mm_dp_ps ( __m128 a, __m128 b, const int mask);
+VDPPS __m256 _mm256_dp_ps ( __m256 a, __m256 b, const int mask);
+</pre>
+
+	<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+	<p>溢出、欠幅、无效、精度、非正规化。</p>
+	<p>按照其执行顺序，为每个加法和乘法操作分别确定异常。未屏蔽的异常将使目标操作数保持不变。</p>
+
+	<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+	<p>请参见《Intel® 64 and IA-32 Architectures Software Developer’s Manual》卷 2 中的“Type 2 Class Exception Conditions”。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

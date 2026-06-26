@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns:x86="http://www.felixcloutier.com/x86">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>STOS/STOSB/STOSW/STOSD/STOSQ — 存储字符串</title>
+</head>
+
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>STOS/STOSB/STOSW/STOSD/STOSQ — 存储字符串</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>AA</td>
+			<td>STOS m8</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>对于传统模式，在地址 ES:(E)DI 处存储 AL。对于 64 位模式，在地址 RDI 或 EDI 处存储 AL。</td>
+		</tr>
+		<tr>
+			<td>AB</td>
+			<td>STOS m16</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>对于传统模式，在地址 ES:(E)DI 处存储 AX。对于 64 位模式，在地址 RDI 或 EDI 处存储 AX。</td>
+		</tr>
+		<tr>
+			<td>AB</td>
+			<td>STOS m32</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>对于传统模式，在地址 ES:(E)DI 处存储 EAX。对于 64 位模式，在地址 RDI 或 EDI 处存储 EAX。</td>
+		</tr>
+		<tr>
+			<td>REX.W + AB</td>
+			<td>STOS m64</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>在地址 RDI 或 EDI 处存储 RAX。</td>
+		</tr>
+		<tr>
+			<td>AA</td>
+			<td>STOSB</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>对于传统模式，在地址 ES:(E)DI 处存储 AL。对于 64 位模式，在地址 RDI 或 EDI 处存储 AL。</td>
+		</tr>
+		<tr>
+			<td>AB</td>
+			<td>STOSW</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>对于传统模式，在地址 ES:(E)DI 处存储 AX。对于 64 位模式，在地址 RDI 或 EDI 处存储 AX。</td>
+		</tr>
+		<tr>
+			<td>AB</td>
+			<td>STOSD</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>对于传统模式，在地址 ES:(E)DI 处存储 EAX。对于 64 位模式，在地址 RDI 或 EDI 处存储 EAX。</td>
+		</tr>
+		<tr>
+			<td>REX.W + AB</td>
+			<td>STOSQ</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>在地址 RDI 或 EDI 处存储 RAX。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>在非 64 位和默认的 64 位模式下：将 AL、AX 或 EAX 寄存器中的一个字节、字或双字分别存储到目标操作数中。目标操作数是一个内存位置，其地址从 ES:EDI 或 ES:DI 寄存器读取（取决于指令的地址大小属性和操作模式）。ES 段不能使用段覆盖前缀进行覆盖。</p>
+	<p>在汇编代码级别，此指令允许两种形式：“显式操作数”形式和“无操作数”形式。显式操作数形式（使用 STOS 助记符指定）允许显式指定目标操作数。在这里，目标操作数应为指示目标值的大小和位置的符号。源操作数然后自动选择以匹配目标操作数的大小（AL 寄存器用于字节操作数，AX 用于字操作数，EAX 用于双字操作数）。提供此显式操作数形式是为了便于编写文档；然而，请注意，此形式提供的文档可能会误导。也就是说，目标操作数符号必须指定操作数的正确<b>类型</b>（大小）（字节、字或双字），但它不必指定正确的<b>位置</b>。位置始终由 ES:(E)DI 寄存器指定。在执行存储字符串指令之前，必须正确加载这些寄存器。</p>
+	<p>无操作数形式提供了 STOS 指令的字节、字、双字和四字版本的“简短形式”。在这里，也假定 ES:(E)DI 是目标操作数，AL、AX 或 EAX 是源操作数。目标和源操作数的大小由助记符选择：STOSB（从寄存器 AL 读取字节）、STOSW（从 AX 读取字）、STOSD（从 EAX 读取双字）。</p>
+	<p>在将字节、字或双字从寄存器传输到内存位置之后，(E)DI 寄存器根据 EFLAGS 寄存器中 DF 标志的设置自动递增或递减。如果 DF 标志为 0，则寄存器递增；如果 DF 标志为 1，则寄存器递减（字节操作递增或递减 1，字操作递增或递减 2，双字操作递增或递减 4）。</p>
+	<blockquote>
+		<p>为了提高性能，较新的处理器支持在由 STOS 和 STOSB 发起的字符串存储操作期间修改处理器的运行方式。有关快速字符串操作 of 的更多信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷的第 7.3.9.3 节。</p>
+	</blockquote>
+	<p>在 64 位模式下，默认地址大小为 64 位，使用前缀 67H 支持 32 位地址大小。使用 REX.W 形式的 REX 前缀可将双字操作提升为 64 位。提升后的无操作数助记符是 STOSQ。STOSQ（以及其显式操作数变体）将 RAX 寄存器中的四字存储到由 RDI 或 EDI 寻址的目标位置。有关编码数据和限制，请参阅本节开头的汇总表。</p>
+	<p>STOS、STOSB、STOSW、STOSD 和 STOSQ 指令之前可以带有 REP 前缀，用于对 ECX 个字节、字或双字进行块存储。然而更常见的是，这些指令在 LOOP 结构中使用，因为在存储数据之前需要将其移动到 AL、AX 或 EAX 寄存器中。有关 REP 前缀的描述，请参阅本章中的“REP/REPE/REPZ /REPNE/REPNZ — 重复字符串操作前缀”。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<h3 id="non-64-bit-mode-">非 64 位模式：<a class="anchor" href="#non-64-bit-mode-">¶</a></h3>
+	<pre>IF (Byte store)
+    THEN
+        DEST := AL;
+            THEN IF DF = 0
+                THEN (E)DI := (E)DI + 1;
+                ELSE (E)DI := (E)DI – 1;
+            FI;
+    ELSE IF (Word store)
+        THEN
+            DEST := AX;
+                THEN IF DF = 0
+                    THEN (E)DI := (E)DI + 2;
+                    ELSE (E)DI := (E)DI – 2;
+                FI;
+        FI;
+    ELSE IF (Doubleword store)
+        THEN
+            DEST := EAX;
+                THEN IF DF = 0
+                    THEN (E)DI := (E)DI + 4;
+                    ELSE (E)DI := (E)DI – 4;
+                FI;
+        FI;
+FI;
+</pre>
+	<h3 id="64-bit-mode-">64 位模式：<a class="anchor" href="#64-bit-mode-">¶</a></h3>
+	<pre>IF (Byte store)
+    THEN
+        DEST := AL;
+            THEN IF DF = 0
+                THEN (R|E)DI := (R|E)DI + 1;
+                ELSE (R|E)DI := (R|E)DI – 1;
+            FI;
+    ELSE IF (Word store)
+        THEN
+            DEST := AX;
+                THEN IF DF = 0
+                    THEN (R|E)DI := (R|E)DI + 2;
+                    ELSE (R|E)DI := (R|E)DI – 2;
+                FI;
+        FI;
+    ELSE IF (Doubleword store)
+        THEN
+            DEST := EAX;
+                THEN IF DF = 0
+                    THEN (R|E)DI := (R|E)DI + 4;
+                    ELSE (R|E)DI := (R|E)DI – 4;
+                FI;
+        FI;
+    ELSE IF (Quadword store using REX.W )
+        THEN
+            DEST := RAX;
+                THEN IF DF = 0
+                    THEN (R|E)DI := (R|E)DI + 8;
+                    ELSE (R|E)DI := (R|E)DI – 8;
+                FI;
+        FI;
+FI;
+</pre>
+
+	<h2 id="flags-affected">影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="3">#GP(0)</td>
+			<td>如果目标位于不可写的段中。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数有效地址超出 ES 段的限制。</td>
+		</tr>
+		<tr>
+			<td>如果 ES 寄存器包含 NULL 段选择器。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>如果内存操作数有效地址超出 ES 段限制。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟 8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存操作数有效地址超出 ES 段限制。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存地址是非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#PF(fault-code)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+	<footer>
+		<p>
+			本非官方、机械拆分、未经校验的参考文档仅为方便提供，可能存在各种明显或不明显的缺失或错误。任何严肃用途请参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+
+</html>

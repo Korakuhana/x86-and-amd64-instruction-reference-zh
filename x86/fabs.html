@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>FABS — 绝对值</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+
+	<h1>FABS — 绝对值</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th></th>
+			<th>模式</th>
+			<th>传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>D9 E1</td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td>用其绝对值替换 ST。</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>清除 ST(0) 的符号位以创建操作数的绝对值。下表显示了在创建各类数字的绝对值时获得的结果。</p>
+	<figure id="tbl-3-17">
+		<table>
+			<tr>
+				<th>ST(0) 源</th>
+				<th>ST(0) 目的</th>
+			</tr>
+			<tr>
+				<td>−∞</td>
+				<td>+∞</td>
+			</tr>
+			<tr>
+				<td>−F</td>
+				<td>+F</td>
+			</tr>
+			<tr>
+				<td>−0</td>
+				<td>+0</td>
+			</tr>
+			<tr>
+				<td>+0</td>
+				<td>+0</td>
+			</tr>
+			<tr>
+				<td>+F</td>
+				<td>+F</td>
+			</tr>
+			<tr>
+				<td>+∞</td>
+				<td>+∞</td>
+			</tr>
+			<tr>
+				<td>NaN</td>
+				<td>NaN</td>
+			</tr>
+		</table>
+		<figcaption>表 3-17. FABS 获得的结果</figcaption>
+	</figure>
+	<blockquote>
+		<p>F 表示有限浮点值。</p>
+	</blockquote>
+	<p>此指令的操作在非 64 位模式和 64 位模式下相同。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>ST(0) := |ST(0)|;
+</pre>
+
+	<h2 id="fpu-flags-affected">影响的 FPU 标志寄存器<a class="anchor" href="#fpu-flags-affected">¶</a></h2>
+	<table>
+		<tr>
+			<td>C1</td>
+			<td>设置为 0。</td>
+		</tr>
+		<tr>
+			<td>C0, C2, C3</td>
+			<td>未定义。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="floating-point-exceptions">浮点异常<a class="anchor" href="#floating-point-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#IS</td>
+			<td>发生栈下溢。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#NM</td>
+			<td>CR0.EM[bit 2] 或 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete） or 出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

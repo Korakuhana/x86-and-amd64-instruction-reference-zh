@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>CMPXCHG — 比较并交换</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>CMPXCHG — 比较并交换</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>0F B0/r CMPXCHG r/m8, r8</td>
+			<td>MR</td>
+			<td>Valid</td>
+			<td>Valid*</td>
+			<td>将 AL 与 r/m8 进行比较。如果相等，则设置 ZF 并将 r8 加载到 r/m8 中。否则，清除 ZF 并将 r/m8 加载到 AL。</td>
+		</tr>
+		<tr>
+			<td>REX + 0F B0/r CMPXCHG r/m8**,r8</td>
+			<td>MR</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 AL 与 r/m8 进行比较。如果相等，则设置 ZF 并将 r8 加载到 r/m8 中。否则，清除 ZF 并将 r/m8 加载到 AL。</td>
+		</tr>
+		<tr>
+			<td>0F B1/r CMPXCHG r/m16, r16</td>
+			<td>MR</td>
+			<td>Valid</td>
+			<td>Valid*</td>
+			<td>将 AX 与 r/m16 进行比较。如果相等，则设置 ZF 并将 r16 加载到 r/m16 中。否则，清除 ZF 并将 r/m16 加载到 AX。</td>
+		</tr>
+		<tr>
+			<td>0F B1/r CMPXCHG r/m32, r32</td>
+			<td>MR</td>
+			<td>Valid</td>
+			<td>Valid*</td>
+			<td>将 EAX 与 r/m32 进行比较。如果相等，则设置 ZF 并将 r32 加载到 r/m32 中。否则，清除 ZF 并将 r/m32 加载到 EAX。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F B1/r CMPXCHG r/m64, r64</td>
+			<td>MR</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 RAX 与 r/m64 进行比较。如果相等，则设置 ZF 并将 r64 加载到 r/m64 中。否则，清除 ZF 并将 r/m64 加载到 RAX。</td>
+		</tr>
+	</table>
+	<blockquote>
+		<p>* 请参阅下文的 IA-32 架构兼容性部分。</p>
+		<p>** 在 64 位模式下，如果使用 REX 前缀，则无法将 r/m8 编码为访问以下字节寄存器：AH、BH、CH、DH。</p>
+	</blockquote>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>MR</td>
+			<td>ModRM:r/m (r, w)</td>
+			<td>ModRM:reg (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将 AL, AX, EAX 或 RAX 寄存器中的值与第一个操作数（目的操作数）进行比较。如果这两个值相等，则将第二个操作数（源操作数）加载到目的操作数中。否则，将目的操作数加载到 AL, AX, EAX 或 RAX 寄存器中。RAX 寄存器仅在 64 位模式下可用。</p>
+	<p>此指令可以配合 LOCK 前缀使用，以允许指令原子地执行。为了简化与处理器总线的接口，不论比较结果如何，目的操作数都会接收一个写周期。如果比较失败，则将目的操作数写回；否则，将源操作数写入目的操作数。（处理器从不产生只有锁定读而没有锁定写的情况。）</p>
+	<p>在 64 位模式下，该指令的默认操作大小为 32 位。使用 REX.R 前缀允许访问额外的寄存器（R8-R15）。使用 REX.W 前缀可将操作提升至 64 位。请参阅本节开头的汇总图表以获取编码数据和限制。</p>
+
+	<h2 id="ia-32-architecture-compatibility">IA-32 架构兼容性<a class="anchor" href="#ia-32-architecture-compatibility">¶</a></h2>
+	<p>早于 Intel486 处理器的 Intel 处理器不支持此指令。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>(* Accumulator = AL, AX, EAX, or RAX depending on whether a byte, word, doubleword, or quadword comparison is being performed *)
+TEMP := DEST
+IF accumulator = TEMP
+    THEN
+        ZF := 1;
+        DEST := SRC;
+    ELSE
+        ZF := 0;
+        accumulator := TEMP;
+        DEST := TEMP;
+FI;
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>如果目的操作数中的值与 AL、AX 或 EAX 寄存器中的值相等，则设置 ZF 标志；否则清除该标志。CF、PF、AF、SF 和 OF 标志根据比较操作的结果进行设置。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="3">#GP(0)</td>
+			<td>如果目的地位于不可写的段中。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>如果 DS、ES、FS 或 GS 寄存器包含 NULL 段选择子。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数的有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀，但目的地不是内存操作数。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#SS</td>
+			<td>如果内存操作数的有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀，但目的地不是内存操作数。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数的有效地址超出 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查并且进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀，但目的地不是内存操作数。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果引用 SS 段的内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀，但目的地不是内存操作数。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

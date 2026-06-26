@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns:x86="http://www.felixcloutier.com/x86">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>DEC — 减 1</title>
+</head>
+
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>DEC — 减 1</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>FE /1</td>
+			<td>DEC <em>r/m8</em></td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 <em>r/m8</em> 减 1。</td>
+		</tr>
+		<tr>
+			<td>REX + FE /1</td>
+			<td>DEC <em>r/m8</em><sup>*</sup></td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 <em>r/m8</em> 减 1。</td>
+		</tr>
+		<tr>
+			<td>FF /1</td>
+			<td>DEC <em>r/m16</em></td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 <em>r/m16</em> 减 1。</td>
+		</tr>
+		<tr>
+			<td>FF /1</td>
+			<td>DEC <em>r/m32</em></td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 <em>r/m32</em> 减 1。</td>
+		</tr>
+		<tr>
+			<td>REX.W + FF /1</td>
+			<td>DEC <em>r/m64</em></td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 <em>r/m64</em> 减 1。</td>
+		</tr>
+		<tr>
+			<td>48+rw</td>
+			<td>DEC <em>r16</em></td>
+			<td>O</td>
+			<td>N.E.</td>
+			<td>Valid</td>
+			<td>将 <em>r16</em> 减 1。</td>
+		</tr>
+		<tr>
+			<td>48+rd</td>
+			<td>DEC <em>r32</em></td>
+			<td>O</td>
+			<td>N.E.</td>
+			<td>Valid</td>
+			<td>将 <em>r32</em> 减 1。</td>
+		</tr>
+	</table>
+	<blockquote>
+		<p>* 在 64 位模式下，如果使用了 REX 前缀，则不能通过编码 r/m8 来访问以下字节寄存器：AH、BH、CH、DH。</p>
+	</blockquote>
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>M</td>
+			<td>ModRM:r/m (r, w)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>O</td>
+			<td>opcode + rd (r, w)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+	<h2 id="description">描述<a class="anchor" href="#description">
+			¶
+		</a></h2>
+	<p>将目的操作数减 1，同时保留 CF 标志的状态。目的操作数可以是一个寄存器或一个内存位置。该指令允许在不干扰 CF 标志的情况下更新循环计数器。（若要执行更新 CF 标志的减 1 操作，请使用立即数为 1 的 SUB 指令。）</p>
+	<p>该指令可以与 LOCK 前缀一起使用，以便以原子方式执行该指令。</p>
+	<p>在 64 位模式下，DEC r16 和 DEC r32 无法编码（因为操作码 48H 至 4FH 被用作 REX 前缀）。否则，该指令在 64 位模式下的默认操作大小为 32 位。使用 REX.R 前缀允许访问额外的寄存器（R8-R15）。使用 REX.W 前缀可将操作提升至 64 位。</p>
+	<p>请参阅本节开头的汇总图表以获取编码数据和限制。</p>
+	<h2 id="operation">操作<a class="anchor" href="#operation">
+			¶
+		</a></h2>
+	<pre>DEST := DEST – 1;
+</pre>
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">
+			¶
+		</a></h2>
+	<p>CF 标志位不受影响。根据结果设置 OF、SF、ZF、AF 和 PF 标志位。</p>
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td rowspan="3">#GP(0)</td>
+			<td>如果目的操作数位于不可写的段中。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段界限。</td>
+		</tr>
+		<tr>
+			<td>如果 DS、ES、FS 或 GS 寄存器包含 NULL 段选择子。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数的有效地址超出 SS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀但目标操作数不是内存操作数。</td>
+		</tr>
+	</table>
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#SS</td>
+			<td>如果内存操作数的有效地址超出 SS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀但目标操作数不是内存操作数。</td>
+		</tr>
+	</table>
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数的有效地址超出 SS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查且进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀但目标操作数不是内存操作数。</td>
+		</tr>
+	</table>
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">
+			¶
+		</a></h2>
+	<p>与保护模式下的异常相同。</p>
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">
+			¶
+		</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果引用 SS 段的内存地址为非规范（non-canonical）形式。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存地址为非规范（non-canonical）形式。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀但目标操作数不是内存操作数。</td>
+		</tr>
+	</table>
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span
+				style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a
+				href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+				64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+
+</html>

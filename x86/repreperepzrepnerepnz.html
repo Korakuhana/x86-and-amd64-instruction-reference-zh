@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns:x86="http://www.felixcloutier.com/x86">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>REP/REPE/REPZ/REPNE/REPNZ — 重复字符串操作前缀</title>
+</head>
+
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>REP/REPE/REPZ/REPNE/REPNZ — 重复字符串操作前缀</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>F3 6C</td>
+			<td>REP INS m8, DX</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>从端口 DX 输入 (E)CX 字节到 ES:[(E)DI] 中。</td>
+		</tr>
+		<tr>
+			<td>F3 6C</td>
+			<td>REP INS m8, DX</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>从端口 DX 输入 RCX 字节到 [RDI] 中。</td>
+		</tr>
+		<tr>
+			<td>F3 6D</td>
+			<td>REP INS m16, DX</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>从端口 DX 输入 (E)CX 字到 ES:[(E)DI] 中。</td>
+		</tr>
+		<tr>
+			<td>F3 6D</td>
+			<td>REP INS m32, DX</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>从端口 DX 输入 (E)CX 双字到 ES:[(E)DI] 中。</td>
+		</tr>
+		<tr>
+			<td>F3 6D</td>
+			<td>REP INS r/m32, DX</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>从端口 DX 输入 RCX 默认大小的数据到 [RDI] 中。</td>
+		</tr>
+		<tr>
+			<td>F3 A4</td>
+			<td>REP MOVS m8, m8</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 (E)CX 字节从 DS:[(E)SI] 移动到 ES:[(E)DI]。</td>
+		</tr>
+		<tr>
+			<td>F3 REX.W A4</td>
+			<td>REP MOVS m8, m8</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 RCX 字节从 [RSI] 移动到 [RDI]。</td>
+		</tr>
+		<tr>
+			<td>F3 A5</td>
+			<td>REP MOVS m16, m16</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 (E)CX 字从 DS:[(E)SI] 移动到 ES:[(E)DI]。</td>
+		</tr>
+		<tr>
+			<td>F3 A5</td>
+			<td>REP MOVS m32, m32</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 (E)CX 双字从 DS:[(E)SI] 移动到 ES:[(E)DI]。</td>
+		</tr>
+		<tr>
+			<td>F3 REX.W A5</td>
+			<td>REP MOVS m64, m64</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 RCX 四字从 [RSI] 移动到 [RDI]。</td>
+		</tr>
+		<tr>
+			<td>F3 6E</td>
+			<td>REP OUTS DX, r/m8</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 (E)CX 字节从 DS:[(E)SI] 输出到端口 DX。</td>
+		</tr>
+		<tr>
+			<td>F3 REX.W 6E</td>
+			<td>REP OUTS DX, r/m8<sup>1</sup></td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 RCX 字节从 [RSI] 输出到端口 DX。</td>
+		</tr>
+		<tr>
+			<td>F3 6F</td>
+			<td>REP OUTS DX, r/m16</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 (E)CX 字从 DS:[(E)SI] 输出到端口 DX。</td>
+		</tr>
+		<tr>
+			<td>F3 6F</td>
+			<td>REP OUTS DX, r/m32</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 (E)CX 双字从 DS:[(E)SI] 输出到端口 DX。</td>
+		</tr>
+		<tr>
+			<td>F3 REX.W 6F</td>
+			<td>REP OUTS DX, r/m32</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 RCX 默认大小的数据从 [RSI] 输出到端口 DX。</td>
+		</tr>
+		<tr>
+			<td>F3 AC</td>
+			<td>REP LODS AL</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>从 DS:[(E)SI] 加载 (E)CX 字节到 AL。</td>
+		</tr>
+		<tr>
+			<td>F3 REX.W AC</td>
+			<td>REP LODS AL</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>从 [RSI] 加载 RCX 字节到 AL。</td>
+		</tr>
+		<tr>
+			<td>F3 AD</td>
+			<td>REP LODS AX</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>从 DS:[(E)SI] 加载 (E)CX 字到 AX。</td>
+		</tr>
+		<tr>
+			<td>F3 AD</td>
+			<td>REP LODS EAX</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>从 DS:[(E)SI] 加载 (E)CX 双字到 EAX。</td>
+		</tr>
+		<tr>
+			<td>F3 REX.W AD</td>
+			<td>REP LODS RAX</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>从 [RSI] 加载 RCX 四字到 RAX。</td>
+		</tr>
+		<tr>
+			<td>F3 AA</td>
+			<td>REP STOS m8</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>用 AL 填充 ES:[(E)DI] 处的 (E)CX 字节。</td>
+		</tr>
+		<tr>
+			<td>F3 REX.W AA</td>
+			<td>REP STOS m8</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>用 AL 填充 [RDI] 处的 RCX 字节。</td>
+		</tr>
+		<tr>
+			<td>F3 AB</td>
+			<td>REP STOS m16</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>用 AX 填充 ES:[(E)DI] 处的 (E)CX 字。</td>
+		</tr>
+		<tr>
+			<td>F3 AB</td>
+			<td>REP STOS m32</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>用 EAX 填充 ES:[(E)DI] 处的 (E)CX 双字。</td>
+		</tr>
+		<tr>
+			<td>F3 REX.W AB</td>
+			<td>REP STOS m64</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>用 RAX 填充 [RDI] 处的 RCX 四字。</td>
+		</tr>
+		<tr>
+			<td>F3 A6</td>
+			<td>REPE CMPS m8, m8</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>在 ES:[(E)DI] 和 DS:[(E)SI] 中寻找不匹配的字节。</td>
+		</tr>
+		<tr>
+			<td>F3 REX.W A6</td>
+			<td>REPE CMPS m8, m8</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>在 [RDI] 和 [RSI] 中寻找不匹配的字节。</td>
+		</tr>
+		<tr>
+			<td>F3 A7</td>
+			<td>REPE CMPS m16, m16</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>在 ES:[(E)DI] 和 DS:[(E)SI] 中寻找不匹配的字。</td>
+		</tr>
+		<tr>
+			<td>F3 A7</td>
+			<td>REPE CMPS m32, m32</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>在 ES:[(E)DI] 和 DS:[(E)SI] 中寻找不匹配的双字。</td>
+		</tr>
+		<tr>
+			<td>F3 REX.W A7</td>
+			<td>REPE CMPS m64, m64</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>在 [RDI] 和 [RSI] 中寻找不匹配的四字。</td>
+		</tr>
+		<tr>
+			<td>F3 AE</td>
+			<td>REPE SCAS m8</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>寻找从 ES:[(E)DI] 开始的不为 AL 的字节。</td>
+		</tr>
+		<tr>
+			<td>F3 REX.W AE</td>
+			<td>REPE SCAS m8</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>寻找从 [RDI] 开始的不为 AL 的字节。</td>
+		</tr>
+		<tr>
+			<td>F3 AF</td>
+			<td>REPE SCAS m16</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>寻找从 ES:[(E)DI] 开始的不为 AX 的字。</td>
+		</tr>
+		<tr>
+			<td>F3 AF</td>
+			<td>REPE SCAS m32</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>寻找从 ES:[(E)DI] 开始的不为 EAX 的双字。</td>
+		</tr>
+		<tr>
+			<td>F3 REX.W AF</td>
+			<td>REPE SCAS m64</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>寻找从 [RDI] 开始的不为 RAX 的四字。</td>
+		</tr>
+		<tr>
+			<td>F2 A6</td>
+			<td>REPNE CMPS m8, m8</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>在 ES:[(E)DI] 和 DS:[(E)SI] 中寻找匹配的字节。</td>
+		</tr>
+		<tr>
+			<td>F2 REX.W A6</td>
+			<td>REPNE CMPS m8, m8</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>在 [RDI] 和 [RSI] 中寻找匹配的字节。</td>
+		</tr>
+		<tr>
+			<td>F2 A7</td>
+			<td>REPNE CMPS m16, m16</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>在 ES:[(E)DI] 和 DS:[(E)SI] 中寻找匹配的字。</td>
+		</tr>
+		<tr>
+			<td>F2 A7</td>
+			<td>REPNE CMPS m32, m32</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>在 ES:[(E)DI] 和 DS:[(E)SI] 中寻找匹配的双字。</td>
+		</tr>
+		<tr>
+			<td>F2 REX.W A7</td>
+			<td>REPNE CMPS m64, m64</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>在 [RDI] 和 [RSI] 中寻找匹配的双字。</td>
+		</tr>
+		<tr>
+			<td>F2 AE</td>
+			<td>REPNE SCAS m8</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>寻找从 ES:[(E)DI] 开始的 AL 字节。</td>
+		</tr>
+		<tr>
+			<td>F2 REX.W AE</td>
+			<td>REPNE SCAS m8</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>寻找从 [RDI] 开始的 AL 字节。</td>
+		</tr>
+		<tr>
+			<td>F2 AF</td>
+			<td>REPNE SCAS m16</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>寻找从 ES:[(E)DI] 开始的 AX 字。</td>
+		</tr>
+		<tr>
+			<td>F2 AF</td>
+			<td>REPNE SCAS m32</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>寻找从 ES:[(E)DI] 开始的 EAX 双字。</td>
+		</tr>
+		<tr>
+			<td>F2 REX.W AF</td>
+			<td>REPNE SCAS m64</td>
+			<td>ZO</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>寻找从 [RDI] 开始的 RAX 四字。</td>
+		</tr>
+	</table>
+	<blockquote>
+		<p>1. 在 64 位模式下，如果使用 REX 前缀，则无法编码 r/m8 以访问以下字节寄存器：AH、BH、CH、DH。</p>
+	</blockquote>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>重复执行一个字符串操作指令，重复次数由计数寄存器指定，或者直到状态标志位 ZF 不再满足指示条件为止。REP（重复）、REPE（相等时重复）、REPNE（不相等时重复）、REPZ（为零时重复）和 REPNZ（不为零时重复）是可附加到字符串操作指令之一的前缀。REP 前缀可以添加到 INS、OUTS、MOVS、LODS 和 STOS 指令上，而 REPE、REPNE、REPZ 和 REPNZ 前缀可以添加到 CMPS 和 SCAS 指令上。（REPZ 和 REPNZ 前缀分别是 REPE 和 REPNE 前缀的同义词。）F3H 前缀针对以下指令有定义，对其他指令则未定义：</p>
+	<ul>
+		<li>F3H 作为字符串和输入/输出指令的 REP/REPE/REPZ 前缀。</li>
+		<li>F3H 是 POPCNT、LZCNT 和 ADOX 的强制前缀。</li>
+	</ul>
+	<p>REP 前缀一次仅适用于一条字符串指令。要重复执行一个指令块，请使用 LOOP 指令或其他循环结构。所有这些重复前缀都会导致关联的指令重复执行，直到计数寄存器递减到 0。参见<a href="#tbl-4-17">表 4-17</a>。</p>
+	<figure id="tbl-4-17">
+		<table>
+			<tr>
+				<th>重复前缀</th>
+				<th>终止条件 1*</th>
+				<th>终止条件 2</th>
+			</tr>
+			<tr>
+				<td>REP</td>
+				<td>RCX 或 (E)CX = 0</td>
+				<td>无</td>
+			</tr>
+			<tr>
+				<td>REPE/REPZ</td>
+				<td>RCX 或 (E)CX = 0</td>
+				<td>ZF = 0</td>
+			</tr>
+			<tr>
+				<td>REPNE/REPNZ</td>
+				<td>RCX 或 (E)CX = 0</td>
+				<td>ZF = 1</td>
+			</tr>
+		</table>
+		<figcaption>表 4-17. 重复前缀</figcaption>
+	</figure>
+	<blockquote>
+		<p>* 默认情况下计数寄存器是 CX、ECX 或 RCX，取决于操作模式的属性。</p>
+	</blockquote>
+	<p>REPE、REPNE、REPZ 和 REPNZ 前缀还在每次迭代后检查 ZF 标志的状态，并在 ZF 标志不在指定状态时终止重复循环。当测试两个终止条件时，可以通过使用 JECXZ 指令测试计数寄存器，或使用 JZ、JNZ 或 JNE 指令测试 ZF 标志，来确定重复终止的原因。</p>
+	<p>使用 REPE/REPZ 和 REPNE/REPNZ 前缀时，ZF 标志不需要初始化，因为 CMPS 和 SCAS 指令都会根据它们所做的比较结果来影响 ZF 标志。</p>
+	<p>重复字符串操作可以被异常或中断挂起。当发生这种情况时，寄存器的状态将被保留，以便在从异常或中断处理程序返回时可以恢复字符串操作。源和目标寄存器指向下一个要操作的字符串元素，EIP 寄存器指向字符串指令，而 ECX 寄存器保留其在指令上一次成功迭代后的值。此机制允许执行长字符串操作，而不会影响系统的中断响应时间。</p>
+	<p>当在带有 REPE 或 REPNE 前缀的 CMPS 或 SCAS 指令执行期间发生故障时，EFLAGS 值将恢复到该指令执行之前的状态。由于 SCAS 和 CMPS 指令不使用 EFLAGS 作为输入，处理器可以在缺页异常处理程序处理完成后恢复执行该指令。</p>
+	<p>请谨慎使用 REP INS 和 REP OUTS 指令。并非所有 I/O 端口都能处理这些指令的执行速率。请注意，REP STOS 指令是初始化大内存块的最快方法。</p>
+	<p>在 64 位模式下，计数寄存器的操作数大小与地址大小属性关联。因此，默认的计数寄存器是 RCX；REX.W 对地址大小和计数寄存器没有影响。在 64 位模式下，如果使用 67H 来覆盖地址大小属性，计数寄存器为 ECX，任何隐式的源/目标操作数都将使用相应的 32 位索引寄存器。有关编码数据和限制，请参阅本节开头的汇总表。</p>
+	<p>如果在执行写入操作时因异常或 VM 退出而导致写入无法完成（例如 #PF），则 REP INS 可能在未向内存位置写入数据的情况下从 I/O 端口读取。如果这会产生问题（例如因为 I/O 端口读取有副作用），则软件应确保向内存位置的写入操作不会引起异常或 VM 退出。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF AddressSize = 16
+    THEN
+            Use CX for CountReg;
+            Implicit Source/Dest operand for memory use of SI/DI;
+    ELSE IF AddressSize = 64
+            THEN Use RCX for CountReg;
+            Implicit Source/Dest operand for memory use of RSI/RDI;
+    ELSE
+            Use ECX for CountReg;
+            Implicit Source/Dest operand for memory use of ESI/EDI;
+FI;
+WHILE CountReg ≠ 0
+        DO
+                Service pending interrupts (if any);
+                Execute associated string instruction;
+                CountReg := (CountReg – 1);
+                IF CountReg = 0
+                    THEN exit WHILE loop; FI;
+                IF (Repeat prefix is REPZ or REPE) and (ZF = 0)
+                or (Repeat prefix is REPNZ or REPNE) and (ZF = 1)
+                    THEN exit WHILE loop; FI;
+        OD;
+</pre>
+
+	<h2 id="flags-affected">影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无；但是，CMPS 和 SCAS 指令确实会设置 EFLAGS 寄存器中的状态标志。</p>
+
+	<h2 id="exceptions--all-operating-modes-—">异常（所有工作模式）<a class="anchor" href="#exceptions--all-operating-modes-—">¶</a></h2>
+	<p>与该前缀相关联的指令可能会产生异常。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存地址是非规范形式。</td>
+		</tr>
+	</table>
+	<footer>
+		<p>
+			本非官方、机械拆分、未经校验的参考文档仅为方便提供，可能存在各种明显或不明显的缺失或错误。任何严肃用途请参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+
+</html>

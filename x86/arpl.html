@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>ARPL — 调整段选择子的 RPL 字段</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>ARPL — 调整段选择子的 RPL 字段</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>63 /r</td>
+			<td>ARPL r/m16, r16</td>
+			<td>MR</td>
+			<td>N. E.</td>
+			<td>Valid</td>
+			<td>调整 r/m16 的 RPL，使其不小于 r16 的 RPL。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>MR</td>
+			<td>ModRM:r/m (w)</td>
+			<td>ModRM:reg (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>比较两个段选择子的 RPL 字段。第一操作数（目标操作数）包含一个段选择子，第二操作数（源操作数）包含另一个。（RPL 字段位于每个操作数的第 0 和 1 位。）如果目标操作数的 RPL 字段小于源操作数的 RPL 字段，则设置 ZF 标志，并将目标操作数的 RPL 字段增加到与源操作数的 RPL 字段相匹配。否则，清除 ZF 标志，且不对目标操作数进行任何更改。（目标操作数可以是一个字寄存器或内存地址；源操作数必须是一个字寄存器。）</p>
+	<p>ARPL 指令供操作系统程序使用（不过，它也可以由应用程序使用）。它通常用于调整应用程序传递给操作系统的段选择子的 RPL，使其与应用程序的特权级相匹配。在此，传递给操作系统的段选择子被放置在目标操作数中，而应用程序代码段的段选择子被放置在源操作数中。（源操作数中的 RPL 字段代表应用程序的特权级。）执行 ARPL 指令可以确保操作系统接收到的段选择子的 RPL 不低于（即不具有更高的特权）应用程序的特权级（在过程调用后，可以从栈中读取应用程序代码段的段选择子）。</p>
+	<p>该指令在兼容模式和传统模式下的执行情况如上所述。在 64 位模式下无法编码。</p>
+	<p>有关使用该指令的更多信息，请参阅《Intel<sup>®</sup> 64 和 IA-32 架构软件开发人员手册》第 3A 卷第 3 章“保护模式内存管理”中的“检查调用者访问权限”。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF 64-BIT MODE
+    THEN
+        See MOVSXD;
+    ELSE
+        IF DEST[RPL] &lt; SRC[RPL]
+            THEN
+                ZF := 1;
+                DEST[RPL] := SRC[RPL];
+            ELSE
+                ZF := 0;
+        FI;
+FI;
+</pre>
+
+	<h2 id="flags-affected">影响的标志<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>如果目标操作数的 RPL 字段小于源操作数的 RPL 字段，则将 ZF 标志设置为 1；否则，将其设置为 0。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="3">#GP(0)</td>
+			<td>如果目标位于不可写段中。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数有效地址超出了 CS、DS、ES、FS 或 GS 段界限。</td>
+		</tr>
+		<tr>
+			<td>如果使用 DS、ES、FS 或 GS 寄存器访问内存，且它包含空段选择子。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数有效地址超出了 SS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>在实地址模式下无法识别 ARPL 指令。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>在虚拟-8086 模式下无法识别 ARPL 指令。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<p>不适用。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>
