@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>MASKMOVDQU — 存储双四字的选定字节</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>MASKMOVDQU — 存储双四字的选定字节</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64/32位模式</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>66 0F F7 /r MASKMOVDQU xmm1, xmm2</td>
+			<td>RM</td>
+			<td>有效/有效</td>
+			<td>SSE2</td>
+			<td>使用 xmm2 中的字节掩码，选择性地将字节从 xmm1 写入内存位置。默认内存位置由 DS:DI/EDI/RDI 指定。</td>
+		</tr>
+		<tr>
+			<td>VEX.128.66.0F.WIG F7 /r VMASKMOVDQU xmm1, xmm2</td>
+			<td>RM</td>
+			<td>有效/有效</td>
+			<td>AVX</td>
+			<td>使用 xmm2 中的字节掩码，选择性地将字节从 xmm1 写入内存位置。默认内存位置由 DS:DI/EDI/RDI 指定。</td>
+		</tr>
+	</table>
+	<blockquote>
+		<p>1. 需要 ModRM.MOD = 011B。</p>
+	</blockquote>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>RM</td>
+			<td>ModRM:reg (r)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将源操作数（第一个操作数）中的选定字节存储到 128 位内存位置中。掩码操作数（第二个操作数）选择将源操作数中的哪些字节写入内存。源和掩码操作数是 XMM 寄存器。内存位置由 DI/EDI/RDI 寄存器中的有效地址指定（默认段寄存器是 DS，但可以使用段超越前缀进行覆盖）。内存位置不需要对齐在自然边界上。（存储地址的大小取决于地址大小属性。）</p>
+	<p>掩码操作数中每个字节的最高有效位决定是否将源操作数中的对应字节写入内存中的对应字节位置：0 表示不写入，1 表示写入。</p>
+	<p>MASKMOVDQU 指令向处理器生成非临时提示，以最大限度地减少缓存污染。非临时提示是通过使用写合并 (WC) 内存类型协议来实现的（参见《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷第 10 章中的“临时与非临时数据的缓存”）。由于 WC 协议使用弱有序的内存一致性模型，如果多个处理器可能会使用不同的内存类型来读写目的内存位置，则应该将使用 SFENCE 或 MFENCE 指令实现的屏障操作与 MASKMOVDQU 指令结合使用。</p>
+	<p>掩码全为 0 时的行为如下：</p>
+	<ul>
+		<li>没有数据会被写入内存。</li>
+		<li>不保证断点（代码或数据）的触发；不同的处理器实现可能会触发或不触发这些断点。</li>
+		<li>与寻址内存相关的异常和缺页异常可能仍会触发（取决于具体实现）。</li>
+		<li>如果目的内存区域映射为 UC 或 WP，则不保证强制执行这些内存类型的相关语义（即保留），且与具体实现相关。</li>
+	</ul>
+	<p>MASKMOVDQU 指令可用于提高需要按字节合并数据的算法的性能。MASKMOVDQU 不应导致所有权读取；这样做会产生不必要的带宽，因为数据是使用字节掩码直接写入的，而在存储前无需分配旧数据。</p>
+	<p>在 64 位模式下，使用 REX.R 前缀允许此指令访问额外的寄存器 (XMM8-XMM15)。</p>
+	<p>注意：在 VEX 编码版本中，VEX.vvvv 是保留的，必须为 1111b，否则指令将产生 #UD 异常。</p>
+	<p>如果 VMASKMOVDQU 用 VEX.L= 1 编码，尝试执行用 VEX.L= 1 编码的指令将导致 #UD 异常。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF (MASK[7] = 1)
+    THEN DEST[DI/EDI] := SRC[7:0] ELSE (* Memory location unchanged *); FI;
+IF (MASK[15] = 1)
+    THEN DEST[DI/EDI +1] := SRC[15:8] ELSE (* Memory location unchanged *); FI;
+    (* Repeat operation for 3rd through 14th bytes in source operand *)
+IF (MASK[127] = 1)
+    THEN DEST[DI/EDI +15] := SRC[127:120] ELSE (* Memory location unchanged *); FI;
+</pre>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>void _mm_maskmoveu_si128(__m128i d, __m128i n, char * p)
+</pre>
+
+	<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+	<p>参见表 2-21，“Type 4 类异常条件”，此外：</p>
+	<table>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 VEX.L= 1</td>
+		</tr>
+		<tr>
+			<td>如果 VEX.vvvv ≠ 1111B。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

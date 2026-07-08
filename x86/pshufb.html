@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>PSHUFB — 打包字节置换</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>PSHUFB — 打包字节置换</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F 38 00 /r<sup>1</sup> PSHUFB mm1, mm2/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSSE3</td>
+				<td>根据 mm2/m64 的内容对 mm1 中的字节进行置换（Shuffle）。</td>
+			</tr>
+			<tr>
+				<td>66 0F 38 00 /r PSHUFB xmm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSSE3</td>
+				<td>根据 xmm2/m128 的内容对 xmm1 中的字节进行置换。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.WIG 00 /r VPSHUFB xmm1, xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>根据 xmm3/m128 的内容对 xmm2 中的字节进行置换。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.WIG 00 /r VPSHUFB ymm1, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>根据 ymm3/m256 的内容对 ymm2 中的字节进行置换。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.WIG 00 /r VPSHUFB xmm1 {k1}{z}, xmm2, xmm3/m128</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>在写掩码 k1 下，根据 xmm3/m128 的内容对 xmm2 中的字节进行置换。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.WIG 00 /r VPSHUFB ymm1 {k1}{z}, ymm2, ymm3/m256</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>在写掩码 k1 下，根据 ymm3/m256 的内容对 ymm2 中的字节进行置换。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.WIG 00 /r VPSHUFB zmm1 {k1}{z}, zmm2, zmm3/m512</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512BW</td>
+				<td>在写掩码 k1 下，根据 zmm3/m512 的内容对 zmm2 中的字节进行置换。</td>
+			</tr>
+		</table>
+		<blockquote>
+			<p>1. 请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 2A 卷第 2.5 节“Intel® AVX 和 Intel® SSE 指令异常分类”中的注释，以及《Intel® 64 和 IA-32 架构软件开发人员手册》第 3B 卷第 23.25.3 节“操作 MMX 寄存器的传统 SIMD 指令的异常条件”中的注释。</p>
+		</blockquote>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (r, w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>C</td>
+				<td>Full Mem</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>PSHUFB 根据源操作数（第二个操作数）中的置换控制掩码，对目的操作数（第一个操作数）中的字节进行就位置换。该指令对目的操作数中的数据进行排列，保持置换掩码不受影响。如果置换控制掩码每个字节的最高有效位（位 [7]）被设置，则在结果字节中写入常数零。置换控制掩码中的每个字节都形成一个索引，用于排列目的操作数中的对应字节。每个索引的值是置换控制字节的最低 4 位（128 位操作）或 3 位（64 位操作）。当源操作数是 128 位内存操作数时，操作数必须对齐到 16 字节边界，否则将产生通用保护异常 (#GP)。</p>
+		<p>在 64 位模式下且未采用 VEX/EVEX 编码时，使用 REX 前缀可以访问 XMM8-XMM15 寄存器。</p>
+		<p>传统 SSE 版本 64 位操作数：两个操作数都可以是 MMX 寄存器。</p>
+		<p>128位传统 SSE 版本：第一个源操作数与目的操作数相同。对应 YMM 目的寄存器的位（MAXVL-1:128）保持不变。</p>
+		<p>VEX.128 编码版本：目的操作数是第一个操作数，第一个源操作数是第二个操作数，第二个源操作数是第三个操作数。目的 YMM 寄存器的位（MAXVL-1:128）清零。</p>
+		<p>VEX.256 编码版本：目的 YMM 寄存器的位 (255:128) 存储使用第二个源操作数的高 16 字节作为控制掩码对第一个源操作数的高 16 字节进行 16 字节置换的结果。</p>
+		<p>高 128 位通道的每个索引值是对应置换控制字节的最低 4 位。索引值在每个 128 位通道内选择一个源数据元素。</p>
+		<p>EVEX 编码版本：第二个源操作数是 ZMM/YMM/XMM 寄存器或 512/256/128 位内存位置。第一个源操作数和目的操作数是 ZMM/YMM/XMM 寄存器。目的操作数在写掩码 k1 下条件性地更新。</p>
+		<p>EVEX 和 VEX 编码版本：四/两个通道内 128 位置换。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="pshufb--with-64-bit-operands-">PSHUFB（配合 64 位操作数）<a class="anchor" href="#pshufb--with-64-bit-operands-">¶</a></h3>
+		<pre>TEMP := DEST
+for i = 0 to 7 {
+    if (SRC[(i * 8)+7] = 1 ) then
+            DEST[(i*8)+7...(i*8)+0] := 0;
+    else
+            index[2..0] := SRC[(i*8)+2 .. (i*8)+0];
+            DEST[(i*8)+7...(i*8)+0] := TEMP[(index*8+7)..(index*8+0)];
+    endif;
+}
+PSHUFB (with 128 bit operands)
+TEMP := DEST
+for i = 0 to 15 {
+    if (SRC[(i * 8)+7] = 1 ) then
+            DEST[(i*8)+7..(i*8)+0] := 0;
+        else
+            index[3..0] := SRC[(i*8)+3 .. (i*8)+0];
+            DEST[(i*8)+7..(i*8)+0] := TEMP[(index*8+7)..(index*8+0)];
+    endif
+}
+</pre>
+		<h3 id="vpshufb--vex-128-encoded-version-">VPSHUFB（VEX.128 编码版本）<a class="anchor" href="#vpshufb--vex-128-encoded-version-">¶</a></h3>
+		<pre>for i = 0 to 15 {
+    if (SRC2[(i * 8)+7] = 1) then
+        DEST[(i*8)+7..(i*8)+0] := 0;
+        else
+        index[3..0] := SRC2[(i*8)+3 .. (i*8)+0];
+        DEST[(i*8)+7..(i*8)+0] := SRC1[(index*8+7)..(index*8+0)];
+    endif
+}
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vpshufb--vex-256-encoded-version-">VPSHUFB（VEX.256 编码版本）<a class="anchor" href="#vpshufb--vex-256-encoded-version-">¶</a></h3>
+		<pre>for i = 0 to 15 {
+    if (SRC2[(i * 8)+7] == 1 ) then
+        DEST[(i*8)+7..(i*8)+0] := 0;
+        else
+        index[3..0] := SRC2[(i*8)+3 .. (i*8)+0];
+        DEST[(i*8)+7..(i*8)+0] := SRC1[(index*8+7)..(index*8+0)];
+    endif
+    if (SRC2[128 + (i * 8)+7] == 1 ) then
+        DEST[128 + (i*8)+7..(i*8)+0] := 0;
+        else
+        index[3..0] := SRC2[128 + (i*8)+3 .. (i*8)+0];
+        DEST[128 + (i*8)+7..(i*8)+0] := SRC1[128 + (index*8+7)..(index*8+0)];
+    endif
+}
+</pre>
+		<h3 id="vpshufb--evex-encoded-versions-">VPSHUFB（EVEX 编码版本）<a class="anchor" href="#vpshufb--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (16, 128), (32, 256), (64, 512)
+jmask := (KL-1) &amp; ~0xF
+                // 0x00, 0x10, 0x30 depending on the VL
+FOR j = 0 TO KL-1
+                // dest
+    IF kl[ i ] or no_masking
+        index := src.byte[ j ];
+        IF index &amp; 0x80
+            Dest.byte[ j ] := 0;
+        ELSE
+            index := (index &amp; 0xF) + (j &amp; jmask);
+                // 16-element in-lane lookup
+            Dest.byte[ j ] := src.byte[ index ];
+    ELSE if zeroing
+        Dest.byte[ j ] := 0;
+DEST[MAXVL-1:VL] := 0;
+</pre>
+
+		<figure id="fig-4-15">
+			<svg style="width: 460.512pt; height: 202.896012pt" viewbox="107.06 0.0 388.76 174.08001000000002">
+				<g xmlns="http://www.w3.org/2000/svg" style="fill: none; stroke: none">
+					<rect height="168.12" style="fill: rgb(0%, 0%, 0%)" width="0.48" x="109.56" y="0.48000999999999294"></rect>
+					<rect height="168.12" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="492.84000000000003" y="0.48000999999999294"></rect>
+					<rect height="0.48001000000000005" style="fill: rgb(0%, 0%, 0%)" width="383.76" x="109.56" y="0.0"></rect>
+					<rect height="0.48001000000000005" style="fill: rgb(0%, 0%, 0%)" width="383.76" x="109.56" y="168.60000000000002"></rect>
+					<path d="M 481.372 31.46401000000003 L 118.531 31.46401000000003" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 481.372 56.40901000000002 L 118.531 56.40901000000002" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 209.238 31.465010000000007 L 209.238 56.41001" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 163.88299999999998 31.465010000000007 L 163.88299999999998 56.41001" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 481.371 31.465010000000007 L 481.371 56.41001" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 436.015 31.465010000000007 L 436.015 56.41001" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 254.594 31.465010000000007 L 254.594 56.41001" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 299.95 31.465010000000007 L 299.95 56.41001" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 345.305 31.465010000000007 L 345.305 56.41001" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 390.661 31.465010000000007 L 390.661 56.41001" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 118.529 31.465010000000007 L 118.529 56.41001" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 481.374 71.15001000000001 L 118.53300000000002 71.15001000000001" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 481.374 96.09501 L 118.53300000000002 96.09501" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 209.24 71.15100999999999 L 209.24 96.09600999999998" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 163.885 71.15100999999999 L 163.885 96.09600999999998" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 481.373 71.15100999999999 L 481.373 96.09600999999998" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 436.017 71.15100999999999 L 436.017 96.09600999999998" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 254.596 71.15100999999999 L 254.596 96.09600999999998" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 299.952 71.15100999999999 L 299.952 96.09600999999998" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 345.307 71.15100999999999 L 345.307 96.09600999999998" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 390.663 71.15100999999999 L 390.663 96.09600999999998" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 118.531 71.15100999999999 L 118.531 96.09600999999998" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 481.37600000000003 124.44200999999998 L 118.53500000000003 124.44200999999998" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 481.37600000000003 149.38801 L 118.53500000000003 149.38801" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 209.24200000000002 124.44301000000002 L 209.24200000000002 149.38801" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 163.887 124.44301000000002 L 163.887 149.38801" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 481.375 124.44301000000002 L 481.375 149.38801" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 436.019 124.44301000000002 L 436.019 149.38801" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 254.598 124.44301000000002 L 254.598 149.38801" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 299.954 124.44301000000002 L 299.954 149.38801" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 345.309 124.44301000000002 L 345.309 149.38801" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 390.665 124.44301000000002 L 390.665 149.38801" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 118.53300000000002 124.44301000000002 L 118.53300000000002 149.38801" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 413.339 96.09401000000003 L 335.647 121.65001000000001" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 336.57800000000003 124.47701 L 327.16700000000003 124.43901 L 334.718 118.82201000000003 L 336.57800000000003 124.47701" style="fill: rgb(0%, 0%, 0%); fill-rule: evenodd"></path>
+					<path d="M 431.315 118.90901000000002 L 431.539 118.72501 L 458.692 96.10001 L 374.786 124.44501000000002" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 433.427 121.02600999999999 L 424.639 124.39301 L 429.648 116.42701 L 433.427 121.02600999999999" style="fill: rgb(0%, 0%, 0%); fill-rule: evenodd"></path>
+					<path d="M 458.695 124.44400999999999 L 457.413 97.16901000000001" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 404.169 114.51701000000003 L 385.115 120.95401000000004" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 386.068 123.77401000000003 L 376.657 123.81201000000004 L 384.162 118.13501000000002 L 386.068 123.77401000000003" style="fill: rgb(0%, 0%, 0%); fill-rule: evenodd"></path>
+					<path d="M 458.053 110.84101000000004 L 458.45 121.62501000000003" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 460.656 121.54401000000001 L 458.692 128.24501000000004 L 456.242 121.70600999999999 L 460.656 121.54401000000001" style="fill: rgb(0%, 0%, 0%); fill-rule: evenodd"></path>
+					<path d="M 182.023 124.44501000000002 L 141.206 96.10001 L 141.206 115.51701000000003" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 144.18200000000002 115.51701000000003 L 141.20600000000002 124.44501000000002 L 138.23000000000002 115.51701000000003 L 144.18200000000002 115.51701000000003" style="fill: rgb(0%, 0%, 0%); fill-rule: evenodd"></path>
+					<path d="M 169.093 115.46601000000004 L 178.584 121.07301000000007" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 179.708 119.17301000000003 L 184.288 124.44401000000005 L 177.462 122.97501000000005 L 179.708 119.17301000000003" style="fill: rgb(0%, 0%, 0%); fill-rule: evenodd"></path>
+					<path d="M 118.528 159.59501 L 121.92800000000001 159.59501" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 120.736 157.38701000000003 L 118.528 159.59501000000006 L 120.736 161.80301000000003" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 481.372 161.86101000000002 L 478.54 161.86101000000002" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 479.164 164.06901 L 481.372 161.86100999999996 L 479.164 159.65301" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 118.528 23.529010000000028 L 121.92800000000001 23.529010000000028" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 120.736 21.32101 L 118.528 23.529010000000028 L 120.736 25.737009999999998" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="16.86740279999998" x="148.4410266" y="25.925919399999998">SRC</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="119.70278269999997" x="182.52104340000002" y="26.466111000000012">X7 X6 X5 X4</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="120.42117359999986" x="326.22" y="26.466111000000012">X3 X2 X1 X0</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="21.32638079999998" x="144.001227" y="54.84614750000003">DEST</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="119.70278269999997" x="181.9211109" y="56.40611100000001">Y7 Y6 Y5 Y4</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="120.36044199999986" x="325.68" y="56.40611100000001">Y3 Y2 Y1 Y0</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="22.194203399999992" x="143.1014404" y="85.80567880000004">TEMP</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 6.695999999999998pt; fill: #000" textlength="69.08040000000011" x="170.76000000000002" y="84.4260099999999">ABS(X7:Y7) ABS(X6:Y6)</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 6.695999999999998pt; fill: #000" textlength="69.08579999999989" x="243.36240000000015" y="84.4260099999999">ABS(X5:Y5) ABS(X4:Y4)</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 6.695999999999998pt; fill: #000" textlength="140.70840000000015" x="316.51020000000005" y="84.4260099999999">ABS(X3:Y3) ABS(X2:Y2) ABS(X1:Y1) ABS(X0:Y0)</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="21.32638079999998" x="144.0" y="117.486111">DEST</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="124.56690440000003" x="181.38104339999998" y="119.046111">00H 00H 00H 00H</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="52.38420140000011" x="325.08" y="119.046111">00H 00H</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 6.695999999999998pt; fill: #000" textlength="62.27580000000006" x="391.32" y="117.00600999999997">SUM(TEMP7...TEMP0)</text>
+				</g>
+			</svg>
+			<figcaption><a href='pshufb.html#fig-4-15'>图 4-15</a>. 使用 64 位操作数时的 PSHUFB 操作</figcaption>
+		</figure>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VPSHUFB __m512i _mm512_shuffle_epi8(__m512i a, __m512i b);</pre>
+		<pre>VPSHUFB __m512i _mm512_mask_shuffle_epi8(__m512i s, __mmask64 k, __m512i a, __m512i b);</pre>
+		<pre>VPSHUFB __m512i _mm512_maskz_shuffle_epi8( __mmask64 k, __m512i a, __m512i b);</pre>
+		<pre>VPSHUFB __m256i _mm256_mask_shuffle_epi8(__m256i s, __mmask32 k, __m256i a, __m256i b);</pre>
+		<pre>VPSHUFB __m256i _mm256_maskz_shuffle_epi8( __mmask32 k, __m256i a, __m256i b);</pre>
+		<pre>VPSHUFB __m128i _mm_mask_shuffle_epi8(__m128i s, __mmask16 k, __m128i a, __m128i b);</pre>
+		<pre>VPSHUFB __m128i _mm_maskz_shuffle_epi8( __mmask16 k, __m128i a, __m128i b);</pre>
+		<pre>PSHUFB: __m64 _mm_shuffle_pi8 (__m64 a, __m64 b)</pre>
+		<pre>(V)PSHUFB: __m128i _mm_shuffle_epi8 (__m128i a, __m128i b)</pre>
+		<pre>VPSHUFB:__m256i _mm256_shuffle_epi8(__m256i a, __m256i b)</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>非 EVEX 编码指令，请参阅表 2-21，“第 4 类异常条件”。</p>
+		<p>EVEX 编码指令，请参阅表 2-50，“第 E4NF 类异常条件”中的异常类型 E4NF.nb。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

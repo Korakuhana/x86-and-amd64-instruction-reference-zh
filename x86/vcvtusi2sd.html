@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VCVTUSI2SD — 将无符号整数转换为标量双精度浮点值</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VCVTUSI2SD — 将无符号整数转换为标量双精度浮点值</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.LLIG.F2.0F.W0 7B /r VCVTUSI2SD xmm1, xmm2, r/m32</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>将 r/m32 中的一个无符号双字整数转换为 xmm1 中的一个双精度浮点值。</td>
+			</tr>
+			<tr>
+				<td>EVEX.LLIG.F2.0F.W1 7B /r VCVTUSI2SD xmm1, xmm2, r/m64{er}</td>
+				<td>A</td>
+				<td>V/N.E.<sup>1</sup></td>
+				<td>AVX512F</td>
+				<td>将 r/m64 中的一个无符号四字整数转换为 xmm1 中的一个双精度浮点值。</td>
+			</tr>
+		</table>
+		<blockquote>
+			<p>1. 对于该特定指令，非 64 位模式下的 EVEX.W 被忽略；该指令的行为类似于使用 W0 版本。</p>
+		</blockquote>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Tuple1 Scalar</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将第二个源操作数中的无符号双字整数（如果操作数大小为 64 位，则为无符号四字整数）转换为目的操作数中的双精度浮点值。结果存储在目的操作数的低四字中。当转换不精确时，返回的值根据 MXCSR 寄存器中的舍入控制位进行舍入。</p>
+		<p>第二个源操作数可以是个通用寄存器或 32/64 位内存位置。第一源操作数和目的操作数是 XMM 寄存器。目的 XMM 寄存器的高位（127:64）复制自第一源操作数的对应位。目的寄存器的高位（MAXVL-1:128）清零。</p>
+		<p>EVEX.W1 版本：在 64 位模式下将指令提升为使用 64 位输入值。</p>
+		<p>EVEX.W0 版本：尝试使用 EVEX 嵌入式舍入对该指令进行编码的操作将被忽略。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vcvtusi2sd--evex-encoded-version-">VCVTUSI2SD（EVEX 编码版本）<a class="anchor" href="#vcvtusi2sd--evex-encoded-version-">¶</a></h3>
+		<pre>IF (SRC2 *is register*) AND (EVEX.b = 1)
+    THEN
+        SET_ROUNDING_MODE_FOR_THIS_INSTRUCTION(EVEX.RC);
+    ELSE
+        SET_ROUNDING_MODE_FOR_THIS_INSTRUCTION(MXCSR.RC);
+FI;
+IF 64-Bit Mode And OperandSize = 64
+THEN
+    DEST[63:0] := Convert_UInteger_To_Double_Precision_Floating_Point(SRC2[63:0]);
+ELSE
+    DEST[63:0] := Convert_UInteger_To_Double_Precision_Floating_Point(SRC2[31:0]);
+FI;
+DEST[127:64] := SRC1[127:64]
+DEST[MAXVL-1:128] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VCVTUSI2SD __m128d _mm_cvtu32_sd( __m128d s, unsigned a);
+</pre>
+		<pre>VCVTUSI2SD __m128d _mm_cvtu64_sd( __m128d s, unsigned __int64 a);
+</pre>
+		<pre>VCVTUSI2SD __m128d _mm_cvt_roundu64_sd( __m128d s, unsigned __int64 a, int r);
+</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>精度。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>如果是 W1，请参阅表 2-48，“第 E3NF 类异常条件”；否则，请参阅表 2-59，“第 E10NF 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

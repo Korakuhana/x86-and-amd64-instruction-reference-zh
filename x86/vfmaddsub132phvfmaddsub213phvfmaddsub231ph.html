@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VFMADDSUB132PH/VFMADDSUB213PH/VFMADDSUB231PH — 打包 FP16 值融合乘-交替加/减</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VFMADDSUB132PH/VFMADDSUB213PH/VFMADDSUB231PH — 打包 FP16 值融合乘-交替加/减</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.MAP6.W0 96 /r VFMADDSUB132PH xmm1{k1}{z}, xmm2, xmm3/m128/m16bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512-FP16 AVX512VL</td>
+				<td>将 xmm1 和 xmm3/m128/m16bcst 中的打包 FP16 值相乘，与 xmm2 中的元素进行交替加/减，并将结果存储在 xmm1 中（受写掩码 k1 约束）。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.MAP6.W0 96 /r VFMADDSUB132PH ymm1{k1}{z}, ymm2, ymm3/m256/m16bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512-FP16 AVX512VL</td>
+				<td>将 ymm1 和 ymm3/m256/m16bcst 中的打包 FP16 值相乘，与 ymm2 中的元素进行交替加/减，并将结果存储在 ymm1 中（受写掩码 k1 约束）。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.MAP6.W0 96 /r VFMADDSUB132PH zmm1{k1}{z}, zmm2, zmm3/m512/m16bcst {er}</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512-FP16</td>
+				<td>将 zmm1 和 zmm3/m512/m16bcst 中的打包 FP16 值相乘，与 zmm2 中的元素进行交替加/减，并将结果存储在 zmm1 中（受写掩码 k1 约束）。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.MAP6.W0 A6 /r VFMADDSUB213PH xmm1{k1}{z}, xmm2, xmm3/m128/m16bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512-FP16 AVX512VL</td>
+				<td>将 xmm1 和 xmm2 中的打包 FP16 值相乘，与 xmm3/m128/m16bcst 中的元素进行交替加/减，并将结果存储在 xmm1 中（受写掩码 k1 约束）。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.MAP6.W0 A6 /r VFMADDSUB213PH ymm1{k1}{z}, ymm2, ymm3/m256/m16bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512-FP16 AVX512VL</td>
+				<td>将 ymm1 和 ymm2 中的打包 FP16 值相乘，与 ymm3/m256/m16bcst 中的元素进行交替加/减，并将结果存储在 ymm1 中（受写掩码 k1 约束）。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.MAP6.W0 A6 /r VFMADDSUB213PH zmm1{k1}{z}, zmm2, zmm3/m512/m16bcst {er}</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512-FP16</td>
+				<td>将 zmm1 和 zmm2 中的打包 FP16 值相乘，与 zmm3/m512/m16bcst 中的元素进行交替加/减，并将结果存储在 zmm1 中（受写掩码 k1 约束）。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.MAP6.W0 B6 /r VFMADDSUB231PH xmm1{k1}{z}, xmm2, xmm3/m128/m16bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512-FP16 AVX512VL</td>
+				<td>将 xmm2 和 xmm3/m128/m16bcst 中的打包 FP16 值相乘，与 xmm1 中的元素进行交替加/减，并将结果存储在 xmm1 中（受写掩码 k1 约束）。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.MAP6.W0 B6 /r VFMADDSUB231PH ymm1{k1}{z}, ymm2, ymm3/m256/m16bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512-FP16 AVX512VL</td>
+				<td>将 ymm2 和 ymm3/m256/m16bcst 中的打包 FP16 值相乘，与 ymm1 中的元素进行交替加/减，并将结果存储在 ymm1 中（受写掩码 k1 约束）。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.MAP6.W0 B6 /r VFMADDSUB231PH zmm1{k1}{z}, zmm2, zmm3/m512/m16bcst {er}</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512-FP16</td>
+				<td>将 zmm2 和 zmm3/m512/m16bcst 中的打包 FP16 值相乘，与 zmm1 中的元素进行交替加/减，并将结果存储在 zmm1 中（受写掩码 k1 约束）。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Full</td>
+				<td>ModRM:reg (r, w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>此指令使用三个源操作数对 FP16 值执行打包乘加（奇数元素）或乘减（偶数元素）计算，并将结果写入目的操作数。目的操作数也是第一个源操作数。记号“132”、“213”和“231”表示操作数在 A * B ± C 中的使用方式，其中每个数字对应操作数编号，目的操作数为操作数 1；请参阅 <a href='vfmsubadd132phvfmsubadd213phvfmsubadd231ph.html#tbl-5-8'>Table 5-8</a>。</p>
+		<p>目的元素根据写掩码被更新。</p>
+		<figure id="tbl-5-5">
+			<table>
+				<tr>
+					<th>记号</th>
+					<th>奇数元素</th>
+					<th>偶数元素</th>
+				</tr>
+				<tr>
+					<td>132</td>
+					<td>dest = dest*src3+src2</td>
+					<td>dest = dest*src3-src2</td>
+				</tr>
+				<tr>
+					<td>231</td>
+					<td>dest = src2*src3+dest</td>
+					<td>dest = src2*src3-dest</td>
+				</tr>
+				<tr>
+					<td>213</td>
+					<td>dest = src2*dest+src3</td>
+					<td>dest = src2*dest-src3</td>
+				</tr>
+			</table>
+			<figcaption><a href='vfmaddsub132phvfmaddsub213phvfmaddsub231ph.html#tbl-5-5'>表 5-5</a>. VFMADDSUB[132,213,231]PH 奇数和偶数元素的记号</figcaption>
+		</figure>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vfmaddsub132ph-dest--src2--src3--evex-encoded-versions--when-src3-operand-is-a-register">VFMADDSUB132PH DEST, SRC2, SRC3 (EVEX 编码版本) 当 src3 操作数为寄存器时<a class="anchor" href="#vfmaddsub132ph-dest--src2--src3--evex-encoded-versions--when-src3-operand-is-a-register">¶</a></h3>
+		<pre>VL = 128, 256 or 512
+KL := VL/16
+IF (VL = 512) AND (EVEX.b = 1):
+    SET_RM(EVEX.RC)
+ELSE
+    SET_RM(MXCSR.RC)
+FOR j := 0 TO KL-1:
+    IF k1[j] OR *no writemask*:
+        IF *j is even*:
+            DEST.fp16[j] := RoundFPControl(DEST.fp16[j] * SRC3.fp16[j] - SRC2.fp16[j])
+        ELSE:
+            DEST.fp16[j] := RoundFPControl(DEST.fp16[j] * SRC3.fp16[j] + SRC2.fp16[j])
+    ELSE IF *zeroing*:
+        DEST.fp16[j] := 0
+// else dest.fp16[j] remains unchanged
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vfmaddsub132ph-dest--src2--src3--evex-encoded-versions--when-src3-operand-is-a-memory-source">VFMADDSUB132PH DEST, SRC2, SRC3 (EVEX 编码版本) 当 src3 操作数为内存数据源时<a class="anchor" href="#vfmaddsub132ph-dest--src2--src3--evex-encoded-versions--when-src3-operand-is-a-memory-source">¶</a></h3>
+		<pre>VL = 128, 256 or 512
+KL := VL/16
+FOR j := 0 TO KL-1:
+    IF k1[j] OR *no writemask*:
+        IF EVEX.b = 1:
+            t3 := SRC3.fp16[0]
+        ELSE:
+            t3 := SRC3.fp16[j]
+        IF *j is even*:
+            DEST.fp16[j] := RoundFPControl(DEST.fp16[j] * t3 - SRC2.fp16[j])
+        ELSE:
+            DEST.fp16[j] := RoundFPControl(DEST.fp16[j] * t3 + SRC2.fp16[j])
+    ELSE IF *zeroing*:
+        DEST.fp16[j] := 0
+    // else dest.fp16[j] remains unchanged
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vfmaddsub213ph-dest--src2--src3--evex-encoded-versions--when-src3-operand-is-a-register">VFMADDSUB213PH DEST, SRC2, SRC3 (EVEX 编码版本) 当 src3 操作数为寄存器时<a class="anchor" href="#vfmaddsub213ph-dest--src2--src3--evex-encoded-versions--when-src3-operand-is-a-register">¶</a></h3>
+		<pre>VL = 128, 256 or 512
+KL := VL/16
+IF (VL = 512) AND (EVEX.b = 1):
+    SET_RM(EVEX.RC)
+ELSE
+    SET_RM(MXCSR.RC)
+FOR j := 0 TO KL-1:
+    IF k1[j] OR *no writemask*:
+        IF *j is even*:
+            DEST.fp16[j] := RoundFPControl(SRC2.fp16[j]*DEST.fp16[j] - SRC3.fp16[j])
+        ELSE
+            DEST.fp16[j] := RoundFPControl(SRC2.fp16[j]*DEST.fp16[j] + SRC3.fp16[j])
+    ELSE IF *zeroing*:
+        DEST.fp16[j] := 0
+    // else dest.fp16[j] remains unchanged
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vfmaddsub213ph-dest--src2--src3--evex-encoded-versions--when-src3-operand-is-a-memory-source">VFMADDSUB213PH DEST, SRC2, SRC3 (EVEX 编码版本) 当 src3 操作数为内存数据源时<a class="anchor" href="#vfmaddsub213ph-dest--src2--src3--evex-encoded-versions--when-src3-operand-is-a-memory-source">¶</a></h3>
+		<pre>VL = 128, 256 or 512
+KL := VL/16
+FOR j := 0 TO KL-1:
+    IF k1[j] OR *no writemask*:
+        IF EVEX.b = 1:
+            t3 := SRC3.fp16[0]
+        ELSE:
+            t3 := SRC3.fp16[j]
+        IF *j is even*:
+            DEST.fp16[j] := RoundFPControl(SRC2.fp16[j] * DEST.fp16[j] - t3)
+        ELSE:
+            DEST.fp16[j] := RoundFPControl(SRC2.fp16[j] * DEST.fp16[j] + t3)
+    ELSE IF *zeroing*:
+        DEST.fp16[j] := 0
+    // else dest.fp16[j] remains unchanged
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vfmaddsub231ph-dest--src2--src3--evex-encoded-versions--when-src3-operand-is-a-register">VFMADDSUB231PH DEST, SRC2, SRC3 (EVEX 编码版本) 当 src3 操作数为寄存器时<a class="anchor" href="#vfmaddsub231ph-dest--src2--src3--evex-encoded-versions--when-src3-operand-is-a-register">¶</a></h3>
+		<pre>VL = 128, 256 or 512
+KL := VL/16
+IF (VL = 512) AND (EVEX.b = 1):
+    SET_RM(EVEX.RC)
+ELSE
+    SET_RM(MXCSR.RC)
+FOR j := 0 TO KL-1:
+    IF k1[j] OR *no writemask*:
+        IF *j is even*:
+            DEST.fp16[j] := RoundFPControl(SRC2.fp16[j] * SRC3.fp16[j] - DEST.fp16[j])
+        ELSE:
+            DEST.fp16[j] := RoundFPControl(SRC2.fp16[j] * SRC3.fp16[j] + DEST.fp16[j])
+    ELSE IF *zeroing*:
+        DEST.fp16[j] := 0
+    // else dest.fp16[j] remains unchanged
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vfmaddsub231ph-dest--src2--src3--evex-encoded-versions--when-src3-operand-is-a-memory-source">VFMADDSUB231PH DEST, SRC2, SRC3 (EVEX 编码版本) 当 src3 操作数为内存数据源时<a class="anchor" href="#vfmaddsub231ph-dest--src2--src3--evex-encoded-versions--when-src3-operand-is-a-memory-source">¶</a></h3>
+		<pre>VL = 128, 256 or 512
+KL := VL/16
+FOR j := 0 TO KL-1:
+    IF k1[j] OR *no writemask*:
+        IF EVEX.b = 1:
+            t3 := SRC3.fp16[0]
+        ELSE:
+            t3 := SRC3.fp16[j]
+        IF *j is even*:
+            DEST.fp16[j] := RoundFPControl(SRC2.fp16[j] * t3 - DEST.fp16[j])
+        ELSE:
+            DEST.fp16[j] := RoundFPControl(SRC2.fp16[j] * t3 + DEST.fp16[j])
+    ELSE IF *zeroing*:
+        DEST.fp16[j] := 0
+    // else dest.fp16[j] remains unchanged
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VFMADDSUB132PH, VFMADDSUB213PH, and VFMADDSUB231PH: __m128h _mm_fmaddsub_ph (__m128h a, __m128h b, __m128h c);
+</pre>
+		<pre>__m128h _mm_mask_fmaddsub_ph (__m128h a, __mmask8 k, __m128h b, __m128h c);
+</pre>
+		<pre>__m128h _mm_mask3_fmaddsub_ph (__m128h a, __m128h b, __m128h c, __mmask8 k);
+</pre>
+		<pre>__m128h _mm_maskz_fmaddsub_ph (__mmask8 k, __m128h a, __m128h b, __m128h c);
+</pre>
+		<pre>__m256h _mm256_fmaddsub_ph (__m256h a, __m256h b, __m256h c);
+</pre>
+		<pre>__m256h _mm256_mask_fmaddsub_ph (__m256h a, __mmask16 k, __m256h b, __m256h c);
+</pre>
+		<pre>__m256h _mm256_mask3_fmaddsub_ph (__m256h a, __m256h b, __m256h c, __mmask16 k);
+</pre>
+		<pre>__m256h _mm256_maskz_fmaddsub_ph (__mmask16 k, __m256h a, __m256h b, __m256h c);
+</pre>
+		<pre>__m512h _mm512_fmaddsub_ph (__m512h a, __m512h b, __m512h c);
+</pre>
+		<pre>__m512h _mm512_mask_fmaddsub_ph (__m512h a, __mmask32 k, __m512h b, __m512h c);
+</pre>
+		<pre>__m512h _mm512_mask3_fmaddsub_ph (__m512h a, __m512h b, __m512h c, __mmask32 k);
+</pre>
+		<pre>__m512h _mm512_maskz_fmaddsub_ph (__mmask32 k, __m512h a, __m512h b, __m512h c);
+</pre>
+		<pre>__m512h _mm512_fmaddsub_round_ph (__m512h a, __m512h b, __m512h c, const int rounding);
+</pre>
+		<pre>__m512h _mm512_mask_fmaddsub_round_ph (__m512h a, __mmask32 k, __m512h b, __m512h c, const int rounding);
+</pre>
+		<pre>__m512h _mm512_mask3_fmaddsub_round_ph (__m512h a, __m512h b, __m512h c, __mmask32 k, const int rounding);
+</pre>
+		<pre>__m512h _mm512_maskz_fmaddsub_round_ph (__mmask32 k, __m512h a, __m512h b, __m512h c, const int rounding);
+</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无效，下溢，溢出，精度，非正规。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>EVEX 编码的指令，请参阅表 2-46，“第 E2 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

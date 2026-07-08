@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>KMOVW/KMOVB/KMOVQ/KMOVD — 在掩码寄存器之间传送数据</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>KMOVW/KMOVB/KMOVQ/KMOVD — 在掩码寄存器之间传送数据</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>VEX.L0.0F.W0 90 /r KMOVW k1, k2/m16</td>
+			<td>RM</td>
+			<td>V/V</td>
+			<td>AVX512F</td>
+			<td>从 k2/m16 传送 16 位掩码，并将结果存储在 k1。</td>
+		</tr>
+		<tr>
+			<td>VEX.L0.66.0F.W0 90 /r KMOVB k1, k2/m8</td>
+			<td>RM</td>
+			<td>V/V</td>
+			<td>AVX512DQ</td>
+			<td>从 k2/m8 传送 8 位掩码，并将结果存储在 k1。</td>
+		</tr>
+		<tr>
+			<td>VEX.L0.0F.W1 90 /r KMOVQ k1, k2/m64</td>
+			<td>RM</td>
+			<td>V/V</td>
+			<td>AVX512BW</td>
+			<td>从 k2/m64 传送 64 位掩码，并将结果存储在 k1。</td>
+		</tr>
+		<tr>
+			<td>VEX.L0.66.0F.W1 90 /r KMOVD k1, k2/m32</td>
+			<td>RM</td>
+			<td>V/V</td>
+			<td>AVX512BW</td>
+			<td>从 k2/m32 传送 32 位掩码，并将结果存储在 k1。</td>
+		</tr>
+		<tr>
+			<td>VEX.L0.0F.W0 91 /r KMOVW m16, k1</td>
+			<td>MR</td>
+			<td>V/V</td>
+			<td>AVX512F</td>
+			<td>从 k1 传送 16 位掩码，并将结果存储在 m16。</td>
+		</tr>
+		<tr>
+			<td>VEX.L0.66.0F.W0 91 /r KMOVB m8, k1</td>
+			<td>MR</td>
+			<td>V/V</td>
+			<td>AVX512DQ</td>
+			<td>从 k1 传送 8 位掩码，并将结果存储在 m8。</td>
+		</tr>
+		<tr>
+			<td>VEX.L0.0F.W1 91 /r KMOVQ m64, k1</td>
+			<td>MR</td>
+			<td>V/V</td>
+			<td>AVX512BW</td>
+			<td>从 k1 传送 64 位掩码，并将结果存储在 m64。</td>
+		</tr>
+		<tr>
+			<td>VEX.L0.66.0F.W1 91 /r KMOVD m32, k1</td>
+			<td>MR</td>
+			<td>V/V</td>
+			<td>AVX512BW</td>
+			<td>从 k1 传送 32 位掩码，并将结果存储在 m32。</td>
+		</tr>
+		<tr>
+			<td>VEX.L0.0F.W0 92 /r KMOVW k1, r32</td>
+			<td>RR</td>
+			<td>V/V</td>
+			<td>AVX512F</td>
+			<td>将 16 位掩码从 r32 传送到 k1。</td>
+		</tr>
+		<tr>
+			<td>VEX.L0.66.0F.W0 92 /r KMOVB k1, r32</td>
+			<td>RR</td>
+			<td>V/V</td>
+			<td>AVX512DQ</td>
+			<td>将 8 位掩码从 r32 传送到 k1。</td>
+		</tr>
+		<tr>
+			<td>VEX.L0.F2.0F.W1 92 /r KMOVQ k1, r64</td>
+			<td>RR</td>
+			<td>V/I</td>
+			<td>AVX512BW</td>
+			<td>将 64 位掩码从 r64 传送到 k1。</td>
+		</tr>
+		<tr>
+			<td>VEX.L0.F2.0F.W0 92 /r KMOVD k1, r32</td>
+			<td>RR</td>
+			<td>V/V</td>
+			<td>AVX512BW</td>
+			<td>将 32 位掩码从 r32 传送到 k1。</td>
+		</tr>
+		<tr>
+			<td>VEX.L0.0F.W0 93 /r KMOVW r32, k1</td>
+			<td>RR</td>
+			<td>V/V</td>
+			<td>AVX512F</td>
+			<td>将 16 位掩码从 k1 传送到 r32。</td>
+		</tr>
+		<tr>
+			<td>VEX.L0.66.0F.W0 93 /r KMOVB r32, k1</td>
+			<td>RR</td>
+			<td>V/V</td>
+			<td>AVX512DQ</td>
+			<td>将 8 位掩码从 k1 传送到 r32。</td>
+		</tr>
+		<tr>
+			<td>VEX.L0.F2.0F.W1 93 /r KMOVQ r64, k1</td>
+			<td>RR</td>
+			<td>V/I</td>
+			<td>AVX512BW</td>
+			<td>将 64 位掩码从 k1 传送到 r64。</td>
+		</tr>
+		<tr>
+			<td>VEX.L0.F2.0F.W0 93 /r KMOVD r32, k1</td>
+			<td>RR</td>
+			<td>V/V</td>
+			<td>AVX512BW</td>
+			<td>将 32 位掩码从 k1 传送到 r32。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+		</tr>
+		<tr>
+			<td>RM</td>
+			<td>ModRM:reg (w)</td>
+			<td>ModRM:r/m (r)</td>
+		</tr>
+		<tr>
+			<td>MR</td>
+			<td>ModRM:r/m (w, ModRM:[7:6] 不能为 11b)</td>
+			<td>ModRM:reg (r)</td>
+		</tr>
+		<tr>
+			<td>RR</td>
+			<td>ModRM:reg (w)</td>
+			<td>ModRM:r/m (r, ModRM:[7:6] 必须是 11b)</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将值从源操作数（第二个操作数）复制到目的操作数（第一个操作数）。源操作数和目的操作数可以是掩码寄存器、内存位置或通用寄存器。此指令不能用于在通用寄存器之间或内存位置之间传送数据。</p>
+	<p>当传送到掩码寄存器时，结果将被零扩展到 MAX_KL 大小（即当前为 64 位）。当传送到通用寄存器 (GPR) 时，结果将被零扩展到目的操作数的大小。在 32 位模式下，默认的 GPR 目的寄存器大小为 32 位。在 64 位模式下，默认 of GPR 目的寄存器大小为 64 位。请注意，VEX.W 仅能用于在 64 位模式下修改 GPR 操作数的大小。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<h3 id="kmovw">KMOVW<a class="anchor" href="#kmovw">¶</a></h3>
+	<pre>IF *destination is a memory location*
+    DEST[15:0] := SRC[15:0]
+IF *destination is a mask register or a GPR *
+    DEST := ZeroExtension(SRC[15:0])
+</pre>
+
+	<h3 id="kmovb">KMOVB<a class="anchor" href="#kmovb">¶</a></h3>
+	<pre>IF *destination is a memory location*
+    DEST[7:0] := SRC[7:0]
+IF *destination is a mask register or a GPR *
+    DEST := ZeroExtension(SRC[7:0])
+</pre>
+
+	<h3 id="kmovq">KMOVQ<a class="anchor" href="#kmovq">¶</a></h3>
+	<pre>IF *destination is a memory location or a GPR*
+    DEST[63:0] := SRC[63:0]
+IF *destination is a mask register*
+    DEST := ZeroExtension(SRC[63:0])
+</pre>
+
+	<h3 id="kmovd">KMOVD<a class="anchor" href="#kmovd">¶</a></h3>
+	<pre>IF *destination is a memory location*
+    DEST[31:0] := SRC[31:0]
+IF *destination is a mask register or a GPR *
+    DEST := ZeroExtension(SRC[31:0])
+</pre>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>KMOVW __mmask16 _mm512_kmov(__mmask16 a);
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+	<p>具有 RR 操作数编码的指令，参见表 2-63，“TYPE K20 异常定义（无内存参数的 VEX 编码 OpMask 指令）”。</p>
+	<p>具有 RM 或 MR 操作数编码的指令，参见表 2-64，“TYPE K21 异常定义（对内存寻址的 VEX 编码 OpMask 指令）”。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

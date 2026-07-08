@@ -1,116 +1,119 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
-<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<link rel="stylesheet" type="text/css" href="../style.css">
-	<title>WBINVD — 写回并使高速缓存无效</title>
-</head>
-<body>
-	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
-	<h1>WBINVD — 写回并使高速缓存无效</h1>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>WBINVD — 写回并使缓存无效</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>WBINVD — 写回并使缓存无效</h1>
 
-	<table>
-		<tr>
-			<th>操作码</th>
-			<th>指令</th>
-			<th>Op/En</th>
-			<th>64位模式</th>
-			<th>兼容/传统模式</th>
-			<th>描述</th>
-		</tr>
-		<tr>
-			<td>0F 09</td>
-			<td>WBINVD</td>
-			<td>ZO</td>
-			<td>Valid</td>
-			<td>Valid</td>
-			<td>写回并清空内部高速缓存；启动外部高速缓存的写回和清空。</td>
-		</tr>
-	</table>
+		<table>
+			<tr>
+				<th>操作码</th>
+				<th>指令</th>
+				<th>Op/En</th>
+				<th>64位模式</th>
+				<th>兼容/传统模式</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>0F 09</td>
+				<td>WBINVD</td>
+				<td>ZO</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>写回并清空内部缓存；启动外部缓存的写回与清空。</td>
+			</tr>
+		</table>
 
-	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
-	<table>
-		<tr>
-			<th>Op/En</th>
-			<th>操作数 1</th>
-			<th>操作数 2</th>
-			<th>操作数 3</th>
-			<th>操作数 4</th>
-		</tr>
-		<tr>
-			<td>ZO</td>
-			<td>N/A</td>
-			<td>N/A</td>
-			<td>N/A</td>
-			<td>N/A</td>
-		</tr>
-	</table>
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>ZO</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
 
-	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
-	<p>将处理器内部高速缓存中所有修改过的缓存行写回到主内存中，并使内部高速缓存无效（冲刷）。然后该指令发出一个特殊功能总线周期，指示外部高速缓存也写回修改的数据，以及另一个总线周期，以表明外部高速缓存应当无效。</p>
-	<p>执行此指令后，处理器不会在继续执行指令之前等待外部高速缓存完成其写回和冲刷操作。硬件负责对高速缓存的写回和冲刷信号作出响应。完成 WBINVD 所需的时间或周期数将因不同高速缓存层次结构的大小和其他因素而异。因此，使用 WBINVD 指令会对逻辑处理器的中断/事件响应时间产生影响。关于在具有分层共享拓扑的高速缓存层次结构中 WBINVD 行为的附加信息，可以在《Intel® 64 和 IA-32 架构软件开发人员手册》第 3A 卷第 2 章中找到。</p>
-	<p>WBINVD 指令是一条特权指令。当处理器运行在保护模式下时，程序或过程的 CPL 必须为 0 才能执行此指令。此指令也是一条序列化指令（参见《Intel® 64 和 IA-32 架构软件开发人员手册》第 3A 卷第 9 章中的“序列化指令”）。</p>
-	<p>在不担心与主内存保持缓存一致性的情况下，软件可以使用 INVD 指令。</p>
-	<p>此指令的操作在非 64 位模式和 64 位模式下相同。</p>
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将处理器内部缓存中所有被修改的缓存行写回到主内存，并使内部缓存无效（清空）。然后，该指令发出一个特殊功能总线周期，指示外部缓存也写回修改的数据，并发出另一个总线周期以指示外部缓存也应该无效化。</p>
+		<p>执行此指令后，处理器不会等待外部缓存完成其写回和清空操作就继续执行指令。硬件有责任响应缓存写回和清空信号。WBINVD 完成所需的时间或周期数将因不同缓存层次结构的大小和其他因素而异。因此，使用 WBINVD 指令会对逻辑处理器的中断/事件响应时间产生影响。有关具有分层共享拓扑的缓存层次结构中 WBINVD 行为的更多信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》卷 3A 第 2 章。</p>
+		<p>WBINVD 指令是特权指令。当处理器在保护模式下运行时，程序或过程的 CPL 必须为 0 才能执行此指令。此指令也是一条序列化指令（参见《Intel® 64 和 IA-32 架构软件开发人员手册》卷 3A 第 9 章中的“序列化指令”）。</p>
+		<p>在不需要考虑与主内存的缓存一致性的情况下，软件可以使用 INVD 指令。</p>
+		<p>该指令的运算在非 64 位模式和 64 位模式下相同。</p>
 
-	<h2 id="ia-32-architecture-compatibility">IA-32 架构兼容性<a class="anchor" href="#ia-32-architecture-compatibility">¶</a></h2>
-	<p>WBINVD 指令与实现相关，其功能在未来的 Intel 64 和 IA-32 处理器上可能会有不同的实现。早于 Intel486 处理器的 IA-32 处理器不支持此指令。</p>
+		<h2 id="ia-32-architecture-compatibility">IA-32 架构兼容性<a class="anchor" href="#ia-32-architecture-compatibility">¶</a></h2>
+		<p>WBINVD 指令的实现与具体处理器相关，其功能在未来的 Intel 64 和 IA-32 处理器上的实现方式可能有所不同。Intel486 之前的 IA-32 处理器不支持此指令。</p>
 
-	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
-	<pre>WriteBack(InternalCaches);
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>WriteBack(InternalCaches);
 Flush(InternalCaches);
 SignalWriteBack(ExternalCaches);
 SignalFlush(ExternalCaches);
-Continue; (* Continue execution *)
+Continue; (* 继续执行 *)
 </pre>
 
-	<h3 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器内联函数等价物<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h3>
-	<pre>void _wbinvd(void);
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>WBINVD void _wbinvd(void);
 </pre>
 
-	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
-	<p>无。</p>
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
 
-	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
-	<table>
-		<tr>
-			<td>#GP(0)</td>
-			<td>如果当前特权级别不为 0。</td>
-		</tr>
-		<tr>
-			<td>#UD</td>
-			<td>如果使用了 LOCK 前缀。</td>
-		</tr>
-	</table>
+		<h2 id="protected-mode-exceptions" class="exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP(0)</td>
+				<td>如果当前特权级别不为 0。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
 
-	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
-	<table>
-		<tr>
-			<td>#UD</td>
-			<td>如果使用了 LOCK 前缀。</td>
-		</tr>
-	</table>
+		<h2 id="real-address-mode-exceptions" class="exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
 
-	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
-	<table>
-		<tr>
-			<td>#GP(0)</td>
-			<td>WBINVD 无法在虚拟-8086 模式下执行。</td>
-		</tr>
-	</table>
+		<h2 id="virtual-8086-mode-exceptions" class="exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP(0)</td>
+				<td>WBINVD 不能在虚拟-8086 模式下执行。</td>
+			</tr>
+		</table>
 
-	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
-	<p>与保护模式下的异常相同。</p>
+		<h2 id="compatibility-mode-exceptions" class="exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
 
-	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
-	<p>与保护模式下的异常相同。</p>
+		<h2 id="64-bit-mode-exceptions" class="exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
 
-	<footer>
-		<p>
-			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
-			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
-			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
-		</p>
-	</footer>
-</body>
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
 </html>

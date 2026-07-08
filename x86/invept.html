@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>INVEPT — 使源自 EPT 的转换失效</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>INVEPT — 使源自 EPT 的转换失效</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>66 0F 38 80 INVEPT r64, m128</td>
+			<td>RM</td>
+			<td>使 TLB 和分页结构缓存中源自 EPT 的条目失效（在 64 位模式下）。</td>
+		</tr>
+		<tr>
+			<td>66 0F 38 80 INVEPT r32, m128</td>
+			<td>RM</td>
+			<td>使 TLB 和分页结构缓存中源自 EPT 的条目失效（在 64 位模式之外）。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>RM</td>
+			<td>ModRM:reg (r)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>NA</td>
+			<td>NA</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>使翻译后备缓冲区 (TLB) 和分页结构缓存中源自扩展页表 (EPT) 的映射失效。（参见第 29 章，“地址转换的 VMX 支持”。）失效操作基于寄存器操作数中指定的 **INVEPT 类型**和内存操作数中指定的 **INVEPT 描述符**。</p>
+	<p>在 IA-32e 模式之外，寄存器操作数始终为 32 位，无论 CS.D 的值如何；在 64 位模式下，寄存器操作数为 64 位（该指令不能在兼容模式下执行）。</p>
+	<p>逻辑处理器支持的 INVEPT 类型在 IA32_VMX_EPT_VPID_CAP MSR 中报告（参见附录 A，“VMX 能力报告机制”）。当前定义了两种 INVEPT 类型：</p>
+	<ul>
+		<li>单上下文失效：如果 INVEPT 类型为 1，则逻辑处理器使与 INVEPT 描述符中指定的 EPT 指针 (EPTP) 的位 51:12 相关联的所有映射失效。它也可能使其他映射失效。</li>
+		<li>全局失效：如果 INVEPT 类型为 2，则逻辑处理器使与所有 EPTP 相关联的映射失效。</li>
+	</ul>
+	<p>如果指定了不支持的 INVEPT 类型，则指令失败。</p>
+	<p>INVEPT 使指示 of EPTP 的所有指定映射失效，无论这些映射可能与之关联的 VPID 和 PCID 值如何。</p>
+	<p>INVEPT 描述符由 128 位组成，并在位 63:0 中包含一个 64 位的 EPTP 值（见图 31-1）。</p>
+
+	<figure id="fig-31-1">
+		<svg style="width: 455.616pt; height: 91.08001199999997pt" viewbox="109.64 0.0 384.68 80.90000999999998">
+		<g xmlns="http://www.w3.org/2000/svg" style="stroke: none; fill: none">
+		<rect height="74.94" style="fill: rgb(0%, 0%, 0%)" width="0.48" x="112.14" y="0.48000999999999294"></rect>
+		<rect height="74.94" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="491.34000000000003" y="0.48000999999999294"></rect>
+		<rect height="0.48001000000000005" style="fill: rgb(0%, 0%, 0%)" width="379.68" x="112.14" y="0.0"></rect>
+		<rect height="0.48" style="fill: rgb(0%, 0%, 0%)" width="379.68" x="112.14" y="75.42000999999999"></rect>
+		<rect height="1.02" style="fill: rgb(0%, 0%, 0%)" width="306.6" x="153.60000000000002" y="28.800009999999986"></rect>
+		<rect height="18.54" style="fill: rgb(0%, 0%, 0%)" width="1.02" x="459.18" y="29.280009999999947"></rect>
+		<rect height="1.02" style="fill: rgb(0%, 0%, 0%)" width="306.54" x="153.12" y="46.80000999999996"></rect>
+		<rect height="18.48" style="fill: rgb(0%, 0%, 0%)" width="1.02" x="153.12" y="28.800009999999986"></rect>
+		<rect height="18.0" style="fill: rgb(70%, 70%, 70%)" width="153.06" x="153.60000000000002" y="29.280009999999947"></rect>
+		<rect height="1.02" style="fill: rgb(0%, 0%, 0%)" width="153.60000000000002" x="153.60000000000002" y="28.800009999999986"></rect>
+		<rect height="18.54" style="fill: rgb(0%, 0%, 0%)" width="1.02" x="306.18" y="29.280009999999947"></rect>
+		<rect height="1.02" style="fill: rgb(0%, 0%, 0%)" width="153.54" x="153.12" y="46.80000999999996"></rect>
+		<rect height="18.48" style="fill: rgb(0%, 0%, 0%)" width="1.02" x="153.12" y="28.800009999999986"></rect>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.107835200000011pt; fill: #000" textlength="14.993288879999994" x="150.0" y="27.591079199999967">127</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.107835200000011pt; fill: #000" textlength="21.53168155999998" x="295.5" y="27.591079199999967">6463</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.1078352pt; fill: #000" textlength="5.035803199999975" x="456.05517296" y="27.591079199999957">0</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.107835200000011pt; fill: #000" textlength="115.0" x="172.4" y="42.89140715999997">保留（必须为零）</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.107835200000011pt; fill: #000" textlength="90.0" x="339.4" y="42.89140715999997">EPT 指针 (EPTP)</text>
+		</g>
+		</svg>
+		<figcaption><a href='invept.html#fig-31-1'>图 31-1</a>. INVEPT 描述符</figcaption>
+	</figure>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF (not in VMX operation) or (CR0.PE = 0) or (RFLAGS.VM = 1) or (IA32_EFER.LMA = 1 and CS.L = 0)
+    THEN #UD;
+ELSIF in VMX non-root operation
+    THEN VM exit;
+ELSIF CPL &gt; 0
+    THEN #GP(0);
+    ELSE
+        INVEPT_TYPE := value of register operand;
+        IF IA32_VMX_EPT_VPID_CAP MSR indicates that processor does not support INVEPT_TYPE
+            THEN VMfail(Invalid operand to INVEPT/INVVPID);
+            ELSE // INVEPT_TYPE must be 1 or 2
+                INVEPT_DESC := value of memory operand;
+                EPTP := INVEPT_DESC[63:0];
+                CASE INVEPT_TYPE OF
+                    1:
+                                    // single-context invalidation
+                        IF VM entry with the “enable EPT“ VM execution control set to 1
+                        would fail due to the EPTP value
+                            THEN VMfail(Invalid operand to INVEPT/INVVPID);
+                            ELSE
+                                Invalidate mappings associated with EPTP[51:12];
+                                VMsucceed;
+                        FI;
+                        BREAK;
+                    2:
+                                    // global invalidation
+                        Invalidate mappings associated with all EPTPs;
+                        VMsucceed;
+                        BREAK;
+                ESAC;
+        FI;
+FI;
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>参见操作部分和第 31.2 节。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="4">#GP(0)</td>
+			<td>如果当前特权级不为 0。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数有效地址超出了 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>如果 DS、ES、FS 或 GS 寄存器包含不可用的段。</td>
+		</tr>
+		<tr>
+			<td>如果源操作数位于仅执行的代码段中。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果访问内存操作数时发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#SS(0)</td>
+			<td>如果内存操作数有效地址超出了 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>如果 SS 寄存器包含不可用的段。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#UD</td>
+			<td>如果不在 VMX 操作中。</td>
+		</tr>
+		<tr>
+			<td>如果逻辑处理器不支持 EPT (IA32_VMX_PROCBASED_CTLS2[33]=0)。</td>
+		</tr>
+		<tr>
+			<td>如果逻辑处理器支持 EPT (IA32_VMX_PROCBASED_CTLS2[33]=1) 但不支持 INVEPT 指令 (IA32_VMX_EPT_VPID_CAP[20]=0)。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>INVEPT 指令在实地址模式下无法识别。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>INVEPT 指令在虚拟-8086 模式下无法识别。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>INVEPT 指令在兼容模式下无法识别。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果当前特权级不为 0。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数位于 CS、DS、ES、FS 或 GS 段中，且内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果访问内存操作数时发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数位于 SS 段中，且内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#UD</td>
+			<td>如果不在 VMX 操作中。</td>
+		</tr>
+		<tr>
+			<td>如果逻辑处理器不支持 EPT (IA32_VMX_PROCBASED_CTLS2[33]=0)。</td>
+		</tr>
+		<tr>
+			<td>如果逻辑处理器支持 EPT (IA32_VMX_PROCBASED_CTLS2[33]=1) 但不支持 INVEPT 指令 (IA32_VMX_EPT_VPID_CAP[20]=0)。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

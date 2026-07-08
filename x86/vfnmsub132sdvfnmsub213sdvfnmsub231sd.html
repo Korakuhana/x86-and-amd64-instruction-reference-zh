@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VFNMSUB132SD/VFNMSUB213SD/VFNMSUB231SD — 标量双精度浮点值融合相反数乘减</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VFNMSUB132SD/VFNMSUB213SD/VFNMSUB231SD — 标量双精度浮点值融合相反数乘减</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>VEX.LIG.66.0F38.W1 9F /r VFNMSUB132SD xmm1, xmm2, xmm3/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>FMA</td>
+				<td>将来自 xmm1 和 xmm3/mem 的标量双精度浮点值相乘，对乘法结果取反，然后减去 xmm2，并将结果放入 xmm1。</td>
+			</tr>
+			<tr>
+				<td>VEX.LIG.66.0F38.W1 AF /r VFNMSUB213SD xmm1, xmm2, xmm3/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>FMA</td>
+				<td>将来自 xmm1 和 xmm2 的标量双精度浮点值相乘，对乘法结果取反，然后减去 xmm3/mem，并将结果放入 xmm1。</td>
+			</tr>
+			<tr>
+				<td>VEX.LIG.66.0F38.W1 BF /r VFNMSUB231SD xmm1, xmm2, xmm3/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>FMA</td>
+				<td>将来自 xmm2 和 xmm3/mem 的标量双精度浮点值相乘，对乘法结果取反，然后减去 xmm1，并将结果放入 xmm1。</td>
+			</tr>
+			<tr>
+				<td>EVEX.LLIG.66.0F38.W1 9F /r VFNMSUB132SD xmm1 {k1}{z}, xmm2, xmm3/m64{er}</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>将来自 xmm1 和 xmm3/m64 的标量双精度浮点值相乘，对乘法结果取反，然后减去 xmm2，并将结果放入 xmm1。</td>
+			</tr>
+			<tr>
+				<td>EVEX.LLIG.66.0F38.W1 AF /r VFNMSUB213SD xmm1 {k1}{z}, xmm2, xmm3/m64{er}</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>将来自 xmm1 和 xmm2 的标量双精度浮点值相乘，对乘法结果取反，然后减去 xmm3/m64，并将结果放入 xmm1。</td>
+			</tr>
+			<tr>
+				<td>EVEX.LLIG.66.0F38.W1 BF /r VFNMSUB231SD xmm1 {k1}{z}, xmm2, xmm3/m64{er}</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>将来自 xmm2 和 xmm3/m64 的标量双精度浮点值相乘，对乘法结果取反，然后减去 xmm1，并将结果放入 xmm1。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (r, w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>Tuple1 Scalar</td>
+				<td>ModRM:reg (r, w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>VFNMSUB132SD：将来自第一个源操作数的低位打包双精度浮点值与第三个源操作数中的低位打包双精度浮点值相乘。从取反的无限精度中间结果中，减去第二个源操作数中的低位双精度浮点值，执行舍入并将结果的打包双精度浮点值存储到目的操作数（第一个源操作数）中。</p>
+		<p>VFNMSUB213SD：将来自第二个源操作数的低位打包双精度浮点值与第一个源操作数中的低位打包双精度浮点值相乘。从取反的无限精度中间结果中，减去第三个源操作数中的低位双精度浮点值，执行舍入并将结果的打包双精度浮点值存储到目的操作数（第一个源操作数）中。</p>
+		<p>VFNMSUB231SD：将来自第二个源操作数的低位打包双精度浮点值与第三个源操作数中的低位打包双精度浮点值相乘。从取反的无限精度中间结果中，减去第一个源操作数中的低位双精度浮点值，执行舍入并将结果的打包双精度浮点值存储到目的操作数（第一个源操作数）中。</p>
+		<p>VEX.128 和 EVEX 编码版本：目的操作数（也是第一个源操作数）在 reg_field 中编码。第二个源操作数在 VEX.vvvv/EVEX.vvvv 中编码。第三个源操作数在 rm_field 中编码。目的寄存器的位 127:64 保持不变。目的寄存器的位 MAXVL-1:128 被清零。</p>
+		<p>EVEX 编码版本：目的寄存器的低四字元素根据写掩码进行更新。</p>
+		<p>编译器工具可以为汇总表的操作码/指令列中列出的每个指令助记符有选择地支持互补助记符。互补助记符在涉及 NaN 的情况下的行为由操作码/指令列中定义的指令助记符的定义所控制。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<p>在以下操作中，“*” and “-” 符号表示使用无限精度输入和输出进行乘法和减法（无舍入）。</p>
+		<h3 id="vfnmsub132sd-dest--src2--src3--evex-encoded-version-">VFNMSUB132SD DEST, SRC2, SRC3 (EVEX 编码版本)<a class="anchor" href="#vfnmsub132sd-dest--src2--src3--evex-encoded-version-">¶</a></h3>
+		<pre>IF (EVEX.b = 1) and SRC3 *is a register*
+    THEN
+        SET_ROUNDING_MODE_FOR_THIS_INSTRUCTION(EVEX.RC);
+    ELSE
+        SET_ROUNDING_MODE_FOR_THIS_INSTRUCTION(MXCSR.RC);
+FI;
+IF k1[0] or *no writemask*
+    THEN DEST[63:0] := RoundFPControl(-(DEST[63:0]*SRC3[63:0]) - SRC2[63:0])
+    ELSE
+        IF *merging-masking* ; merging-masking
+            THEN *DEST[63:0] remains unchanged*
+            ELSE ; zeroing-masking
+                THEN DEST[63:0] := 0
+        FI;
+FI;
+DEST[127:64] := DEST[127:64]
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vfnmsub213sd-dest--src2--src3--evex-encoded-version-">VFNMSUB213SD DEST, SRC2, SRC3 (EVEX 编码版本)<a class="anchor" href="#vfnmsub213sd-dest--src2--src3--evex-encoded-version-">¶</a></h3>
+		<pre>IF (EVEX.b = 1) and SRC3 *is a register*
+    THEN
+        SET_ROUNDING_MODE_FOR_THIS_INSTRUCTION(EVEX.RC);
+    ELSE
+        SET_ROUNDING_MODE_FOR_THIS_INSTRUCTION(MXCSR.RC);
+FI;
+IF k1[0] or *no writemask*
+    THEN DEST[63:0] := RoundFPControl(-(SRC2[63:0]*DEST[63:0]) - SRC3[63:0])
+    ELSE
+        IF *merging-masking* ; merging-masking
+            THEN *DEST[63:0] remains unchanged*
+            ELSE ; zeroing-masking
+                THEN DEST[63:0] := 0
+        FI;
+FI;
+DEST[127:64] := DEST[127:64]
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vfnmsub231sd-dest--src2--src3--evex-encoded-version-">VFNMSUB231SD DEST, SRC2, SRC3 (EVEX 编码版本)<a class="anchor" href="#vfnmsub231sd-dest--src2--src3--evex-encoded-version-">¶</a></h3>
+		<pre>IF (EVEX.b = 1) and SRC3 *is a register*
+    THEN
+        SET_ROUNDING_MODE_FOR_THIS_INSTRUCTION(EVEX.RC);
+    ELSE
+        SET_ROUNDING_MODE_FOR_THIS_INSTRUCTION(MXCSR.RC);
+FI;
+IF k1[0] or *no writemask*
+    THEN DEST[63:0] := RoundFPControl(-(SRC2[63:0]*SRC3[63:0]) - DEST[63:0])
+    ELSE
+        IF *merging-masking* ; merging-masking
+            THEN *DEST[63:0] remains unchanged*
+            ELSE ; zeroing-masking
+                THEN DEST[63:0] := 0
+        FI;
+FI;
+DEST[127:64] := DEST[127:64]
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vfnmsub132sd-dest--src2--src3--vex-encoded-version-">VFNMSUB132SD DEST, SRC2, SRC3 (VEX 编码版本)<a class="anchor" href="#vfnmsub132sd-dest--src2--src3--vex-encoded-version-">¶</a></h3>
+		<pre>DEST[63:0] := RoundFPControl_MXCSR(- (DEST[63:0]*SRC3[63:0]) - SRC2[63:0])
+DEST[127:64] := DEST[127:64]
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vfnmsub213sd-dest--src2--src3--vex-encoded-version-">VFNMSUB213SD DEST, SRC2, SRC3 (VEX 编码版本)<a class="anchor" href="#vfnmsub213sd-dest--src2--src3--vex-encoded-version-">¶</a></h3>
+		<pre>DEST[63:0] := RoundFPControl_MXCSR(- (SRC2[63:0]*DEST[63:0]) - SRC3[63:0])
+DEST[127:64] := DEST[127:64]
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vfnmsub231sd-dest--src2--src3--vex-encoded-version-">VFNMSUB231SD DEST, SRC2, SRC3 (VEX 编码版本)<a class="anchor" href="#vfnmsub231sd-dest--src2--src3--vex-encoded-version-">¶</a></h3>
+		<pre>DEST[63:0] := RoundFPControl_MXCSR(- (SRC2[63:0]*SRC3[63:0]) - DEST[63:0])
+DEST[127:64] := DEST[127:64]
+DEST[MAXVL-1:128] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VFNMSUBxxxSD __m128d _mm_fnmsub_round_sd(__m128d a, __m128d b, __m128d c, int r);
+</pre>
+		<pre>VFNMSUBxxxSD __m128d _mm_mask_fnmsub_sd(__m128d a, __mmask8 k, __m128d b, __m128d c);
+</pre>
+		<pre>VFNMSUBxxxSD __m128d _mm_maskz_fnmsub_sd(__mmask8 k, __m128d a, __m128d b, __m128d c);
+</pre>
+		<pre>VFNMSUBxxxSD __m128d _mm_mask3_fnmsub_sd(__m128d a, __m128d b, __m128d c, __mmask8 k);
+</pre>
+		<pre>VFNMSUBxxxSD __m128d _mm_mask_fnmsub_round_sd(__m128d a, __mmask8 k, __m128d b, __m128d c, int r);
+</pre>
+		<pre>VFNMSUBxxxSD __m128d _mm_maskz_fnmsub_round_sd(__mmask8 k, __m128d a, __m128d b, __m128d c, int r);
+</pre>
+		<pre>VFNMSUBxxxSD __m128d _mm_mask3_fnmsub_round_sd(__m128d a, __m128d b, __m128d c, __mmask8 k, int r);
+</pre>
+		<pre>VFNMSUBxxxSD __m128d _mm_fnmsub_sd (__m128d a, __m128d b, __m128d c);
+</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>溢出，下溢，无效，精度，非正规。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>VEX 编码的指令，请参阅表 2-20，“第 3 类异常条件”。</p>
+		<p>EVEX 编码的指令，请参阅表 2-47，“第 E3 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

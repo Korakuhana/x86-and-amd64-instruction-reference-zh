@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>SWAPGS — 交换 GS 基址寄存器</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>SWAPGS — 交换 GS 基址寄存器</h1>
+
+		<table>
+			<tr>
+				<th>操作码</th>
+				<th>指令</th>
+				<th>Op/En</th>
+				<th>64位模式</th>
+				<th>兼容/传统模式</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>0F 01 F8</td>
+				<td>SWAPGS</td>
+				<td>ZO</td>
+				<td>Valid</td>
+				<td>Invalid</td>
+				<td>将当前 GS 基址寄存器的值与 MSR 地址 C0000102H 中包含的值进行交换。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>ZO</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>SWAPGS 将当前 GS 基址寄存器的值与 MSR 地址 C0000102H (IA32_KERNEL_GS_BASE) 中包含的值进行交换。SWAPGS 指令是专为系统软件使用的特权指令。</p>
+		<p>当使用 SYSCALL 实现系统调用时，在 OS 入口点处没有内核栈。也没有一种简单的方法来获取指向内核结构的指针（可以从中读取内核栈指针）。因此，内核无法保存通用寄存器或引用内存。</p>
+		<p>根据设计，SWAPGS 不需要任何通用寄存器或内存操作数。在使用该指令之前不需要保存任何寄存器。SWAPGS 将来自 IA32_KERNEL_GS_BASE MSR 的 CPL 0 数据指针与 GS 基址寄存器进行交换。然后，内核可以在正常的内存引用上使用 GS 前缀来访问内核数据结构。类似地，当使用中断或异常进入 OS 内核时（此时内核栈已经设置好），可以使用 SWAPGS 快速获取指向内核数据结构的指针。</p>
+		<p>IA32_KERNEL_GS_BASE MSR 本身只能使用 RDMSR/WRMSR 指令进行访问。这些指令只能在特权级 0 处访问。WRMSR 指令可确保 IA32_KERNEL_GS_BASE MSR 包含规范地址。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>IF CS.L ≠ 1 (* Not in 64-Bit Mode *)
+    THEN
+        #UD; FI;
+IF CPL ≠ 0
+    THEN #GP(0); FI;
+tmp := GS.base;
+GS.base := IA32_KERNEL_GS_BASE;
+IA32_KERNEL_GS_BASE := tmp;
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果模式不是 64 位。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果模式不是 64 位。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果模式不是 64 位。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果模式不是 64 位。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP(0)</td>
+				<td>如果 CPL != 0。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

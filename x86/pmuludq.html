@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>PMULUDQ — 打包无符号双字整数乘法</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>PMULUDQ — 打包无符号双字整数乘法</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F F4 /r<sup>1</sup> PMULUDQ mm1, mm2/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>将 mm1 中的无符号双字整数乘以 mm2/m64 中的无符号双字整数，并将四字结果存储在 mm1 中。</td>
+			</tr>
+			<tr>
+				<td>66 0F F4 /r PMULUDQ xmm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>将 xmm1 中的打包无符号双字整数乘以 xmm2/m128 中的打包无符号双字整数，并将四字结果存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F.WIG F4 /r VPMULUDQ xmm1, xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>将 xmm2 中的打包无符号双字整数乘以 xmm3/m128 中的打包无符号双字整数，并将四字结果存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F.WIG F4 /r VPMULUDQ ymm1, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>将 ymm2 中的打包无符号双字整数乘以 ymm3/m256 中的打包无符号双字整数，并将四字结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.W1 F4 /r VPMULUDQ xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 下，将 xmm2 中的打包无符号双字整数乘以 xmm3/m128/m64bcst 中的打包无符号双字整数，并将四字结果存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.W1 F4 /r VPMULUDQ ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 下，将 ymm2 中的打包无符号双字整数乘以 ymm3/m256/m64bcst 中的打包无符号双字整数，并将四字结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.W1 F4 /r VPMULUDQ zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>在写掩码 k1 下，将 zmm2 中的打包无符号双字整数乘以 zmm3/m512/m64bcst 中的打包无符号双字整数，并将四字结果存储在 zmm1 中。</td>
+			</tr>
+		</table>
+		<blockquote>
+			<p>1. 请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 2A 卷第 2.5 节“Intel® AVX 和 Intel® SSE 指令异常分类”中的注释，以及《Intel® 64 和 IA-32 架构软件开发人员手册》第 3B 卷第 23.25.3 节“操作 MMX 寄存器的传统 SIMD 指令的异常条件”中的注释。</p>
+		</blockquote>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (r, w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>C</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将第一个操作数（目的操作数）与第二个操作数（源操作数）相乘，并将结果存储在目的操作数中。</p>
+		<p>在 64 位模式下且未采用 VEX/EVEX 编码时，使用 REX.R 形式的 REX 前缀允许该指令访问其他寄存器（XMM8-XMM15）。</p>
+		<p>传统 SSE 版本 64 位操作数：源操作数可以是存储在 MMX 技术寄存器低双字中的无符号双字整数，或 64 位内存位置。目的操作数可以是存储在 MMX 技术寄存器低双字中的无符号双字整数。结果是存储在目的 MMX 技术寄存器中的无符号四字整数。当四字结果太大而无法在 64 位中表示时（溢出），结果会发生回绕，并且低 64 位会被写入目的元素中（也就是说，忽略进位）。对于 64 位内存操作数，从内存中读取 64 位，但在计算中仅使用低位双字。</p>
+		<p>128位传统 SSE 版本：第二个源操作数是两个打包的无符号双字整数，存储在 XMM 寄存器或 128 位内存位置的第一个（低位）和第三个双字中。对于 128 位内存操作数，从内存中读取 128 位，但在计算中仅使用第一个和第三个双字。第一个源操作数是两个打包的无符号双字整数，存储在 XMM 寄存器的第一个和第三个双字中。目的操作数包含两个打包的无符号四字整数，存储在 XMM 寄存器中。对应 YMM 目的寄存器的位（MAXVL-1:128）保持不变。</p>
+		<p>VEX.128 编码版本：第二个源操作数是两个打包的无符号双字整数，存储在 XMM 寄存器或 128 位内存位置的第一个（低位）和第三个双字中。对于 128 位内存操作数，从内存中读取 128 位，但在计算中仅使用第一个和第三个双字。第一个源操作数是两个打包的无符号双字整数，存储在 XMM 寄存器的第一个和第三个双字中。目的操作数包含两个打包的无符号四字整数，存储在 XMM 寄存器中。目的 YMM 寄存器的位（MAXVL-1:128）清零。</p>
+		<p>VEX.256 编码版本：第二个源操作数是四个打包的无符号双字整数，存储在 YMM 寄存器或 256 位内存位置的第一个（低位）、第三个、第五个和第七个双字中。对于 256 位内存操作数，从内存中读取 256 位，但在计算中仅使用第一个、第三个、第五个和第七个双字。第一个源操作数是四个打包的无符号双字整数，存储在 YMM 寄存器的第一个、第三个、第五个和第七个双字中。目的操作数包含四个打包的无符号四字整数，存储在 YMM 寄存器中。</p>
+		<p>EVEX 编码版本：输入的无符号双字整数取自源操作数的偶数编号元素。第一个源操作数是 ZMM/YMM/XMM 寄存器。第二个源操作数可以是 ZMM/YMM/XMM 寄存器、512/256/128 位内存位置，或从 64 位内存位置广播的 512/256/128 位向量。目的操作数是 ZMM/YMM/XMM 寄存器，并根据写掩码以 64 位粒度进行更新。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="pmuludq--with-64-bit-operands-">PMULUDQ（配合 64 位操作数）<a class="anchor" href="#pmuludq--with-64-bit-operands-">¶</a></h3>
+		<pre>DEST[63:0] := DEST[31:0] ∗ SRC[31:0];
+</pre>
+		<h3 id="pmuludq--with-128-bit-operands-">PMULUDQ（配合 128 位操作数）<a class="anchor" href="#pmuludq--with-128-bit-operands-">¶</a></h3>
+		<pre>DEST[63:0] := DEST[31:0] ∗ SRC[31:0];
+DEST[127:64] := DEST[95:64] ∗ SRC[95:64];
+</pre>
+		<h3 id="vpmuludq--vex-128-encoded-version-">VPMULUDQ（VEX.128 编码版本）<a class="anchor" href="#vpmuludq--vex-128-encoded-version-">¶</a></h3>
+		<pre>DEST[63:0] := SRC1[31:0] * SRC2[31:0]
+DEST[127:64] := SRC1[95:64] * SRC2[95:64]
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vpmuludq--vex-256-encoded-version-">VPMULUDQ（VEX.256 编码版本）<a class="anchor" href="#vpmuludq--vex-256-encoded-version-">¶</a></h3>
+		<pre>DEST[63:0] := SRC1[31:0] * SRC2[31:0]
+DEST[127:64] := SRC1[95:64] * SRC2[95:64
+DEST[191:128] := SRC1[159:128] * SRC2[159:128]
+DEST[255:192] := SRC1[223:192] * SRC2[223:192]
+DEST[MAXVL-1:256] := 0
+</pre>
+		<h3 id="vpmuludq--evex-encoded-versions-">VPMULUDQ（EVEX 编码版本）<a class="anchor" href="#vpmuludq--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k1[j] OR *no writemask* THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN DEST[i+63:i] := ZeroExtend64( SRC1[i+31:i]) * ZeroExtend64( SRC2[31:0] )
+                ELSE DEST[i+63:i] := ZeroExtend64( SRC1[i+31:i]) * ZeroExtend64( SRC2[i+31:i] )
+            FI;
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing-masking*
+                        ; zeroing-masking
+                    DEST[i+63:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VPMULUDQ __m512i _mm512_mul_epu32(__m512i a, __m512i b);</pre>
+		<pre>VPMULUDQ __m512i _mm512_mask_mul_epu32(__m512i s, __mmask8 k, __m512i a, __m512i b);</pre>
+		<pre>VPMULUDQ __m512i _mm512_maskz_mul_epu32( __mmask8 k, __m512i a, __m512i b);</pre>
+		<pre>VPMULUDQ __m256i _mm256_mask_mul_epu32(__m256i s, __mmask8 k, __m256i a, __m256i b);</pre>
+		<pre>VPMULUDQ __m256i _mm256_maskz_mul_epu32( __mmask8 k, __m256i a, __m256i b);</pre>
+		<pre>VPMULUDQ __m128i _mm_mask_mul_epu32(__m128i s, __mmask8 k, __m128i a, __m128i b);</pre>
+		<pre>VPMULUDQ __m128i _mm_maskz_mul_epu32( __mmask8 k, __m128i a, __m128i b);</pre>
+		<pre>PMULUDQ __m64 _mm_mul_su32 (__m64 a, __m64 b)</pre>
+		<pre>(V)PMULUDQ __m128i _mm_mul_epu32 ( __m128i a, __m128i b)</pre>
+		<pre>VPMULUDQ __m256i _mm256_mul_epu32( __m256i a, __m256i b);</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>非 EVEX 编码指令，请参阅表 2-21，“第 4 类异常条件”。</p>
+		<p>EVEX 编码指令，请参阅表 2-49，“第 E4 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

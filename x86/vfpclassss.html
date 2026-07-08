@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VFPCLASSSS — 测试标量 Float32 值的类型</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VFPCLASSSS — 测试标量 Float32 值的类型</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.LLIG.66.0F3A.W0 67 /r VFPCLASSSS k2 {k1}, xmm2/m32, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512DQ</td>
+				<td>测试输入的以下类别：NaN、+0、-0、+Infinity、-Infinity、非正规数、有限负数。立即数字段为每个类别测试提供了一个掩码位。掩码测试结果进行逻辑或（OR）组合以形成掩码结果。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Tuple1 Scalar</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>FPCLASSSS 指令检查源操作数中的低位单精度浮点值是否属于由 imm8 字节中设置的位指定的特殊类别。imm8 中设置的每个位都指定了对输入数据元素进行分类的浮点值类别。输入值的所有指定类别的分类结果进行逻辑或（OR）运算，以形成输入元素的最终布尔结果。结果根据写掩码 k1 写入掩码寄存器 k2 中的低位。目的寄存器的位 MAX_KL-1:1 被清零。</p>
+		<p>imm8 指定的分类类别如图 5-13 所示。每个类别的分类测试列于表 5-14 中。</p>
+		<p>EVEX.vvvv 被保留且必须为 1111b，否则指令将产生 #UD。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>CheckFPClassSP (tsrc[31:0], imm8[7:0]){
+    //* Start checking the source operand for special type *//
+    NegNum :=tsrc[31];
+    IF (tsrc[30:23]=0FFh) Then ExpAllOnes := 1; FI;
+    IF (tsrc[30:23]=0h) Then ExpAllZeros := 1;
+    IF (ExpAllZeros AND MXCSR.DAZ) Then
+        MantAllZeros := 1;
+    ELSIF (tsrc[22:0]=0h) Then
+        MantAllZeros := 1;
+    FI;
+    ZeroNumber= ExpAllZeros AND MantAllZeros
+    SignalingBit= tsrc[22];
+    sNaN_res := ExpAllOnes AND NOT(MantAllZeros) AND NOT(SignalingBit); // sNaN
+    qNaN_res := ExpAllOnes AND NOT(MantAllZeros) AND SignalingBit; // qNaN
+    Pzero_res := NOT(NegNum) AND ExpAllZeros AND MantAllZeros; // +0
+    Nzero_res := NegNum AND ExpAllZeros AND MantAllZeros; // -0
+    PInf_res := NOT(NegNum) AND ExpAllOnes AND MantAllZeros; // +Inf
+    NInf_res := NegNum AND ExpAllOnes AND MantAllZeros; // -Inf
+    Denorm_res := ExpAllZeros AND NOT(MantAllZeros); // denorm
+    FinNeg_res := NegNum AND NOT(ExpAllOnes) AND NOT(ZeroNumber); // -finite
+    bResult = ( imm8[0] AND qNaN_res ) OR (imm8[1] AND Pzero_res ) OR
+            ( imm8[2] AND Nzero_res ) OR ( imm8[3] AND PInf_res ) OR
+            ( imm8[4] AND NInf_res ) OR ( imm8[5] AND Denorm_res ) OR
+            ( imm8[6] AND FinNeg_res ) OR ( imm8[7] AND sNaN_res );
+    Return bResult;
+} //* end of CheckSPClassSP() *//
+</pre>
+		<h3 id="vfpclassss--evex-encoded-version-">VFPCLASSSS (EVEX 编码版本)<a class="anchor" href="#vfpclassss--evex-encoded-version-">¶</a></h3>
+		<pre>IF k1[0] OR *no writemask*
+    THEN DEST[0] :=
+        CheckFPClassSP(SRC1[31:0], imm8[7:0])
+    ELSE DEST[0] := 0 ; zeroing-masking only
+FI;
+DEST[MAX_KL-1:1] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VFPCLASSSS __mmask8 _mm_fpclass_ss_mask( __m128 a, int c)
+</pre>
+		<pre>VFPCLASSSS __mmask8 _mm_mask_fpclass_ss_mask( __mmask8 m, __m128 a, int c)
+</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-53，“第 E6 类异常条件”。</p>
+		<p>此外：</p>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果 EVEX.vvvv != 1111B。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

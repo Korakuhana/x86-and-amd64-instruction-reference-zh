@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>GETSEC[SMCTRL] — SMX 模式控制</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>GETSEC[SMCTRL] — SMX 模式控制</h1>
+
+		<table>
+			<tr>
+				<th>操作码</th>
+				<th>指令</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F 37 (EAX = 7)</td>
+				<td>GETSEC[SMCTRL]</td>
+				<td>根据输入 EBX 选择执行指定的 SMX 模式控制。</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>GETSEC[SMCTRL] 指令可用于执行某些特定的 SMX 模式控制操作。要执行的操作通过输入寄存器 EBX 选择。目前仅支持 EBX 输入值为 0。所有其他 EBX 设置都将导致触发通用保护违规。</p>
+		<p>如果 EBX 设置为 0，则使用 SMCTRL 叶函数来重新启用 SMI 事件。SMI 被执行 GETSEC[SENTER] 指令的 ILP 屏蔽（SMI 在响应逻辑处理器中也是作为对 SENTER 会合消息的响应而被屏蔽的）。何时允许此指令以及解除屏蔽的事件取决于处理器上下文（见表 7-11）。为简明起见，当 EBX=0 时使用 SMCTRL 将被称为 GETSEC[SMCTRL(0)]。</p>
+		<p>作为支持启动度量环境的一部分，SMI、NMI 和 INIT 事件在 GETSEC[SENTER] 之后被屏蔽，并且在退出已认证执行模式后保持屏蔽。解除这些事件的屏蔽应伴随安全地启用这些事件处理程序。这些安全问题在 VMX 操作中可以由 MVMM 处理。</p>
+		<p>VM 监控程序可以选择两种方法：</p>
+		<ul>
+			<li>在双监控程序方法中，执行软件将建立一个与执行 VMM（即 MVMM）并行的 SMM 监控程序，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 3C 卷第 32 章“系统管理模式”。SMM 监控程序专用处理 SMI 事件而不损害 MVMM 的安全性。在度量环境处于活动状态时处理 SMI 的此使用模型不需要使用 GETSEC[SMCTRL(0)]，因为在 VMX 环境启动后，事件重新启用是隐式处理的，并通过单独的基于 VMX 的控制来处理。</li>
+			<li>如果将不建立专用的 SMM 监控程序，且要在度量环境内处理 SMI，则执行软件可以使用 GETSEC[SMCTRL(0)] 重新启用因 SENTER 而被屏蔽的 SMI。</li>
+		</ul>
+		<p>表 7-11 定义了可以使用 GETSEC[SMCTRL(0)] 的处理器上下文以及将要解除屏蔽的事件。请请注意，解除屏蔽的事件取决于当前运行的处理器上下文。</p>
+
+		<figure id="tbl-7-11">
+			<table>
+				<tr>
+					<th>ILP 运行模式</th>
+					<th>SMCTRL 执行动作</th>
+				</tr>
+				<tr>
+					<td>在 VMX 非根操作中</td>
+					<td>VM exit</td>
+				</tr>
+				<tr>
+					<td>SENTERFLAG = 0</td>
+					<td>#GP(0)，非法上下文</td>
+				</tr>
+				<tr>
+					<td>在已认证代码执行模式中 (ACMODEFLAG = 1)</td>
+					<td>#GP(0)，非法上下文</td>
+				</tr>
+				<tr>
+					<td>SENTERFLAG = 1，不在 VMX 操作中，不在 SMM 中</td>
+					<td>解除屏蔽 SMI</td>
+				</tr>
+				<tr>
+					<td>SENTERFLAG = 1，在 VMX 根操作中，不在 SMM 中</td>
+					<td>如果未配置 SMM 监控程序，则解除屏蔽 SMI，否则为 #GP(0)</td>
+				</tr>
+				<tr>
+					<td>SENTERFLAG = 1，在 VMX 根操作中，在 SMM 中</td>
+					<td>#GP(0)，非法上下文</td>
+				</tr>
+			</table>
+			<figcaption>表 7-11. GETSEC[SMCTRL(0)] 的受支持操作</figcaption>
+		</figure>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>(* 内部标志位 ACMODEFLAG 和 SENTERFLAG 的状态跨指令边界持久化 *)
+IF (CR4.SMXE=0)
+    THEN #UD;
+ELSE IF (in VMX non-root operation)
+    THEN VM Exit (reason=”GETSEC instruction”);
+ELSE IF (GETSEC leaf unsupported)
+    THEN #UD;
+ELSE IF ((CR0.PE=0) or (CPL&gt;0) OR (EFLAGS.VM=1))
+    THEN #GP(0);
+ELSE IF((EBX=0) and (SENTERFLAG=1) and (ACMODEFLAG=0) and (IN_SMM=0) and
+        (((in VMX root operation) and (SMM monitor not configured)) or (not in VMX operation)) )
+    THEN unmask SMI;
+ELSE
+    #GP(0);
+END
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="use-of-prefixes">前缀的使用<a class="anchor" href="#use-of-prefixes">¶</a></h2>
+		<p>LOCK 导致 #UD。</p>
+		<p>REP* 导致 #UD（包括 REPNE/REPNZ 和 REP/REPE/REPZ）。</p>
+		<p>操作数大小导致 #UD。</p>
+		<p>不允许使用 NP 66/F2/F3 前缀。</p>
+		<p>段重写被忽略。</p>
+		<p>地址大小被忽略。</p>
+		<p>REX 被忽略。</p>
+
+		<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 CR4.SMXE = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 GETSEC[SMCTRL] 未报告支持 GETSEC[SMCTRL]。</td>
+			</tr>
+			<tr>
+				<td rowspan="5">#GP(0)</td>
+				<td>如果 CR0.PE=0 或 CPL&gt;0 或 EFLAGS.VM=1。</td>
+			</tr>
+			<tr>
+				<td>如果处于 VMX 根操作中。</td>
+			</tr>
+			<tr>
+				<td>如果保护分区尚未激活或处理器当前处于已认证代码模式。</td>
+			</tr>
+			<tr>
+				<td>如果处理器处于 SMM 中。</td>
+			</tr>
+			<tr>
+				<td>如果未配置 SMM 监控程序。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 CR4.SMXE = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 GETSEC[SMCTRL] 未报告支持 GETSEC[SMCTRL]。</td>
+			</tr>
+			<tr>
+				<td>#GP(0)</td>
+				<td>GETSEC[SMCTRL] 在实地址模式下无法识别。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 CR4.SMXE = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 GETSEC[SMCTRL] 未报告支持 GETSEC[SMCTRL]。</td>
+			</tr>
+			<tr>
+				<td>#GP(0)</td>
+				<td>GETSEC[SMCTRL] 在虚拟-8086 模式下无法识别。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>所有保护模式异常均适用。</p>
+
+		<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<p>所有保护模式异常均适用。</p>
+
+		<h2 id="vm-exit-condition">VM-exit 条件<a class="anchor" href="#vm-exit-condition">¶</a></h2>
+		<p>原因 (GETSEC) 如果处于 VMX 非根操作中。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

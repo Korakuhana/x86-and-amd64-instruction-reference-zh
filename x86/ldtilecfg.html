@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>LDTILECFG — 加载 Tile 配置</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>LDTILECFG — 加载 Tile 配置</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>VEX.128.NP.0F38.W0 49 !(11):000:bbb LDTILECFG m512</td>
+			<td>A</td>
+			<td>有效/非有效</td>
+			<td>AMX-TILE</td>
+			<td>加载 m512 中指定的 tile 配置。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>元组</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>A</td>
+			<td>N/A</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>LDTILECFG 指令接受一个包含指向 64 字节内存位置指针的操作数，该位置包含要支持的 tile 的描述。为了配置 tile，必须设置 CPUID 中的 AMX-TILE 位，且操作系统必须已启用 tile 架构。</p>
+	<p>该内存区域包含调色板 (palette)，并描述了正在使用多少个 tile，并根据行和列字节来定义每个 tile。请求必须与 CPUID 提供的限制兼容；参见下面的表 3-10。</p>
+
+	<figure id="tbl-3-10">
+		<table>
+			<tr>
+				<th>字节</th>
+				<th>字段名称</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>0</td>
+				<td>palette</td>
+				<td>调色板选择将使用的 tile 的受支持配置。</td>
+			</tr>
+			<tr>
+				<td>1</td>
+				<td>start_row</td>
+				<td>start_row 用于存储中断操作的重启值。</td>
+			</tr>
+			<tr>
+				<td>2-15</td>
+				<td>保留，必须为零</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>16-17</td>
+				<td>tile0.colsb</td>
+				<td>Tile 0 每行字节数。</td>
+			</tr>
+			<tr>
+				<td>18-19</td>
+				<td>tile1.colsb</td>
+				<td>Tile 1 每行字节数。</td>
+			</tr>
+			<tr>
+				<td>20-21</td>
+				<td>tile2.colsb</td>
+				<td>Tile 2 每行字节数。</td>
+			</tr>
+			<tr>
+				<td>...</td>
+				<td>(序列继续)</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>30-31</td>
+				<td>tile7.colsb</td>
+				<td>Tile 7 每行字节数。</td>
+			</tr>
+			<tr>
+				<td>32-47</td>
+				<td>保留，必须为零</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>48</td>
+				<td>tile0.rows</td>
+				<td>Tile 0 行数。</td>
+			</tr>
+			<tr>
+				<td>49</td>
+				<td>tile1.rows</td>
+				<td>Tile 1 行数。</td>
+			</tr>
+			<tr>
+				<td>50</td>
+				<td>tile2.rows</td>
+				<td>Tile 2 行数。</td>
+			</tr>
+			<tr>
+				<td>...</td>
+				<td>(序列继续)</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td>55</td>
+				<td>tile7.rows</td>
+				<td>Tile 7 行数。</td>
+			</tr>
+			<tr>
+				<td>56-63</td>
+				<td>保留，必须为零</td>
+				<td></td>
+			</tr>
+		</table>
+		<figcaption><a href='cpuid.html#tbl-3-10'>表 3-10</a>. 内存区域布局</figcaption>
+	</figure>
+
+	<p>如果不使用 tile 的行列对来指定 tile 参数，则它们的值必须为零。所有启用的 tile（基于调色板）都必须进行配置。为超过实现限制或调色板限制的 tile 指定 tile 参数将导致 #GP 故障。</p>
+	<p>如果 palette_id 为零，表示 TILECFG 和 TILEDATA 都处于 INIT 状态。在 INIT 状态下，tile 将被清零。palette_id 唯一合法的非 INIT 值为 1。</p>
+	<p>任何在 Intel TSX 事务中执行 LDTILECFG 指令的尝试都将导致事务中止。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<h3 id="ldtilecfg-mem">LDTILECFG mem<a class="anchor" href="#ldtilecfg-mem">¶</a></h3>
+	<pre>error := False
+buf := read_memory(mem, 64)
+temp_tilecfg.palette_id := buf.byte[0]
+if temp_tilecfg.palette_id &gt; max_palette:
+    error := True
+if not xcr0_supports_palette(temp_tilecfg.palette_id):
+    error := True
+if temp_tilecfg.palette_id !=0:
+    temp_tilecfg.start_row := buf.byte[1]
+    if buf.byte[2..15] is nonzero:
+        error := True
+    p := 16
+    # configure columns
+    for n in 0 ... palette_table[temp_tilecfg.palette_id].max_names-1:
+        temp_tilecfg.t[n].colsb:= buf.word[p/2]
+        p := p + 2
+        if temp_tilecfg.t[n].colsb &gt; palette_table[temp_tilecfg.palette_id].bytes_per_row:
+            error := True
+    if nonzero(buf[p...47]):
+        error := True
+    # configure rows
+    p := 48
+    for n in 0 ... palette_table[temp_tilecfg.palette_id].max_names-1:
+        temp_tilecfg.t[n].rows:= buf.byte[p]
+        if temp_tilecfg.t[n].rows &gt; palette_table[temp_tilecfg.palette_id].max_rows:
+            error := True
+        p := p + 1
+    if nonzero(buf[p...63]):
+        error := True
+    # validate each tile's row &amp; col configs are reasonable and enable the valid tiles
+    for n in 0 ... palette_table[temp_tilecfg.palette_id].max_names-1:
+        if temp_tilecfg.t[n].rows !=0 and temp_tilecfg.t[n].colsb != 0:
+            temp_tilecfg.t[n].valid := 1
+        elif temp_tilecfg.t[n].rows == 0 and temp_tilecfg.t[n].colsb == 0:
+            temp_tilecfg.t[n].valid := 0
+        else:
+            error := True// one of rows or colsbwas 0 but not both.
+if error:
+    #GP
+}
+elif temp_tilecfg.palette_id == 0:
+    TILES_CONFIGURED := 0// init state
+    tilecfg := 0// equivalent to 64B of zeros
+    zero_all_tile_data()
+else:
+    tilecfg := temp_tilecfg
+    zero_all_tile_data()
+    TILES_CONFIGURED := 1
+</pre>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>LDTILECFG void _tile_loadconfig(const void *);
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="exceptions">异常<a class="anchor" href="#exceptions">¶</a></h2>
+	<p>AMX-E1；详情参见第 2.10 节，“Intel® AMX 指令异常类”。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

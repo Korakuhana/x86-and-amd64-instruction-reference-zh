@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>RSM — 从系统管理模式恢复</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>RSM — 从系统管理模式恢复</h1>
+
+		<table>
+			<tr>
+				<th>操作码</th>
+				<th>指令</th>
+				<th>Op/En</th>
+				<th>64位模式</th>
+				<th>兼容/传统模式</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>0F AA</td>
+				<td>RSM</td>
+				<td>ZO</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>恢复被中断程序的执行。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>ZO</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将程序控制权从系统管理模式 (SMM) 返回到处理器接收到 SMM 中断时被中断的应用程序或操作系统例程。处理器状态将从进入 SMM 时创建的转储中恢复。如果处理器在状态恢复期间检测到无效的状态信息，它将进入关机（shutdown）状态。以下无效信息可能导致关机：</p>
+		<ul>
+			<li>CR4 的任何保留位被设置为 1。</li>
+			<li>CR0 中任何非法的位组合，例如 (PG=1 且 PE=0) 或 (NW=1 且 CD=0)。</li>
+			<li>（仅限 Intel Pentium 和 Intel486™ 处理器。）存储在状态转储基址字段中的值不是 32-KByte 对齐的地址。</li>
+		</ul>
+		<p>模型特定寄存器 (MSR) 的内容不受从 SMM 返回的影响。</p>
+		<p>RSM 使用的 SMM 状态图支持恢复非 64 位模式和 64 位模式下的处理器上下文。</p>
+		<p>关于 SMM 以及 RSM 指令行为的更多信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 3C 卷第 32 章“系统管理模式”。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>ReturnFromSMM;
+IF (IA-32e mode supported) or (CPUID DisplayFamily_DisplayModel = 06H_0CH )
+    THEN
+        ProcessorState := Restore(SMMDump(IA-32e SMM STATE MAP));
+    Else
+        ProcessorState := Restore(SMMDump(Non-32-Bit-Mode SMM STATE MAP));
+FI
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>全部。</p>
+
+		<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果尝试在处理器不处于 SMM 模式时执行此指令。</td>
+			</tr>
+			<tr>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

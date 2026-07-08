@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>UNPCKHPD — 解包并交错高位打包双精度浮点值</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>UNPCKHPD — 解包并交错高位打包双精度浮点值</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op / En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>66 0F 15 /r UNPCKHPD xmm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>解包并交错 xmm1 和 xmm2/m128 的高四字中的双精度浮点值。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F.WIG 15 /r VUNPCKHPD xmm1,xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>解包并交错 xmm2 和 xmm3/m128 的高四字中的双精度浮点值。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F.WIG 15 /r VUNPCKHPD ymm1,ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>解包并交错 ymm2 和 ymm3/m256 的高四字中的双精度浮点值。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.W1 15 /r VUNPCKHPD xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 的控制下，解包并交错 xmm2 和 xmm3/m128/m64bcst 的高四字中的双精度浮点值。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.W1 15 /r VUNPCKHPD ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 的控制下，解包并交错 ymm2 和 ymm3/m256/m64bcst 的高四字中的双精度浮点值。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.W1 15 /r VUNPCKHPD zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>在写掩码 k1 的控制下，解包并交错 zmm2 和 zmm3/m512/m64bcst 的高四字中的双精度浮点值。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (r, w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>C</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>对第一源操作数和第二源操作数的高位双精度浮点值进行交错解包。请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 2B 卷中的图 4-15。</p>
+		<p>128 位传统 SSE 版本：第二源操作数可以是 XMM 寄存器或 128 位内存位置。目的操作数与第一源操作数 XMM 寄存器相同，对应 ZMM 寄存器目的的高位 (MAXVL-1:128) 保持不变。当从内存操作数解包时，实现可能仅提取适当的 64 位；但仍将强制执行 16 字节边界对齐和常规段检查。</p>
+		<p>VEX.128 编码版本：第一源操作数是 XMM 寄存器。第二源操作数可以是 XMM 寄存器或 128 位内存位置。目的操作数是 XMM 寄存器。对应 ZMM 寄存器目的的高位 (MAXVL-1:128) 清零。</p>
+		<p>VEX.256 编码版本：第一源操作数是 YMM 寄存器。第二源操作数可以是 YMM 寄存器或 256 位内存位置。目的操作数是 YMM 寄存器。</p>
+		<p>EVEX.512 编码版本：第一源操作数是 ZMM 寄存器。第二源操作数是 ZMM 寄存器、512 位内存位置，或从 64 位内存位置广播的 512 位向量。目的操作数是 ZMM 寄存器，在写掩码 k1 的控制下有条件地更新。</p>
+		<p>EVEX.256 编码版本：第一源操作数是 YMM 寄存器。第二源操作数是 YMM 寄存器、256 位内存位置，或从 64 位内存位置广播的 256 位向量。目的操作数是 YMM 寄存器，在写掩码 k1 的控制下有条件地更新。</p>
+		<p>EVEX.128 编码版本：第一源操作数是 XMM 寄存器。第二源操作数是 XMM 寄存器、128 位内存位置，或从 64 位内存位置广播的 128 位向量。目的操作数是 XMM 寄存器，在写掩码 k1 的控制下有条件地更新。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vunpckhpd--evex-encoded-versions-when-src2-is-a-register-">VUNPCKHPD（EVEX 编码版本，当 SRC2 为寄存器时）<a class="anchor" href="#vunpckhpd--evex-encoded-versions-when-src2-is-a-register-">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+IF VL &gt;= 128
+    TMP_DEST[63:0] := SRC1[127:64]
+    TMP_DEST[127:64] := SRC2[127:64]
+FI;
+IF VL &gt;= 256
+    TMP_DEST[191:128] := SRC1[255:192]
+    TMP_DEST[255:192] := SRC2[255:192]
+FI;
+IF VL &gt;= 512
+    TMP_DEST[319:256] := SRC1[383:320]
+    TMP_DEST[383:320] := SRC2[383:320]
+    TMP_DEST[447:384] := SRC1[511:448]
+    TMP_DEST[511:448] := SRC2[511:448]
+FI;
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i] := TMP_DEST[i+63:i]
+        ELSE
+            IF *merging-masking*
+                        ; merging-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing-masking*
+                            ; zeroing-masking
+                    DEST[i+63:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+		<h3 id="vunpckhpd--evex-encoded-version-when-src2-is-memory-">VUNPCKHPD（EVEX 编码版本，当 SRC2 为内存时）<a class="anchor" href="#vunpckhpd--evex-encoded-version-when-src2-is-memory-">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF (EVEX.b = 1)
+        THEN TMP_SRC2[i+63:i] := SRC2[63:0]
+        ELSE TMP_SRC2[i+63:i] := SRC2[i+63:i]
+    FI;
+ENDFOR;
+IF VL &gt;= 128
+    TMP_DEST[63:0] := SRC1[127:64]
+    TMP_DEST[127:64] := TMP_SRC2[127:64]
+FI;
+IF VL &gt;= 256
+    TMP_DEST[191:128] := SRC1[255:192]
+    TMP_DEST[255:192] := TMP_SRC2[255:192]
+FI;
+IF VL &gt;= 512
+    TMP_DEST[319:256] := SRC1[383:320]
+    TMP_DEST[383:320] := TMP_SRC2[383:320]
+    TMP_DEST[447:384] := SRC1[511:448]
+    TMP_DEST[511:448] := TMP_SRC2[511:448]
+FI;
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i] := TMP_DEST[i+63:i]
+        ELSE
+            IF *merging-masking*
+                        ; merging-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing-masking*
+                            ; zeroing-masking
+                    DEST[i+63:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+		<h3 id="vunpckhpd--vex-256-encoded-version-">VUNPCKHPD（VEX.256 编码版本）<a class="anchor" href="#vunpckhpd--vex-256-encoded-version-">¶</a></h3>
+		<pre>DEST[63:0] := SRC1[127:64]
+DEST[127:64] := SRC2[127:64]
+DEST[191:128] := SRC1[255:192]
+DEST[255:192] := SRC2[255:192]
+DEST[MAXVL-1:256] := 0
+</pre>
+
+		<h3 id="vunpckhpd--vex-128-encoded-version-">VUNPCKHPD（VEX.128 编码版本）<a class="anchor" href="#vunpckhpd--vex-128-encoded-version-">¶</a></h3>
+		<pre>DEST[63:0] := SRC1[127:64]
+DEST[127:64] := SRC2[127:64]
+DEST[MAXVL-1:128] := 0
+</pre>
+
+		<h3 id="unpckhpd--128-bit-legacy-sse-version-">UNPCKHPD（128 位传统 SSE 版本）<a class="anchor" href="#unpckhpd--128-bit-legacy-sse-version-">¶</a></h3>
+		<pre>DEST[63:0] := SRC1[127:64]
+DEST[127:64] := SRC2[127:64]
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VUNPCKHPD __m512d _mm512_unpackhi_pd( __m512d a, __m512d b);
+</pre>
+		<pre>VUNPCKHPD __m512d _mm512_mask_unpackhi_pd(__m512d s, __mmask8 k, __m512d a, __m512d b);
+</pre>
+		<pre>VUNPCKHPD __m512d _mm512_maskz_unpackhi_pd(__mmask8 k, __m512d a, __m512d b);
+</pre>
+		<pre>VUNPCKHPD __m256d _mm256_unpackhi_pd(__m256d a, __m256d b)
+</pre>
+		<pre>VUNPCKHPD __m256d _mm256_mask_unpackhi_pd(__m256d s, __mmask8 k, __m256d a, __m256d b);
+</pre>
+		<pre>VUNPCKHPD __m256d _mm256_maskz_unpackhi_pd(__mmask8 k, __m256d a, __m256d b);
+</pre>
+		<pre>UNPCKHPD __m128d _mm_unpackhi_pd(__m128d a, __m128d b)
+</pre>
+		<pre>VUNPCKHPD __m128d _mm_mask_unpackhi_pd(__m128d s, __mmask8 k, __m128d a, __m128d b);
+</pre>
+		<pre>VUNPCKHPD __m128d _mm_maskz_unpackhi_pd(__mmask8 k, __m128d a, __m128d b);
+</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>非 EVEX 编码指令，请参阅表 2-21，“第 4 类异常条件”。</p>
+		<p>EVEX 编码指令，请参阅表 2-50，“第 E4NF 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

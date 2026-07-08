@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>SENDUIPI — 发送用户核间中断</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>SENDUIPI — 发送用户核间中断</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>F3 0F C7 /6 SENDUIPI reg</td>
+				<td>A</td>
+				<td>V/I</td>
+				<td>UINTR</td>
+				<td>发送核间用户中断。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>Tuple</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>SENDUIPI 指令发送由其寄存器操作数指示的用户核间中断 (IPI)。（该操作数始终为 64 位；忽略操作数大小重写前缀如 66。）</p>
+		<p>SENDUIPI 使用名为用户中断目标表 (UITT) 的数据结构。此表位于线性地址 UITTADDR（在 IA32_UINTR_TT MSR 中）；它由 UITTSZ+1 个 16 字节的表项组成，其中 UITTSZ = IA32_UINT_MISC[31:0]。SENDUIPI 使用由该指令的寄存器操作数索引的 UITT 表项 (UITTE)。每个 UITTE 的格式如下：</p>
+		<ul>
+			<li>位 0：V，有效位。</li>
+			<li>位 7:1 保留且必须为 0。</li>
+			<li>位 15:8：UV，用户中断向量（范围 0–63，因此位 15:14 必须为 0）。</li>
+			<li>位 63:16 保留。</li>
+			<li>位 127:64：UPIDADDR，用户投递中断描述符 (UPID) 的线性地址。（UPIDADDR 为 64 字节对齐，因此每个 UITTE 的位 69:64 必须为 0。）</li>
+		</ul>
+		<p>每个 UPID 的格式如下（未引用的字段和位是保留的）：</p>
+		<ul>
+			<li>位 0 (ON) 指示有未处理的通知。如果设置了此位，则在 PIR 中针对一个或多个用户中断有未处理的通知。</li>
+			<li>位 1 (SN) 指示应抑制通知。如果设置了此位，则在向此描述符中投递用户中断时，代理（包括 SENDUIPI）不应发送通知。</li>
+			<li>位 23:16 (NV) 包含通知向量。这由发送用户中断通知的代理（包括 SENDUIPI）使用。</li>
+			<li>位 63:32 (NDST) 包含通知目的地。这是目标物理 APIC ID（在 xAPIC 模式下，位 47:40 是 8 位 APIC ID；在 x2APIC 模式下，整个字段构成 32 位 APIC ID）。</li>
+			<li>位 127:64 (PIF) 包含已投递中断请求 PIR/PIF。对每个用户中断向量有一位。如果相应位为 1，则对于该向量存在用户中断请求。</li>
+		</ul>
+		<p>虽然可以在任何特权级下执行 SENDUIPI，但该指令的所有内存访问（对 UITTE 和 UPID 的访问）均以主管（supervisor）特权执行。</p>
+		<p>SENDUIPI 通过在 UPIDADDR 引用的 UPID 中投递具有向量 V 的用户中断，然后以普通 IPI 形式发送该 UPID 中指定的任何通知中断，来发送用户中断。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>IF reg &gt; UITTSZ;
+    THEN #GP(0);
+FI;
+read tempUITTE from 16 bytes at UITTADDR+ (reg « 4);
+IF tempUITTE.V = 0 or tempUITTE sets any reserved bit
+    THEN #GP(0);
+FI;
+read tempUPID from 16 bytes at tempUITTE.UPIDADDR;// 锁定下
+IF tempUPID sets any reserved bits or bits that must be zero
+    THEN #GP(0); // 释放锁
+FI;
+tempUPID.PIR[tempUITTE.UV] := 1;
+IF tempUPID.SN = tempUPID.ON = 0
+    THEN
+        tempUPID.ON := 1;
+        sendNotify := 1;
+    ELSE sendNotify := 0;
+FI;
+write tempUPID to 16 bytes at tempUITTE.UPIDADDR;// 释放锁
+IF sendNotify = 1
+    THEN
+        IF local APIC is in x2APIC mode
+            THEN send ordinary IPI with vector tempUPID.NV
+                to 32-bit physical APIC ID tempUPID.NDST;
+            ELSE send ordinary IPI with vector tempUPID.NV
+                to 8-bit physical APIC ID tempUPID.NDST[15:8];
+        FI;
+FI;
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>在保护模式下无法识别 SENDUIPI 指令。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>在实地址模式下无法识别 SENDUIPI 指令。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>在虚拟-8086 模式下无法识别 SENDUIPI 指令。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>在兼容模式下无法识别 SENDUIPI 指令。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="5">#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+			<tr>
+				<td>如果是在 enclave 内部执行。</td>
+			</tr>
+			<tr>
+				<td>如果 CR4.UINTR = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 IA32_UINTR_TT[0] = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 CPUID.07H.0H:EDX.UINTR[位 5] = 0。</td>
+			</tr>
+			<tr>
+				<td>#PF</td>
+				<td>如果发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td rowspan="4">#GP</td>
+				<td>如果寄存器操作数的值超出 UITTSZ。</td>
+			</tr>
+			<tr>
+				<td>如果选定的 UITTE 无效或设置了任何保留位。</td>
+			</tr>
+			<tr>
+				<td>如果选定的 UPID 设置了任何保留位。</td>
+			</tr>
+			<tr>
+				<td>如果尝试使用相对于当前分页模式为非规范形式的线性地址来访问内存。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

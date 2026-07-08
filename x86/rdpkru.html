@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>RDPKRU — 读取用户页面的保护键权限</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>RDPKRU — 读取用户页面的保护键权限</h1>
+
+		<table>
+			<tr>
+				<th>操作码</th>
+				<th>指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F 01 EE</td>
+				<td>RDPKRU</td>
+				<td>ZO</td>
+				<td>V/V</td>
+				<td>OSPKE</td>
+				<td>将 PKRU 读取到 EAX 中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>ZO</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将 PKRU 的值读取到 EAX 中并清零 EDX。执行 RDPKRU 时，ECX 必须为 0；否则，将发生通用保护异常 (#GP)。</p>
+		<p>仅当 CR4.PKE = 1 时才能执行 RDPKRU；否则，将发生无效操作码异常 (#UD)。软件可以通过检查 CPUID.(EAX=07H,ECX=0H):ECX.OSPKE [位 4] 来发现 CR4.PKE 的值。</p>
+		<p>在支持 Intel 64 架构的处理器上，RCX 的高 32 位被忽略，RDX 和 RAX 的高 32 位被清零。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>IF (ECX = 0)
+    THEN
+        EAX := PKRU;
+        EDX := 0;
+    ELSE #GP(0);
+FI;
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="c-c++-compiler-intrinsic-equivalent">C/C++ 编译器等价内部函数<a class="anchor" href="#c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>RDPKRU uint32_t _rdpkru_u32(void);</pre>
+
+		<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP(0)</td>
+				<td>如果 ECX ̸= 0。</td>
+			</tr>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+			<tr>
+				<td>如果 CR4.PKE = 0。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

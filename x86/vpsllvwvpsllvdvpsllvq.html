@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VPSLLVW/VPSLLVD/VPSLLVQ — 可变位逻辑左移</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VPSLLVW/VPSLLVD/VPSLLVQ — 可变位逻辑左移</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op / En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.W0 47 /r VPSLLVD xmm1, xmm2, xmm3/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>向左移位 xmm2 中的双字，移位数由 xmm3/m128 中的对应元素指定，同时移入 0。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.W1 47 /r VPSLLVQ xmm1, xmm2, xmm3/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>向左移位 xmm2 中的四字，移位数由 xmm3/m128 中的对应元素指定，同时移入 0。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.W0 47 /r VPSLLVD ymm1, ymm2, ymm3/m256</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>向左移位 ymm2 中的双字，移位数由 ymm3/m256 中的对应元素指定，同时移入 0。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.W1 47 /r VPSLLVQ ymm1, ymm2, ymm3/m256</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>向左移位 ymm2 中的四字，移位数由 ymm3/m256 中的对应元素指定，同时移入 0。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W1 12 /r VPSLLVW xmm1 {k1}{z}, xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>使用写掩码 k1，向左移位 xmm2 中的字，移位数由 xmm3/m128 中的对应元素指定，同时移入 0。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W1 12 /r VPSLLVW ymm1 {k1}{z}, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>使用写掩码 k1，向左移位 ymm2 中的字，移位数由 ymm3/m256 中的对应元素指定，同时移入 0。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W1 12 /r VPSLLVW zmm1 {k1}{z}, zmm2, zmm3/m512</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512BW</td>
+				<td>使用写掩码 k1，向左移位 zmm2 中的字，移位数由 zmm3/m512 中的对应元素指定，同时移入 0。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W0 47 /r VPSLLVD xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用写掩码 k1，向左移位 xmm2 中的双字，移位数由 xmm3/m128/m32bcst 中的对应元素指定，同时移入 0。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W0 47 /r VPSLLVD ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用写掩码 k1，向左移位 ymm2 中的双字，移位数由 ymm3/m256/m32bcst 中的对应元素指定，同时移入 0。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W0 47 /r VPSLLVD zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用写掩码 k1，向左移位 zmm2 中的双字，移位数由 zmm3/m512/m32bcst 中的对应元素指定，同时移入 0。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W1 47 /r VPSLLVQ xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用写掩码 k1，向左移位 xmm2 中的四字，移位数由 xmm3/m128/m64bcst 中的对应元素指定，同时移入 0。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W1 47 /r VPSLLVQ ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用写掩码 k1，向左移位 ymm2 中的四字，移位数由 ymm3/m256/m64bcst 中的对应元素指定，同时移入 0。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W1 47 /r VPSLLVQ zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用写掩码 k1，向左移位 zmm2 中的四字，移位数由 zmm3/m512/m64bcst 中的对应元素指定，同时移入 0。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>Full Mem</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>C</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将第一源操作数中各个数据元素（字、双字或四字）中的位，向左移位第二源操作数中各个相应元素指定的移位数。随着数据元素中的位向左移位，空出的低位被清零（设为 0）。</p>
+		<p>计数移位数分别在第二源操作数的每个数据元素中指定。如果第二源操作数对应数据元素中指定的无符号整数值大于 15（对于字）、31（对于双字）或 63（对于四字），则目的数据元素被写入 0。</p>
+		<p>VEX.128 编码版本：目的和第一源操作数是 XMM 寄存器。计数操作数可以是 XMM 寄存器或 128 位内存位置。对应目的寄存器的 bits (MAXVL-1:128) 清零。</p>
+		<p>VEX.256 编码版本：目的和第一源操作数是 YMM 寄存器。计数操作数可以是 YMM 寄存器或 256 位内存。对应 ZMM 寄存器的 bits (MAXVL-1:256) 清零。</p>
+		<p>EVEX 编码的 VPSLLVD/Q：目的和第一源操作数是 ZMM/YMM/XMM 寄存器。计数操作数可以是 ZMM/YMM/XMM 寄存器、512/256/128 位内存位置，或从 32/64 位内存位置广播的 512 位向量。目的操作数在写掩码 k1 的控制下有条件地更新。</p>
+		<p>EVEX 编码的 VPSLLVW：目的和第一源操作数是 ZMM/YMM/XMM 寄存器。计数操作数可以是 ZMM/YMM/XMM 寄存器或 512/256/128 位内存位置。目的操作数在写掩码 k1 的控制下有条件地更新。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vpsllvw--evex-encoded-version-">VPSLLVW (EVEX 编码版本)<a class="anchor" href="#vpsllvw--evex-encoded-version-">¶</a></h3>
+		<pre>(KL, VL) = (8, 128), (16, 256), (32, 512)
+FOR j := 0 TO KL-1
+    i := j * 16
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i] := ZeroExtend(SRC1[i+15:i] &lt;&lt; SRC2[i+15:i])
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE
+                        ; zeroing-masking
+                    DEST[i+15:i] := 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL-1:VL] := 0;
+</pre>
+		<h3 id="vpsllvd--vex-128-version-">VPSLLVD (VEX.128 版本)<a class="anchor" href="#vpsllvd--vex-128-version-">¶</a></h3>
+		<pre>COUNT_0 := SRC2[31 : 0]
+    (* Repeat Each COUNT_i for the 2nd through 4th dwords of SRC2*)
+COUNT_3 := SRC2[127 : 96];
+IF COUNT_0 &lt; 32 THEN
+DEST[31:0] := ZeroExtend(SRC1[31:0] &lt;&lt; COUNT_0);
+ELSE
+DEST[31:0] := 0;
+    (* Repeat shift operation for 2nd through 4th dwords *)
+IF COUNT_3 &lt; 32 THEN
+DEST[127:96] := ZeroExtend(SRC1[127:96] &lt;&lt; COUNT_3);
+ELSE
+DEST[127:96] := 0;
+DEST[MAXVL-1:128] := 0;
+</pre>
+		<h3 id="vpsllvd--vex-256-version-">VPSLLVD (VEX.256 版本)<a class="anchor" href="#vpsllvd--vex-256-version-">¶</a></h3>
+		<pre>COUNT_0 := SRC2[31 : 0];
+    (* Repeat Each COUNT_i for the 2nd through 7th dwords of SRC2*)
+COUNT_7 := SRC2[255 : 224];
+IF COUNT_0 &lt; 32 THEN
+DEST[31:0] := ZeroExtend(SRC1[31:0] &lt;&lt; COUNT_0);
+ELSE
+DEST[31:0] := 0;
+    (* Repeat shift operation for 2nd through 7th dwords *)
+IF COUNT_7 &lt; 32 THEN
+DEST[255:224] := ZeroExtend(SRC1[255:224] &lt;&lt; COUNT_7);
+ELSE
+DEST[255:224] := 0;
+DEST[MAXVL-1:256] := 0;
+</pre>
+		<h3 id="vpsllvd--evex-encoded-version-">VPSLLVD (EVEX 编码版本)<a class="anchor" href="#vpsllvd--evex-encoded-version-">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j := 0 TO KL-1
+    i := j * 32
+    IF k1[j] OR *no writemask* THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN DEST[i+31:i] := ZeroExtend(SRC1[i+31:i] &lt;&lt; SRC2[31:0])
+                ELSE DEST[i+31:i] := ZeroExtend(SRC1[i+31:i] &lt;&lt; SRC2[i+31:i])
+            FI;
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing-masking
+                    DEST[i+31:i] := 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL-1:VL] := 0;
+</pre>
+		<h3 id="vpsllvq--vex-128-version-">VPSLLVQ (VEX.128 版本)<a class="anchor" href="#vpsllvq--vex-128-version-">¶</a></h3>
+		<pre>COUNT_0 := SRC2[63 : 0];
+COUNT_1 := SRC2[127 : 64];
+IF COUNT_0 &lt; 64THEN
+DEST[63:0] := ZeroExtend(SRC1[63:0] &lt;&lt; COUNT_0);
+ELSE
+DEST[63:0] := 0;
+IF COUNT_1 &lt; 64 THEN
+DEST[127:64] := ZeroExtend(SRC1[127:64] &lt;&lt; COUNT_1);
+ELSE
+DEST[127:96] := 0;
+DEST[MAXVL-1:128] := 0;
+</pre>
+		<h3 id="vpsllvq--vex-256-version-">VPSLLVQ (VEX.256 版本)<a class="anchor" href="#vpsllvq--vex-256-version-">¶</a></h3>
+		<pre>COUNT_0 := SRC2[63 : 0];
+    (* Repeat Each COUNT_i for the 2nd through 4th dwords of SRC2*)
+COUNT_3 := SRC2[255 : 192];
+IF COUNT_0 &lt; 64THEN
+DEST[63:0] := ZeroExtend(SRC1[63:0] &lt;&lt; COUNT_0);
+ELSE
+DEST[63:0] := 0;
+    (* Repeat shift operation for 2nd through 4th dwords *)
+IF COUNT_3 &lt; 64 THEN
+DEST[255:192] := ZeroExtend(SRC1[255:192] &lt;&lt; COUNT_3);
+ELSE
+DEST[255:192] := 0;
+DEST[MAXVL-1:256] := 0;
+</pre>
+		<h3 id="vpsllvq--evex-encoded-version-">VPSLLVQ (EVEX 编码版本)<a class="anchor" href="#vpsllvq--evex-encoded-version-">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k1[j] OR *no writemask* THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN DEST[i+63:i] := ZeroExtend(SRC1[i+63:i] &lt;&lt; SRC2[63:0])
+                ELSE DEST[i+63:i] := ZeroExtend(SRC1[i+63:i] &lt;&lt; SRC2[i+63:i])
+            FI;
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE
+                        ; zeroing-masking
+                    DEST[i+63:i] := 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL-1:VL] := 0;
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VPSLLVW __m512i _mm512_sllv_epi16(__m512i a, __m512i cnt);
+</pre>
+		<pre>VPSLLVW __m512i _mm512_mask_sllv_epi16(__m512i s, __mmask32 k, __m512i a, __m512i cnt);
+</pre>
+		<pre>VPSLLVW __m512i _mm512_maskz_sllv_epi16( __mmask32 k, __m512i a, __m512i cnt);
+</pre>
+		<pre>VPSLLVW __m256i _mm256_mask_sllv_epi16(__m256i s, __mmask16 k, __m256i a, __m256i cnt);
+</pre>
+		<pre>VPSLLVW __m256i _mm256_maskz_sllv_epi16( __mmask16 k, __m256i a, __m256i cnt);
+</pre>
+		<pre>VPSLLVW __m128i _mm_mask_sllv_epi16(__m128i s, __mmask8 k, __m128i a, __m128i cnt);
+</pre>
+		<pre>VPSLLVW __m128i _mm_maskz_sllv_epi16( __mmask8 k, __m128i a, __m128i cnt);
+</pre>
+		<pre>VPSLLVD __m512i _mm512_sllv_epi32(__m512i a, __m512i cnt);
+</pre>
+		<pre>VPSLLVD __m512i _mm512_mask_sllv_epi32(__m512i s, __mmask16 k, __m512i a, __m512i cnt);
+</pre>
+		<pre>VPSLLVD __m512i _mm512_maskz_sllv_epi32( __mmask16 k, __m512i a, __m512i cnt);
+</pre>
+		<pre>VPSLLVD __m256i _mm256_mask_sllv_epi32(__m256i s, __mmask8 k, __m256i a, __m256i cnt);
+</pre>
+		<pre>VPSLLVD __m256i _mm256_maskz_sllv_epi32( __mmask8 k, __m256i a, __m256i cnt);
+</pre>
+		<pre>VPSLLVD __m128i _mm_mask_sllv_epi32(__m128i s, __mmask8 k, __m128i a, __m128i cnt);
+</pre>
+		<pre>VPSLLVD __m128i _mm_maskz_sllv_epi32( __mmask8 k, __m128i a, __m128i cnt);
+</pre>
+		<pre>VPSLLVQ __m512i _mm512_sllv_epi64(__m512i a, __m512i cnt);
+</pre>
+		<pre>VPSLLVQ __m512i _mm512_mask_sllv_epi64(__m512i s, __mmask8 k, __m512i a, __m512i cnt);
+</pre>
+		<pre>VPSLLVQ __m512i _mm512_maskz_sllv_epi64( __mmask8 k, __m512i a, __m512i cnt);
+</pre>
+		<pre>VPSLLVD __m256i _mm256_mask_sllv_epi64(__m256i s, __mmask8 k, __m256i a, __m256i cnt);
+</pre>
+		<pre>VPSLLVD __m256i _mm256_maskz_sllv_epi64( __mmask8 k, __m256i a, __m256i cnt);
+</pre>
+		<pre>VPSLLVD __m128i _mm_mask_sllv_epi64(__m128i s, __mmask8 k, __m128i a, __m128i cnt);
+</pre>
+		<pre>VPSLLVD __m128i _mm_maskz_sllv_epi64( __mmask8 k, __m128i a, __m128i cnt);
+</pre>
+		<pre>VPSLLVD __m256i _mm256_sllv_epi32 (__m256i m, __m256i count)
+</pre>
+		<pre>VPSLLVQ __m256i _mm256_sllv_epi64 (__m256i m, __m256i count)
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>VEX 编码指令，请参阅表 2-21，“第 4 类异常条件”。</p>
+		<p>EVEX 编码的 VPSLLVD/VPSLLVQ，请参阅表 2-49，“第 E4 类异常条件”。</p>
+		<p>EVEX 编码的 VPSLLVW，请参阅表 2-49 “第 E4 类异常条件” 中的 Exception Type E4.nb。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

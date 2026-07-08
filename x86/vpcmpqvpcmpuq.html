@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VPCMPQ/VPCMPUQ — 将打包四字整数值进行比较并写入掩码</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VPCMPQ/VPCMPUQ — 将打包四字整数值进行比较并写入掩码</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F3A.W1 1F /r ib VPCMPQ k1 {k2}, xmm2, xmm3/m128/m64bcst, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用 imm8 的第 2:0 位作为比较条件，在写掩码 k2 下比较 xmm3/m128/m64bcst 和 xmm2 中的打包有符号四字整数值，并将结果保存在掩码寄存器 k1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F3A.W1 1F /r ib VPCMPQ k1 {k2}, ymm2, ymm3/m256/m64bcst, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用 imm8 的第 2:0 位作为比较条件，在写掩码 k2 下比较 ymm3/m256/m64bcst 和 ymm2 中的打包有符号四字整数值，并将结果保存在掩码寄存器 k1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F3A.W1 1F /r ib VPCMPQ k1 {k2}, zmm2, zmm3/m512/m64bcst, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用 imm8 的第 2:0 位作为比较条件，在写掩码 k2 下比较 zmm3/m512/m64bcst 和 zmm2 中的打包有符号四字整数值，并将结果保存在掩码寄存器 k1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F3A.W1 1E /r ib VPCMPUQ k1 {k2}, xmm2, xmm3/m128/m64bcst, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用 imm8 的第 2:0 位作为比较条件，在写掩码 k2 下比较 xmm3/m128/m64bcst 和 xmm2 中的打包无符号四字整数值，并将结果保存在掩码寄存器 k1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F3A.W1 1E /r ib VPCMPUQ k1 {k2}, ymm2, ymm3/m256/m64bcst, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用 imm8 的第 2:0 位作为比较条件，在写掩码 k2 下比较 ymm3/m256/m64bcst 和 ymm2 中的打包无符号四字整数值，并将结果保存在掩码寄存器 k1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F3A.W1 1E /r ib VPCMPUQ k1 {k2}, zmm2, zmm3/m512/m64bcst, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用 imm8 的第 2:0 位作为比较条件，在写掩码 k2 下比较 zmm3/m512/m64bcst 和 zmm2 中的打包无符号四字整数值，并将结果保存在掩码寄存器 k1 中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>imm8</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>对第二源操作数 and 第一源操作数中的打包整数值进行 SIMD 比较，并将比较结果返回给掩码目的操作数。比较条件操作数（立即数字节）指定对两个源操作数中的每对打包值执行的比较类型。每次比较的结果为单个掩码位，1 表示比较为真，0 表示比较为假。</p>
+		<p>VPCMPQ/VPCMPUQ 在有符号/无符号四字整数值对之间执行比较。</p>
+		<p>第一源操作数（第二操作数）是 ZMM/YMM/XMM 寄存器。第二源操作数可以是 ZMM/YMM/XMM 寄存器或 512/256/128 位内存位置，或者是从 64 位内存位置广播的 512 位向量。目的操作数（第一操作数）是掩码寄存器 k1。最多执行 8/4/2 次比较，结果在写掩码 k2 下被写入目的操作数。</p>
+		<p>比较条件操作数是一个 8 位立即数：第 2:0 位定义要执行的比较类型。立即数的第 3 到 7 位保留。编译器可以实现表 5-21 中列出的伪操作助记符。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>CASE (COMPARISON PREDICATE) OF
+    0: OP := EQ;
+    1: OP := LT;
+    2: OP := LE;
+    3: OP := FALSE;
+    4: OP := NEQ;
+    5: OP := NLT;
+    6: OP := NLE;
+    7: OP := TRUE;
+ESAC;
+</pre>
+		<h3 id="vpcmpq--evex-encoded-versions-">VPCMPQ (EVEX 编码版本)<a class="anchor" href="#vpcmpq--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k2[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN CMP := SRC1[i+63:i] OP SRC2[63:0];
+                ELSE CMP := SRC1[i+63:i] OP SRC2[i+63:i];
+            FI;
+            IF CMP = TRUE
+                THEN DEST[j] := 1;
+                ELSE DEST[j] := 0; FI;
+        ELSE DEST[j] := 0
+                    ; zeroing-masking only
+    FI;
+ENDFOR
+DEST[MAX_KL-1:KL] := 0
+</pre>
+		<h3 id="vpcmpuq--evex-encoded-versions-">VPCMPUQ (EVEX 编码版本)<a class="anchor" href="#vpcmpuq--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k2[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN CMP := SRC1[i+63:i] OP SRC2[63:0];
+                ELSE CMP := SRC1[i+63:i] OP SRC2[i+63:i];
+            FI;
+            IF CMP = TRUE
+                THEN DEST[j] := 1;
+                ELSE DEST[j] := 0; FI;
+        ELSE DEST[j] := 0
+                    ; zeroing-masking only
+    FI;
+ENDFOR
+DEST[MAX_KL-1:KL] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VPCMPQ __mmask8 _mm512_cmp_epi64_mask( __m512i a, __m512i b, int imm);
+</pre>
+		<pre>VPCMPQ __mmask8 _mm512_mask_cmp_epi64_mask(__mmask8 k, __m512i a, __m512i b, int imm);
+</pre>
+		<pre>VPCMPQ __mmask8 _mm512_cmp[eq|ge|gt|le|lt|neq]_epi64_mask( __m512i a, __m512i b);
+</pre>
+		<pre>VPCMPQ __mmask8 _mm512_mask_cmp[eq|ge|gt|le|lt|neq]_epi64_mask(__mmask8 k, __m512i a, __m512i b);
+</pre>
+		<pre>VPCMPUQ __mmask8 _mm512_cmp_epu64_mask( __m512i a, __m512i b, int imm);
+</pre>
+		<pre>VPCMPUQ __mmask8 _mm512_mask_cmp_epu64_mask(__mmask8 k, __m512i a, __m512i b, int imm);
+</pre>
+		<pre>VPCMPUQ __mmask8 _mm512_cmp[eq|ge|gt|le|lt|neq]_epu64_mask( __m512i a, __m512i b);
+</pre>
+		<pre>VPCMPUQ __mmask8 _mm512_mask_cmp[eq|ge|gt|le|lt|neq]_epu64_mask(__mmask8 k, __m512i a, __m512i b);
+</pre>
+		<pre>VPCMPQ __mmask8 _mm256_cmp_epi64_mask( __m256i a, __m256i b, int imm);
+</pre>
+		<pre>VPCMPQ __mmask8 _mm256_mask_cmp_epi64_mask(__mmask8 k, __m256i a, __m256i b, int imm);
+</pre>
+		<pre>VPCMPQ __mmask8 _mm256_cmp[eq|ge|gt|le|lt|neq]_epi64_mask( __m256i a, __m256i b);
+</pre>
+		<pre>VPCMPQ __mmask8 _mm256_mask_cmp[eq|ge|gt|le|lt|neq]_epi64_mask(__mmask8 k, __m256i a, __m256i b);
+</pre>
+		<pre>VPCMPUQ __mmask8 _mm256_cmp_epu64_mask( __m256i a, __m256i b, int imm);
+</pre>
+		<pre>VPCMPUQ __mmask8 _mm256_mask_cmp_epu64_mask(__mmask8 k, __m256i a, __m256i b, int imm);
+</pre>
+		<pre>VPCMPUQ __mmask8 _mm256_cmp[eq|ge|gt|le|lt|neq]_epu64_mask( __m256i a, __m256i b);
+</pre>
+		<pre>VPCMPUQ __mmask8 _mm256_mask_cmp[eq|ge|gt|le|lt|neq]_epu64_mask(__mmask8 k, __m256i a, __m256i b);
+</pre>
+		<pre>VPCMPQ __mmask8 _mm_cmp_epi64_mask( __m128i a, __m128i b, int imm);
+</pre>
+		<pre>VPCMPQ __mmask8 _mm_mask_cmp_epi64_mask(__mmask8 k, __m128i a, __m128i b, int imm);
+</pre>
+		<pre>VPCMPQ __mmask8 _mm_cmp[eq|ge|gt|le|lt|neq]_epi64_mask( __m128i a, __m128i b);
+</pre>
+		<pre>VPCMPQ __mmask8 _mm_mask_cmp[eq|ge|gt|le|lt|neq]_epi64_mask(__mmask8 k, __m128i a, __m128i b);
+</pre>
+		<pre>VPCMPUQ __mmask8 _mm_cmp_epu64_mask( __m128i a, __m128i b, int imm);
+</pre>
+		<pre>VPCMPUQ __mmask8 _mm_mask_cmp_epu64_mask(__mmask8 k, __m128i a, __m128i b, int imm);
+</pre>
+		<pre>VPCMPUQ __mmask8 _mm_cmp[eq|ge|gt|le|lt|neq]_epu64_mask( __m128i a, __m128i b);
+</pre>
+		<pre>VPCMPUQ __mmask8 _mm_mask_cmp[eq|ge|gt|le|lt|neq]_epu64_mask(__mmask8 k, __m128i a, __m128i b);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>EVEX 编码指令，请参阅表 2-49，“第 E4 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

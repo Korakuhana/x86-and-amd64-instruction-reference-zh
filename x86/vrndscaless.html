@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VRNDSCALESS — 对标量单精度浮点值进行舍入以保留指定尾数位数</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VRNDSCALESS — 对标量单精度浮点值进行舍入以保留指定尾数位数</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.LLIG.66.0F3A.W0 0A /r ib VRNDSCALESS xmm1 {k1}{z}, xmm2, xmm3/m32{sae}, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>在写掩码控制下，将 xmm3/m32 中的标量单精度浮点值舍入到由 imm8 字段指定的尾数位数。将结果存储在 xmm1 寄存器中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Tuple1 Scalar</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>imm8</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>根据立即数操作数中指定的舍入模式对第二源操作数（第三操作数）低双字元素中的单精度浮点值进行舍入（参见 图 5-29），并根据写掩码将结果存放在目的操作数（第一操作数）的对应元素中。目的操作数 bits 127:32 处的双字元素从第一源操作数（第二操作数）复制。</p>
+		<p>目的操作数和第一源操作数是 XMM 寄存器，第二源操作数可以是 XMM 寄存器或内存位置。目的寄存器的 bits MAXVL-1:128 清零。</p>
+		<p>舍入过程将输入舍入为整数值，加上 imm8[7:4] 指定的保留在结果中的尾数位数，并将结果作为单精度浮点值返回。</p>
+		<p>需要注意的是，执行此指令时不会引起溢出（尽管源值会被 imm8[7:4] 的值缩放）。</p>
+		<p>立即数操作数还指定了舍入操作的控制字段，定义了三个位字段，如底部的“图 5-29”所示。立即数字节的第 3 位控制处理器对精度异常的行为，第 2 位选择舍入模式控制的来源。第 1:0 位指定一个非粘性（non-sticky）舍入模式值（下方的立即数控制图表列出了舍入模式字段的编码值）。</p>
+		<p>根据立即数操作数发出精度浮点异常信号。如果任何源操作数是 SNaN，则它将被转换为 QNaN。如果 DAZ 设置为 1，则在舍入之前，渐近下溢数将被转换为零。</p>
+		<p>此指令结果的符号会被保留，包括零的符号。</p>
+		<p>VRNDSCALESS 的运算公式为：</p>
+		<p>ROUND(x) = 2<sup>-M</sup>*Round_to_INT(x*2<sup>M</sup>, round_ctrl),</p>
+		<p>round_ctrl = imm[3:0];</p>
+		<p>M=imm[7:4];</p>
+		<p>x*2<sup>M</sup> 的运算是在假设指数范围无限的情况下计算的（即永远不会发生溢出）。</p>
+		<p>VRNDSCALESS 是 VEX 编码的 VROUNDSS 指令的更通用形式。在 VROUNDSS 中，每个元素的运算公式为：</p>
+		<p>ROUND(x) = Round_to_INT(x, round_ctrl),</p>
+		<p>round_ctrl = imm[3:0];</p>
+		<p>EVEX 编码版本：源操作数是 XMM 寄存器或 32 位内存位置。目的操作数是 XMM 寄存器。</p>
+		<p>输入值的特殊情况处理列在 <a href="vrndscalepd.html#tbl-5-31">表 5-31</a> 中。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>RoundToIntegerSP(SRC[31:0], imm8[7:0]) {
+    if (imm8[2] = 1)
+        rounding_direction := MXCSR:RC
+                    ; get round control from MXCSR
+    else
+        rounding_direction := imm8[1:0]
+                    ; get round control from imm8[1:0]
+    FI
+    M := imm8[7:4] ; get the scaling factor
+    case (rounding_direction)
+    00: TMP[31:0] := round_to_nearest_even_integer(2<sup>M</sup>*SRC[31:0])
+    01: TMP[31:0] := round_to_equal_or_smaller_integer(2<sup>M</sup>*SRC[31:0])
+    10: TMP[31:0] := round_to_equal_or_larger_integer(2<sup>M</sup>*SRC[31:0])
+    11: TMP[31:0] := round_to_nearest_smallest_magnitude_integer(2<sup>M</sup>*SRC[31:0])
+    ESAC;
+    Dest[31:0] := 2<sup>-M</sup>* TMP[31:0] ; scale down back to 2<sup>-M</sup>
+    if (imm8[3] = 0) Then ; check SPE
+        if (SRC[31:0] != Dest[31:0]) Then
+                    ; check precision lost
+            set_precision() ; set #PE
+        FI;
+    FI;
+    return(Dest[31:0])
+}
+</pre>
+		<h3 id="vrndscaless">VRNDSCALESS (EVEX 编码版本)<a class="anchor" href="#vrndscaless">¶</a></h3>
+		<pre>IF k1[0] or *no writemask*
+    THEN DEST[31:0] := RoundToIntegerSP(SRC2[31:0], Zero_upper_imm[7:0])
+    ELSE
+        IF *merging-masking* ; merging-masking
+            THEN *DEST[31:0] remains unchanged*
+            ELSE ; zeroing-masking
+                THEN DEST[31:0] := 0
+        FI;
+FI;
+DEST[127:32] := SRC1[127:32]
+DEST[MAXVL-1:128] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VRNDSCALESS __m128 _mm_roundscale_ss ( __m128 a, __m128 b, int imm);
+</pre>
+		<pre>VRNDSCALESS __m128 _mm_roundscale_round_ss ( __m128 a, __m128 b, int imm, int sae);
+</pre>
+		<pre>VRNDSCALESS __m128 _mm_mask_roundscale_ss (__m128 s, __mmask8 k, __m128 a, __m128 b, int imm);
+</pre>
+		<pre>VRNDSCALESS __m128 _mm_mask_roundscale_round_ss (__m128 s, __mmask8 k, __m128 a, __m128 b, int imm, int sae);
+</pre>
+		<pre>VRNDSCALESS __m128 _mm_maskz_roundscale_ss ( __mmask8 k, __m128 a, __m128 b, int imm);
+</pre>
+		<pre>VRNDSCALESS __m128 _mm_maskz_roundscale_round_ss ( __mmask8 k, __m128 a, __m128 b, int imm, int sae);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无效, 精度。</p>
+		<p>如果启用了 SPE，则不报告精度异常（无论 MXCSR 异常掩码如何）。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-47，“第 E3 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>FSUBR/FSUBRP/FISUBR — 反向减法</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>FSUBR/FSUBRP/FISUBR — 反向减法</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>D8 /5</td>
+			<td>FSUBR m32fp</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>从 m32fp 中减去 ST(0)，并将结果存储在 ST(0) 中。</td>
+		</tr>
+		<tr>
+			<td>DC /5</td>
+			<td>FSUBR m64fp</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>从 m64fp 中减去 ST(0)，并将结果存储在 ST(0) 中。</td>
+		</tr>
+		<tr>
+			<td>D8 E8+i</td>
+			<td>FSUBR ST(0), ST(i)</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>从 ST(i) 中减去 ST(0)，并将结果存储在 ST(0) 中。</td>
+		</tr>
+		<tr>
+			<td>DC E0+i</td>
+			<td>FSUBR ST(i), ST(0)</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>从 ST(0) 中减去 ST(i)，并将结果存储在 ST(i) 中。</td>
+		</tr>
+		<tr>
+			<td>DE E0+i</td>
+			<td>FSUBRP ST(i), ST(0)</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>从 ST(0) 中减去 ST(i)，将结果存储在 ST(i) 中，并弹出寄存器栈。</td>
+		</tr>
+		<tr>
+			<td>DE E1</td>
+			<td>FSUBRP</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>从 ST(0) 中减去 ST(1)，将结果存储在 ST(1) 中，并弹出寄存器栈。</td>
+		</tr>
+		<tr>
+			<td>DA /5</td>
+			<td>FISUBR m32int</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>从 m32int 中减去 ST(0)，并将结果存储在 ST(0) 中。</td>
+		</tr>
+		<tr>
+			<td>DE /5</td>
+			<td>FISUBR m16int</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>从 m16int 中减去 ST(0)，并将结果存储在 ST(0) 中。</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>从源操作数中减去目的操作数，并将差值存储在目的位置。目的操作数始终是 FPU 寄存器；源操作数可以是寄存器或内存位置。内存中的源操作数可以是单精度或双精度浮点格式，也可以是字或双字整数格式。</p>
+	<p>这些指令执行 FSUB、FSUBP 和 FISUB 指令的反向操作。提供它们是为了支持更高效的编码。</p>
+	<p>无操作数版本的指令从 ST(0) 寄存器中减去 ST(1) 寄存器的内容，并将结果存储在 ST(1) 中。单操作数版本从内存位置的内容（浮点值或整数值）中减去 ST(0) 寄存器的内容，并将结果存储在 ST(0) 中。双操作数版本从 ST(0) 寄存器中减去 ST(i) 寄存器的内容，反之亦然。</p>
+	<p>FSUBRP 指令在减法之后执行弹出 FPU 寄存器栈的额外操作。为了弹出寄存器栈，处理器将 ST(0) 寄存器标记为空，并将栈指针 (TOP) 递增 1。浮点反向减法指令的无操作数版本总是导致寄存器栈被弹出。在某些汇编器中，该指令的助记符是 FSUBR 而不是 FSUBRP。</p>
+	<p>FISUBR 指令在执行减法之前将整数源操作数转换为双精度扩展浮点格式。</p>
+	<p>下表显示了在不发生溢出或下溢的情况下，将各类数字进行相减时获得的结果。这里，从 SRC 值中减去 DEST 值（SRC − DEST = 结果）。</p>
+	<p>当两个同号操作数之间的差值为 0 时，结果为 +0，但在向 −∞ 舍入的模式下，结果为 −0。该指令还保证 +0 − (−0) = +0，以及 −0 − (+0) = −0。当源操作数是整数 0 时，它被视为 +0。</p>
+	<p>当一个操作数为 ∞ 时，结果为符合预期符号的 ∞。如果两个操作数都是同号的 ∞，则会产生无效操作异常。</p>
+
+	<figure id="tbl-3-39">
+		<table>
+			<tr>
+				<th colspan="9">SRC</th>
+			</tr>
+			<tr>
+				<td rowspan="8"><strong>DEST</strong></td>
+				<td></td>
+				<td>−∞</td>
+				<td>−F 或 −I</td>
+				<td>−0</td>
+				<td>+0</td>
+				<td>+F 或 +I</td>
+				<td>+∞</td>
+				<td>NaN</td>
+			</tr>
+			<tr>
+				<td>−∞</td>
+				<td>*</td>
+				<td>+∞</td>
+				<td>+∞</td>
+				<td>+∞</td>
+				<td>+∞</td>
+				<td>+∞</td>
+				<td>NaN</td>
+			</tr>
+			<tr>
+				<td>−F</td>
+				<td>−∞</td>
+				<td>±F 或 ±0</td>
+				<td>−DEST</td>
+				<td>−DEST</td>
+				<td>+F</td>
+				<td>+∞</td>
+				<td>NaN</td>
+			</tr>
+			<tr>
+				<td>−0</td>
+				<td>−∞</td>
+				<td>SRC</td>
+				<td>±0</td>
+				<td>+0</td>
+				<td>SRC</td>
+				<td>+∞</td>
+				<td>NaN</td>
+			</tr>
+			<tr>
+				<td>+0</td>
+				<td>−∞</td>
+				<td>SRC</td>
+				<td>−0</td>
+				<td>±0</td>
+				<td>SRC</td>
+				<td>+∞</td>
+				<td>NaN</td>
+			</tr>
+			<tr>
+				<td>+F</td>
+				<td>−∞</td>
+				<td>−F</td>
+				<td>−DEST</td>
+				<td>−DEST</td>
+				<td>±F 或 ±0</td>
+				<td>+∞</td>
+				<td>NaN</td>
+			</tr>
+			<tr>
+				<td>+∞</td>
+				<td>−∞</td>
+				<td>−∞</td>
+				<td>−∞</td>
+				<td>−∞</td>
+				<td>−∞</td>
+				<td>*</td>
+				<td>NaN</td>
+			</tr>
+			<tr>
+				<td>NaN</td>
+				<td>NaN</td>
+				<td>NaN</td>
+				<td>NaN</td>
+				<td>NaN</td>
+				<td>NaN</td>
+				<td>NaN</td>
+				<td>NaN</td>
+			</tr>
+		</table>
+		<figcaption><a href='fsubrfsubrpfisubr.html#tbl-3-39'>表 3-39</a>. FSUBR/FSUBRP/FISUBR 结果</figcaption>
+	</figure>
+	<blockquote>
+		<p>F 表示有限浮点值。</p>
+		<p>I 表示整数。</p>
+		<p>* 表示浮点无效算术操作数 (#IA) 异常。</p>
+	</blockquote>
+	<p>此指令的操作在非 64 位模式和 64 位模式下相同。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF Instruction = FISUBR
+    THEN
+        DEST := ConvertToDoubleExtendedPrecisionFP(SRC) − DEST;
+    ELSE (* Source operand is floating-point value *)
+        DEST := SRC − DEST; FI;
+IF Instruction = FSUBRP
+    THEN
+        PopRegisterStack; FI;
+</pre>
+
+	<h2 id="fpu-flags-affected">受影响的 FPU 标志位<a class="anchor" href="#fpu-flags-affected">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">C1</td>
+			<td>如果发生栈下溢，则设置为 0。</td>
+		</tr>
+		<tr>
+			<td>如果结果向上舍入，则设置；否则清除。</td>
+		</tr>
+		<tr>
+			<td>C0, C2, C3</td>
+			<td>未定义。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="floating-point-exceptions">浮点异常<a class="anchor" href="#floating-point-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#IS</td>
+			<td>发生栈下溢。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#IA</td>
+			<td>操作数是 SNaN 值或不受支持的格式。</td>
+		</tr>
+		<tr>
+			<td>操作数是相同符号的无穷大。</td>
+		</tr>
+		<tr>
+			<td>#D</td>
+			<td>源操作数是非正规化值。</td>
+		</tr>
+		<tr>
+			<td>#U</td>
+			<td>结果对于目的格式来说太小。</td>
+		</tr>
+		<tr>
+			<td>#O</td>
+			<td>结果对于目的格式来说太大。</td>
+		</tr>
+		<tr>
+			<td>#P</td>
+			<td>值无法在目的格式中精确表示。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段界限。</td>
+		</tr>
+		<tr>
+			<td>如果使用 DS、ES、FS 或 GS 寄存器访问内存，且该寄存器包含 NULL 段选择子。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数的有效地址超出 SS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#NM</td>
+			<td>CR0.EM[bit 2] 或 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐 of 内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#SS</td>
+			<td>如果内存操作数的有效地址超出 SS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#NM</td>
+			<td>CR0.EM[bit 2] 或 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存操作数的有效地址超出 CS、DS、ES、FS 或 GS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数的有效地址超出 SS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#NM</td>
+			<td>CR0.EM[bit 2] 或 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查且进行了未对齐的内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果引用 SS 段的内存地址为非规范（non-canonical）形式。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存地址为非规范（non-canonical）形式。</td>
+		</tr>
+		<tr>
+			<td>#NM</td>
+			<td>CR0.EM[bit 2] 或 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>#MF</td>
+			<td>如果存在待处理的 x87 FPU 异常。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级别为 3 时进行了未对齐 of 内存引用。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

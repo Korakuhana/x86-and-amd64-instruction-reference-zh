@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VGETEXPPH — 将打包 FP16 值的指数转换为 FP16 值</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VGETEXPPH — 将打包 FP16 值的指数转换为 FP16 值</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.MAP6.W0 42 /r VGETEXPPH xmm1{k1}{z}, xmm2/m128/m16bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512-FP16 AVX512VL</td>
+				<td>在写掩码 k1 下，将源操作数中 FP16 值的指数转换为表示无偏整数指数的 FP16 结果，并将结果存储在目的寄存器中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.MAP6.W0 42 /r VGETEXPPH ymm1{k1}{z}, ymm2/m256/m16bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512-FP16 AVX512VL</td>
+				<td>在写掩码 k1 下，将源操作数中 FP16 值的指数转换为表示无偏整数指数的 FP16 结果，并将结果存储在目的寄存器中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.MAP6.W0 42 /r VGETEXPPH zmm1{k1}{z}, zmm2/m512/m16bcst {sae}</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512-FP16</td>
+				<td>在写掩码 k1 下，将源操作数中 FP16 值的指数转换为表示无偏整数指数的 FP16 结果，并将结果存储在目的寄存器中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>该指令从源操作数（第二个操作数）的每个字元素的规范化 FP16 表示中提取偏置指数作为无偏有符号整数值，或者将输入数据的非规范化表示转换为无偏负整数值。无偏指数的每个整数值都转换为 FP16 值，并作为 FP16 数写入目的操作数（第一个操作数）的相应字元素。</p>
+		<p>目的元素根据写掩码进行更新。</p>
+		<p>每个 GETEXP 操作将指数值转换为浮点数（允许输入值为非规范化表示）。输入值的特殊情况列于表 5-6 中。</p>
+		<p>公式为：</p>
+		<p>GETEXP(x) = floor(log<sub>2</sub>(|x|))</p>
+		<p>记号 <strong>floor(x)</strong> 表示不超过实数 x 的最大整数。</p>
+		<p>VGETEXPxx 和 VGETMANTxx 指令的软件用法通常涉及 GETEXP 操作和 GETMANT 操作的结合（参见 VGETMANTPH）。因此，VGETEXPPH 指令不需要软件来处理 SIMD 浮点异常。</p>
+
+		<figure id="tbl-5-16">
+			<table>
+				<tr>
+					<th>输入操作数</th>
+					<th>结果</th>
+					<th>注释</th>
+				</tr>
+				<tr>
+					<td>src1 = NaN</td>
+					<td>QNaN(src1)</td>
+					<td rowspan="4">如果 (SRC = SNaN) 则触发 #IE。如果 (SRC = denormal) 则触发 #DE。</td>
+				</tr>
+				<tr>
+					<td>0 &lt; |src1| &lt; INF</td>
+					<td>floor(log<sub>2</sub>(|src1|))</td>
+				</tr>
+				<tr>
+					<td>| src1| = +INF</td>
+					<td>+INF</td>
+				</tr>
+				<tr>
+					<td>| src1| = 0</td>
+					<td>-INF</td>
+				</tr>
+			</table>
+			<figcaption><a href='vgetexpph.html#tbl-5-16'>表 5-16</a>. VGETEXPPH/VGETEXPSH 特殊情况</figcaption>
+		</figure>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>def normalize_exponent_tiny_fp16(src):
+    jbit := 0
+    // src &amp; dst are FP16 numbers with sign(1b), exp(5b) and fraction (10b) fields
+    dst.exp := 1 // write bits 14:10
+    dst.fraction := src.fraction // copy bits 9:0
+    while jbit == 0:
+        jbit := dst.fraction[9] // msb of the fraction
+        dst.fraction := dst.fraction &lt;&lt; 1
+        dst.exp := dst.exp - 1
+    dst.fraction := 0
+    return dst
+def getexp_fp16(src):
+    src.sign := 0 // make positive
+    exponent_all_ones := (src[14:10] == 0x1F)
+    exponent_all_zeros := (src[14:10] == 0)
+    mantissa_all_zeros := (src[9:0] == 0)
+    zero := exponent_all_zeros and mantissa_all_zeros
+    signaling_bit := src[9]
+    nan := exponent_all_ones and not(mantissa_all_zeros)
+    snan := nan and not(signaling_bit)
+    qnan := nan and signaling_bit
+    positive_infinity := not(negative) and exponent_all_ones and mantissa_all_zeros
+    denormal := exponent_all_zeros and not(mantissa_all_zeros)
+    if nan:
+        if snan:
+            MXCSR.IE := 1
+        return qnan(src)
+                // convert snan to a qnan
+    if positive_infinity:
+        return src
+    if zero:
+        return -INF
+    if denormal:
+        tmp := normalize_exponent_tiny_fp16(src)
+        MXCSR.DE := 1
+    else:
+        tmp := src
+    tmp := SAR(tmp, 10) // shift arithmetic right
+    tmp := tmp - 15 // subtract bias
+    return convert_integer_to_fp16(tmp)
+</pre>
+		<h3 id="vgetexpph-dest-k1---src">VGETEXPPH dest{k1}, src<a class="anchor" href="#vgetexpph-dest-k1---src">¶</a></h3>
+		<pre>VL = 128, 256 or 512
+KL := VL/16
+FOR i := 0 to KL-1:
+    IF k1[i] or *no writemask*:
+        IF SRC is memory and (EVEX.b = 1):
+            tsrc := src.fp16[0]
+        ELSE:
+            tsrc := src.fp16[i]
+        DEST.fp16[i] := getexp_fp16(tsrc)
+    ELSE IF *zeroing*:
+        DEST.fp16[i] := 0
+    //else DEST.fp16[i] remains unchanged
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VGETEXPPH __m128h _mm_getexp_ph (__m128h a);
+</pre>
+		<pre>VGETEXPPH __m128h _mm_mask_getexp_ph (__m128h src, __mmask8 k, __m128h a);
+</pre>
+		<pre>VGETEXPPH __m128h _mm_maskz_getexp_ph (__mmask8 k, __m128h a);
+</pre>
+		<pre>VGETEXPPH __m256h _mm256_getexp_ph (__m256h a);
+</pre>
+		<pre>VGETEXPPH __m256h _mm256_mask_getexp_ph (__m256h src, __mmask16 k, __m256h a);
+</pre>
+		<pre>VGETEXPPH __m256h _mm256_maskz_getexp_ph (__mmask16 k, __m256h a);
+</pre>
+		<pre>VGETEXPPH __m512h _mm512_getexp_ph (__m512h a);
+</pre>
+		<pre>VGETEXPPH __m512h _mm512_mask_getexp_ph (__m512h src, __mmask32 k, __m512h a);
+</pre>
+		<pre>VGETEXPPH __m512h _mm512_maskz_getexp_ph (__mmask32 k, __m512h a);
+</pre>
+		<pre>VGETEXPPH __m512h _mm512_getexp_round_ph (__m512h a, const int sae);
+</pre>
+		<pre>VGETEXPPH __m512h _mm512_mask_getexp_round_ph (__m512h src, __mmask32 k, __m512h a, const int sae);
+</pre>
+		<pre>VGETEXPPH __m512h _mm512_maskz_getexp_round_ph (__mmask32 k, __m512h a, const int sae);
+</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无效, 非规范化。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>EVEX 编码的指令，请参阅表 2-46，“第 E2 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

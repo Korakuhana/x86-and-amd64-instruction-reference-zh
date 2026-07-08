@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>RCPSS — 计算标量单精度浮点值的近似倒数</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>RCPSS — 计算标量单精度浮点值的近似倒数</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>F3 0F 53 /r RCPSS xmm1, xmm2/m32</td>
+				<td>RM</td>
+				<td>V/V</td>
+				<td>SSE</td>
+				<td>计算 xmm2/m32 中标量单精度浮点值的近似倒数，并将结果存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.LIG.F3.0F.WIG 53 /r VRCPSS xmm1, xmm2, xmm3/m32</td>
+				<td>RVM</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>计算 xmm3/m32 中标量单精度浮点值的近似倒数，并将结果存储在 xmm1 中。此外，来自 xmm2 的高位单精度浮点值（位[127:32]）被复制到 xmm1[127:32] 中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>RM</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>RVM</td>
+				<td>ModRM:reg (w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>计算源操作数（第二个操作数）中低位单精度浮点值的近似倒数，并将单精度浮点结果存储在目的操作数中。源操作数可以是 XMM 寄存器或 32 位内存位置。目的操作数是 XMM 寄存器。目的操作数的高位三个双字保持不变。有关标量单精度浮点操作的图示，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷中的图 10-6。</p>
+		<p>此近似值的相对误差为：</p>
+		<p>|相对误差| ≤ 1.5 ∗ 2<sup>−12</sup></p>
+		<p>RCPSS 指令不受 MXCSR 寄存器中舍入控制位的影响。当源值为 0.0 时，返回与源值符号相同的 ∞。反常（denormal）源值被视为 0.0（具有相同符号）。微小结果（请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷中的第 4.9.1.5 节“数值下溢异常 (#U)”）总是被刷新为 0.0，且符号与操作数相同。（输入值大于或等于 |1.11111111110100000000000B∗2<sup>125</sup>| 保证不会产生微小结果；输入值小于或等于 |1.00000000000110000000001B*2<sup>126</sup>| 保证会产生微小结果，从而被刷新为 0.0；而处于此范围之间的输入值是否产生微小结果则取决于具体实现。）当源值是 SNaN 或 QNaN 时，SNaN 被转换为 QNaN，或者返回源 QNaN。</p>
+		<p>在 64 位模式下，使用 REX.R 形式的 REX 前缀允许此指令访问其他寄存器（XMM8-XMM15）。</p>
+		<p>128位传统 SSE 版本：第一个源操作数与目的操作数相同。对应 YMM 目的寄存器的位（MAXVL-1:32）保持不变。</p>
+		<p>VEX.128 编码版本：目的 YMM 寄存器的位（MAXVL-1:128）清零。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="rcpss--128-bit-legacy-sse-version-">RCPSS（128位传统 SSE 版本）<a class="anchor" href="#rcpss--128-bit-legacy-sse-version-">¶</a></h3>
+		<pre>DEST[31:0] := APPROXIMATE(1/SRC[31:0])
+DEST[MAXVL-1:32] (Unmodified)
+</pre>
+		<h3 id="vrcpss--vex-128-encoded-version-">VRCPSS（VEX.128 编码版本）<a class="anchor" href="#vrcpss--vex-128-encoded-version-">¶</a></h3>
+		<pre>DEST[31:0] := APPROXIMATE(1/SRC2[31:0])
+DEST[127:32] := SRC1[127:32]
+DEST[MAXVL-1:128] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>RCPSS __m128 _mm_rcp_ss(__m128 a)</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-22，“第 5 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

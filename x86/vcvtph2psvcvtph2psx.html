@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VCVTPH2PS/VCVTPH2PSX — 将打包的 FP16 值转换为单精度浮点值</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VCVTPH2PS/VCVTPH2PSX — 将打包的 FP16 值转换为单精度浮点值</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.W0 13 /r VCVTPH2PS xmm1, xmm2/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>F16C</td>
+				<td>将 xmm2/m64 中的四个打包 FP16 值转换为 xmm1 中的打包单精度浮点值。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.W0 13 /r VCVTPH2PS ymm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>F16C</td>
+				<td>将 xmm2/m128 中的八个打包 FP16 值转换为 ymm1 中的打包单精度浮点值。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W0 13 /r VCVTPH2PS xmm1 {k1}{z}, xmm2/m64</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 的控制下，将 xmm2/m64 中的四个打包 FP16 值转换为 xmm1 中的打包单精度浮点值。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W0 13 /r VCVTPH2PS ymm1 {k1}{z}, xmm2/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 的控制下，将 xmm2/m128 中的八个打包 FP16 值转换为 ymm1 中的打包单精度浮点值。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W0 13 /r VCVTPH2PS zmm1 {k1}{z}, ymm2/m256 {sae}</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>在写掩码 k1 的控制下，将 ymm2/m256 中的十六个打包 FP16 值转换为 zmm1 中的打包单精度浮点值。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.MAP6.W0 13 /r VCVTPH2PSX xmm1{k1}{z}, xmm2/m64/m16bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512-FP16 AVX512VL</td>
+				<td>在写掩码 k1 的控制下，将 xmm2/m64/m16bcst 中的四个打包 FP16 值转换为四个打包单精度浮点值，并将结果存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.MAP6.W0 13 /r VCVTPH2PSX ymm1{k1}{z}, xmm2/m128/m16bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512-FP16 AVX512VL</td>
+				<td>在写掩码 k1 的控制下，将 xmm2/m128/m16bcst 中的八个打包 FP16 值转换为八个打包单精度浮点值，并将结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.MAP6.W0 13 /r VCVTPH2PSX zmm1{k1}{z}, ymm2/m256/m16bcst {sae}</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512-FP16</td>
+				<td>在写掩码 k1 的控制下，将 ymm2/m256/m16bcst 中的十六个打包 FP16 值转换为十六个打包单精度浮点值，并将结果存储在 zmm1 中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>Half Mem</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>C</td>
+				<td>Half</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>此指令将源操作数（第二个操作数）低阶位中的打包半精度（16 位）浮点值转换为打包单精度浮点值，并将转换后的值写入目的操作数（第一个操作数）。</p>
+		<p>如果是渐近下溢（反常数）操作数，则返回正确的正常结果。MXCSR.DAZ 被忽略并被视为 0。MXCSR 上不报告渐近下溢异常。</p>
+		<p>VEX.128 版本：源操作数是 XMM 寄存器或 64 位内存位置。目的操作数是 XMM 寄存器。对应目的寄存器的高位 (MAXVL-1:128) 清零。</p>
+		<p>VEX.256 版本：源操作数是 XMM 寄存器或 128 位内存位置。目的操作数是 YMM 寄存器。对应目的寄存器的高位 (MAXVL-1:256) 清零。</p>
+		<p>EVEX 编码版本：源操作数是 YMM/XMM/XMM（低 64 位）寄存器或 256/128/64 位内存位置。目的操作数是根据写掩码 k1 有条件更新的 ZMM/YMM/XMM 寄存器。</p>
+		<p>下图展示了如何将四个打包半精度（占 64 位）转换为四个单精度（占 128 位）浮点值。</p>
+		<p>注意：VEX.vvvv 和 EVEX.vvvv 保留（必须为 1111b）。</p>
+
+		<figure id="fig-5-6">
+			<table>
+				<tr>
+					<td>VCVTPH2PS<em>xmm1,xmm2/mem64, imm8</em> 127 96 95 64 63 48 47 32 31 16 15 0</td>
+				</tr>
+				<tr>
+					<td>xmm2/mem64 VH3 VH2 VH1 VH0</td>
+				</tr>
+				<tr>
+					<td rowspan="4">convert convert convert convert 127 96 95 64 63 32 31 0</td>
+				</tr>
+				<tr>
+					<td>VS3 VS2 VS1 VS0 xmm1</td>
+				</tr>
+			</table>
+			<figcaption><a href='vcvtph2psvcvtph2psx.html#fig-5-6'>图 5-6</a>. VCVTPH2PS（128位版本）</figcaption>
+		</figure>
+
+		<p>VCVTPH2PSX 指令是 PH 到 PS 转换指令的新形式，编码在 map 6 中。AVX512F 中存在的该指令的先前版本 VCVTPH2PS（编码在 map 2，0F38 中）不支持嵌入式广播。VCVTPH2PSX 指令提供了嵌入式广播选项。</p>
+		<p>与 AVX512_FP16 关联的指令始终处理 FP16 反常数输入；反常数输入不被视为零。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>vCvt_h2s(SRC1[15:0])
+{
+RETURN Cvt_Half_Precision_To_Single_Precision(SRC1[15:0]);
+}
+</pre>
+
+		<h3 id="vcvtph2ps--evex-encoded-versions-">VCVTPH2PS（EVEX 编码版本）<a class="anchor" href="#vcvtph2ps--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j := 0 TO KL-1
+    i := j * 32
+    k := j * 16
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i] :=
+            vCvt_h2s(SRC[k+15:k])
+        ELSE
+            IF *merging-masking*
+                        ; merging-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE
+                        ; zeroing-masking
+                    DEST[i+31:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+		<h3 id="vcvtph2ps--vex-256-encoded-version-">VCVTPH2PS（VEX.256 编码版本）<a class="anchor" href="#vcvtph2ps--vex-256-encoded-version-">¶</a></h3>
+		<pre>DEST[31:0] := vCvt_h2s(SRC1[15:0]);
+DEST[63:32] := vCvt_h2s(SRC1[31:16]);
+DEST[95:64] := vCvt_h2s(SRC1[47:32]);
+DEST[127:96] := vCvt_h2s(SRC1[63:48]);
+DEST[159:128] := vCvt_h2s(SRC1[79:64]);
+DEST[191:160] := vCvt_h2s(SRC1[95:80]);
+DEST[223:192] := vCvt_h2s(SRC1[111:96]);
+DEST[255:224] := vCvt_h2s(SRC1[127:112]);
+DEST[MAXVL-1:256] := 0
+</pre>
+
+		<h3 id="vcvtph2ps--vex-128-encoded-version-">VCVTPH2PS（VEX.128 编码版本）<a class="anchor" href="#vcvtph2ps--vex-128-encoded-version-">¶</a></h3>
+		<pre>DEST[31:0] := vCvt_h2s(SRC1[15:0]);
+DEST[63:32] := vCvt_h2s(SRC1[31:16]);
+DEST[95:64] := vCvt_h2s(SRC1[47:32]);
+DEST[127:96] := vCvt_h2s(SRC1[63:48]);
+DEST[MAXVL-1:128] := 0
+</pre>
+
+		<h3 id="vcvtph2psx-dest--src">VCVTPH2PSX DEST, SRC<a class="anchor" href="#vcvtph2psx-dest--src">¶</a></h3>
+		<pre>VL = 128, 256, or 512
+KL := VL/32
+FOR j := 0 TO KL-1:
+    IF k1[j] OR *no writemask*:
+        IF *SRC is memory* and EVEX.b = 1:
+            tsrc := SRC.fp16[0]
+        ELSE
+            tsrc := SRC.fp16[j]
+        DEST.fp32[j] := Convert_fp16_to_fp32(tsrc)
+    ELSE IF *zeroing*:
+        DEST.fp32[j] := 0
+    // else dest.fp32[j] remains unchanged
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VCVTPH2PS __m512 _mm512_cvtph_ps( __m256i a);
+</pre>
+		<pre>VCVTPH2PS __m512 _mm512_mask_cvtph_ps(__m512 s, __mmask16 k, __m256i a);
+</pre>
+		<pre>VCVTPH2PS __m512 _mm512_maskz_cvtph_ps(__mmask16 k, __m256i a);
+</pre>
+		<pre>VCVTPH2PS __m512 _mm512_cvt_roundph_ps( __m256i a, int sae);
+</pre>
+		<pre>VCVTPH2PS __m512 _mm512_mask_cvt_roundph_ps(__m512 s, __mmask16 k, __m256i a, int sae);
+</pre>
+		<pre>VCVTPH2PS __m512 _mm512_maskz_cvt_roundph_ps( __mmask16 k, __m256i a, int sae);
+</pre>
+		<pre>VCVTPH2PS __m256 _mm256_mask_cvtph_ps(__m256 s, __mmask8 k, __m128i a);
+</pre>
+		<pre>VCVTPH2PS __m256 _mm256_maskz_cvtph_ps(__mmask8 k, __m128i a);
+</pre>
+		<pre>VCVTPH2PS __m128 _mm_mask_cvtph_ps(__m128 s, __mmask8 k, __m128i a);
+</pre>
+		<pre>VCVTPH2PS __m128 _mm_maskz_cvtph_ps(__mmask8 k, __m128i a);
+</pre>
+		<pre>VCVTPH2PS __m128 _mm_cvtph_ps ( __m128i m1);
+</pre>
+		<pre>VCVTPH2PS __m256 _mm256_cvtph_ps ( __m128i m1);
+</pre>
+		<pre>VCVTPH2PSX __m512 _mm512_cvtx_roundph_ps (__m256h a, int sae);
+</pre>
+		<pre>VCVTPH2PSX __m512 _mm512_mask_cvtx_roundph_ps (__m512 src, __mmask16 k, __m256h a, int sae);
+</pre>
+		<pre>VCVTPH2PSX __m512 _mm512_maskz_cvtx_roundph_ps (__mmask16 k, __m256h a, int sae);
+</pre>
+		<pre>VCVTPH2PSX __m128 _mm_cvtxph_ps (__m128h a);
+</pre>
+		<pre>VCVTPH2PSX __m128 _mm_mask_cvtxph_ps (__m128 src, __mmask8 k, __m128h a);
+</pre>
+		<pre>VCVTPH2PSX __m128 _mm_maskz_cvtxph_ps (__mmask8 k, __m128h a);
+</pre>
+		<pre>VCVTPH2PSX __m256 _mm256_cvtxph_ps (__m128h a);
+</pre>
+		<pre>VCVTPH2PSX __m256 _mm256_mask_cvtxph_ps (__m256 src, __mmask8 k, __m128h a);
+</pre>
+		<pre>VCVTPH2PSX __m256 _mm256_maskz_cvtxph_ps (__mmask8 k, __m128h a);
+</pre>
+		<pre>VCVTPH2PSX __m512 _mm512_cvtxph_ps (__m256h a);
+</pre>
+		<pre>VCVTPH2PSX __m512 _mm512_mask_cvtxph_ps (__m512 src, __mmask16 k, __m256h a);
+</pre>
+		<pre>VCVTPH2PSX __m512 _mm512_maskz_cvtxph_ps (__mmask16 k, __m256h a);
+</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>VEX 编码指令：无效。</p>
+		<p>EVEX 编码指令：无效。</p>
+		<p>带有广播的 EVEX 编码指令（VCVTPH2PSX）：无效、反常数。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>VEX 编码指令，请参阅表 2-26，“第 11 类异常条件”（不报告 #AC）。</p>
+		<p>EVEX 编码指令，请参阅表 2-60，“第 E11 类异常条件”。</p>
+		<p>带有广播的 EVEX 编码指令（VCVTPH2PSX），请参阅表 2-46，“第 E2 类异常条件”。</p>
+		<p>此外：</p>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果 VEX.W=1。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果 VEX.vvvv != 1111B 或 EVEX.vvvv != 1111B。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>FXSAVE — 保存 x87 FPU、MMX 技术和 SSE 状态</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>FXSAVE — 保存 x87 FPU、MMX 技术和 SSE 状态</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>NP 0F AE /0 FXSAVE m512byte</td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 x87 FPU、MMX、XMM 和 MXCSR 寄存器状态保存到 m512byte。</td>
+		</tr>
+		<tr>
+			<td>NP REX.W + 0F AE /0 FXSAVE64 m512byte</td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>将 x87 FPU、MMX、XMM 和 MXCSR 寄存器状态保存到 m512byte。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>M</td>
+			<td>ModRM:r/m (w)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将 x87 FPU、MMX 技术、XMM 和 MXCSR 寄存器的当前状态保存到目的操作数中指定的 512 字节内存位置。512 字节区域的内容布局取决于处理器是运行在非 64 位运行模式下，还是运行在 IA-32e 模式的 64 位子模式下。</p>
+	<p>字节 464:511 可供软件使用。处理器不会写入 FXSAVE 区域的 464:511 字节。</p>
+	<p>首先介绍 FXSAVE 在非 64 位模式下的操作。</p>
+
+	<h2 id="non-64-bit-mode-operation">非 64 位模式操作<a class="anchor" href="#non-64-bit-mode-operation">¶</a></h2>
+	<p>表 3-43 显示了处理器在传统模式下运行时内存中状态信息的布局。</p>
+
+	<figure id="tbl-3-43">
+		<table>
+			<tr>
+				<th>15 14</th>
+				<th>13 12</th>
+				<th>11 10</th>
+				<th>9 8</th>
+				<th>7 6 5 4</th>
+				<th></th>
+				<th></th>
+				<th>3 2 1 0</th>
+				<th></th>
+				<th></th>
+			</tr>
+			<tr>
+				<td>保留</td>
+				<td>FCS</td>
+				<td colspan="2">FIP[31:0]</td>
+				<td>FOP</td>
+				<td>保留</td>
+				<td>FTW</td>
+				<td>FSW</td>
+				<td>FCW</td>
+				<td><strong>0</strong></td>
+			</tr>
+			<tr>
+				<td colspan="2">MXCSR_MASK</td>
+				<td colspan="2">MXCSR</td>
+				<td>保留</td>
+				<td colspan="2">FDS</td>
+				<td colspan="2">FDP[31:0]</td>
+				<td><strong>16</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST0/MM0</td>
+				<td><strong>32</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST1/MM1</td>
+				<td><strong>48</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST2/MM2</td>
+				<td><strong>64</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST3/MM3</td>
+				<td><strong>80</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST4/MM4</td>
+				<td><strong>96</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST5/MM5</td>
+				<td><strong>112</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST6/MM6</td>
+				<td><strong>128</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST7/MM7</td>
+				<td><strong>144</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM0</td>
+				<td><strong>160</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM1</td>
+				<td><strong>176</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM2</td>
+				<td><strong>192</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM3</td>
+				<td><strong>208</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM4</td>
+				<td><strong>224</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM5</td>
+				<td><strong>240</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM6</td>
+				<td><strong>256</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM7</td>
+				<td><strong>272</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">保留</td>
+				<td><strong>288</strong></td>
+			</tr>
+		</table>
+		<figcaption><a href='fxsave.html#tbl-3-43'>表 3-43</a>. 非 64 位模式下 FXSAVE 和 FXRSTOR 内存区域布局</figcaption>
+	</figure>
+
+	<figure id="tbl-3-43-cont">
+		<table>
+			<tr>
+				<th>15 14</th>
+				<th>13 12</th>
+				<th>11 10</th>
+				<th>9 8</th>
+				<th>7 6</th>
+				<th>5</th>
+				<th>4</th>
+				<th>3 2</th>
+				<th>1 0</th>
+				<th></th>
+			</tr>
+			<tr>
+				<td colspan="9">保留</td>
+				<td><strong>304</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">保留</td>
+				<td><strong>320</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">保留</td>
+				<td><strong>336</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">保留</td>
+				<td><strong>352</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">保留</td>
+				<td><strong>368</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">保留</td>
+				<td><strong>384</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">保留</td>
+				<td><strong>400</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">保留</td>
+				<td><strong>416</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">保留</td>
+				<td><strong>432</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">保留</td>
+				<td><strong>448</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">可用</td>
+				<td><strong>464</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">可用</td>
+				<td><strong>480</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">可用</td>
+				<td><strong>496</strong></td>
+			</tr>
+		</table>
+		<figcaption><a href='fxsave.html#tbl-3-43'>表 3-43</a>. 非 64 位模式下 FXSAVE 和 FXRSTOR 内存区域布局 (续)</figcaption>
+	</figure>
+
+	<p>目的操作数包含内存映像的第一个字节，它必须对齐在 16 字节边界上。未对齐的目的操作数将导致产生一般保护 (#GP) 异常（或在某些情况下产生对齐检查异常 [#AC]）。</p>
+	<p>当操作系统需要进行上下文切换或异常处理程序需要保存并检查 x87 FPU、MMX 技术和/或 XMM 和 MXCSR 寄存器的当前状态时，使用 FXSAVE 指令。</p>
+	<p>表 3-43 中的字段定义在表 3-44 中。</p>
+
+	<figure id="tbl-3-44">
+		<table>
+			<tr>
+				<th>字段</th>
+				<th>定义</th>
+			</tr>
+			<tr>
+				<td>FCW</td>
+				<td>x87 FPU 控制字 (16 位)。有关 x87 FPU 控制字的布局，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷中的图 8-6。</td>
+			</tr>
+			<tr>
+				<td>FSW</td>
+				<td>x87 FPU 状态字 (16 位)。有关 x87 FPU 状态字的布局，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷中的图 8-4。</td>
+			</tr>
+			<tr>
+				<td>Abridged FTW</td>
+				<td>缩简版 x87 FPU 标记字 (8 位)。此处保存的标记信息是缩简的，如下段所述。</td>
+			</tr>
+			<tr>
+				<td>FOP</td>
+				<td>x87 FPU 操作码 (16 位)。该字段的低 11 位包含操作码，高 5 位保留。有关 x87 FPU 操作码字段的布局，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷中的图 8-8。</td>
+			</tr>
+			<tr>
+				<td>FIP</td>
+				<td>x87 FPU 指令指针偏移量 (64 位)。该字段的内容有所不同，取决于执行 FXSAVE 指令时处理器的当前寻址模式（32 位、16 位或 64 位）：32 位模式 — 32 位 IP 偏移量。16 位模式 — 低 16 位是 IP 偏移量；高 16 位保留。带 REX.W 的 64 位模式 — 64 位 IP 偏移量。不带 REX.W 的 64 位模式 — 32 位 IP 偏移量。有关 x87 FPU 指令指针的描述，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷第 8 章中的“x87 FPU 指令和操作数（数据）指针”。</td>
+			</tr>
+			<tr>
+				<td>FCS</td>
+				<td>x87 FPU 指令指针选择子 (16 位)。如果 CPUID.(EAX=07H,ECX=0H):EBX[bit 13] = 1，则处理器弃用 FCS 和 FDS，并且该字段被保存为 0000H。</td>
+			</tr>
+			<tr>
+				<td>FDP</td>
+				<td>x87 FPU 指令操作数（数据）指针偏移量 (64 位)。该字段的内容有所不同，取决于执行 FXSAVE 指令时处理器的当前寻址模式（32 位、16 位或 64 位）：32 位模式 — 32 位 DP 偏移量。16 位模式 — 低 16 位是 DP 偏移量；高 16 位保留。带 REX.W 的 64 位模式 — 64 位 DP 偏移量。不带 REX.W 的 64 位模式 — 32 位 DP 偏移量。有关 x87 FPU 操作数指针的描述，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷第 8 章中的“x87 FPU 指令和操作数（数据）指针”。</td>
+			</tr>
+			<tr>
+				<td>FDS</td>
+				<td>x87 FPU 指令操作数（数据）指针选择子 (16 位)。如果 CPUID.(EAX=07H,ECX=0H):EBX[bit 13] = 1，则处理器弃用 FCS 和 FDS，并且该字段被保存为 0000H。</td>
+			</tr>
+			<tr>
+				<td>MXCSR</td>
+				<td>MXCSR 寄存器状态 (32 位)。有关 MXCSR 寄存器的布局，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷中的图 10-3。如果未设置控制寄存器 CR4 中的 OSFXSR 位，则 FXSAVE 指令可能不会保存该寄存器。此行为取决于具体实现。</td>
+			</tr>
+			<tr>
+				<td>MXCSR_MASK</td>
+				<td>MXCSR 掩码 (32 位)。该掩码可用于调整写入 MXCSR 寄存器的值，确保保留位被设置为 0。设置 MXCSR 中的掩码位和标志为 SSE 和 SSE2 SIMD 浮点指令所需的运行模式。有关如何确定和使用 MXCSR_MASK 值的说明，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷第 11 章中的“写入 MXCSR 寄存器的指南”。</td>
+			</tr>
+			<tr>
+				<td>ST0/MM0 至 ST7/MM7</td>
+				<td>x87 FPU 或 MMX 技术寄存器。这些 80 位字段包含 x87 FPU 数据寄存器或 MMX 技术寄存器，具体取决于执行 FXSAVE 指令之前处理器的状态。如果处理器在 FXSAVE 指令之前一直在执行 x87 FPU 指令，则保存 x87 FPU 数据寄存器；如果一直在执行 MMX 指令（或在 MMX 技术寄存器上运行的 SSE 或 SSE2 指令），则保存 MMX 技术寄存器。当保存 MMX 技术寄存器时，该字段的高 16 位保留。</td>
+			</tr>
+			<tr>
+				<td>XMM0 至 XMM7</td>
+				<td>XMM 寄存器 (每个字段 128 位)。如果未设置控制寄存器 CR4 中的 OSFXSR 位，则 FXSAVE 指令可能不会保存这些寄存器。此行为取决于具体实现。</td>
+			</tr>
+		</table>
+		<figcaption><a href='fxsave.html#tbl-3-44'>表 3-44</a>. 字段定义</figcaption>
+	</figure>
+
+	<p>FXSAVE 指令在 FTW 字段中保存缩简版本的 x87 FPU 标记字（与保存完整标记字的 FSAVE 指令不同）。标记信息是按照物理寄存器顺序（R0 至 R7）保存的，而不是按照栈顶 (TOS) 顺序。然而，使用 FXSAVE 指令，每个标记只保存一个位（1 表示有效，0 表示空）。例如，假设标记字当前设置如下：</p>
+	<p>R7 R6 R5 R4 R3 R2 R1 R0</p>
+	<p>11 xx xx xx 11 11 11 11</p>
+	<p>这里，11B 表示空栈元素，“xx”表示有效 (00B)、零 (01B) 或特殊 (10B)。</p>
+	<p>对于本例，FXSAVE 指令仅保存以下 8 位信息：</p>
+	<p>R7 R6 R5 R4 R3 R2 R1 R0</p>
+	<p>01110000</p>
+	<p>这里，对于任何有效、零或特殊标记，保存 1，对于任何空标记，保存 0。</p>
+	<p>FXSAVE 指令的操作与 FSAVE 指令的操作不同之处如下：</p>
+	<ul>
+		<li>FXSAVE 指令不检查待处理的未屏蔽浮点异常。（在这方面，FXSAVE 操作类似于 FNSAVE 指令的操作）。</li>
+		<li>在 FXSAVE 指令保存了 x87 FPU、MMX 技术、XMM 和 MXCSR 寄存器的状态之后，处理器保留寄存器的内容。由于这种行为，应用程序不能使用 FXSAVE 指令将“干净的” x87 FPU 状态传递给过程，因为它保留了当前状态。要清理 x87 FPU 状态，应用程序必须在 FXSAVE 指令之后显式执行 FINIT 指令以重新初始化 x87 FPU 状态。</li>
+		<li>无论当前的寻址模式（32 位或 16 位）和运行模式（保护模式、实地址模式或系统管理模式）如何，使用 FXSAVE 指令保存的内存映像的格式都是相同的。这种行为与 FSAVE 指令不同，后者的内存映像格式根据寻址模式和运行模式而有所不同。由于映像格式不同，使用 FXSAVE 指令保存的内存映像无法使用 FRSTOR 指令正确恢复，同样，使用 FSAVE 指令保存的状态也无法使用 FXRSTOR 指令正确恢复。</li>
+	</ul>
+	<p>可以通过 FTW 有效位和存储的 80 位浮点数据（假设存储的数据不是 MMX 技术寄存器的内容），使用表 3-45 重新创建 FTW 的 FSAVE 格式。</p>
+
+	<figure id="tbl-3-45">
+		<table>
+			<tr>
+				<th>指数全为 1</th>
+				<th>指数全为 0</th>
+				<th>尾数全为 0</th>
+				<th>J 和 M 位</th>
+				<th>FTW 有效位</th>
+				<th>x87 FTW</th>
+			</tr>
+			<tr>
+				<td>0 0</td>
+				<td>0 0</td>
+				<td>0 0</td>
+				<td>0x 1x</td>
+				<td>1 1</td>
+				<td>特殊 10 有效 00</td>
+			</tr>
+			<tr>
+				<td>0 0</td>
+				<td>0 0</td>
+				<td>1 1</td>
+				<td>00 10</td>
+				<td>1 1</td>
+				<td>特殊 10 有效 00</td>
+			</tr>
+			<tr>
+				<td>0 0</td>
+				<td>1 1</td>
+				<td>0 0</td>
+				<td>0x 1x</td>
+				<td>1 1</td>
+				<td>特殊 10 特殊 10</td>
+			</tr>
+			<tr>
+				<td>0 0</td>
+				<td>1 1</td>
+				<td>1 1</td>
+				<td>00 10</td>
+				<td>1 1</td>
+				<td>零 01 特殊 10</td>
+			</tr>
+			<tr>
+				<td>1 1</td>
+				<td>0 0</td>
+				<td>0 0</td>
+				<td>1x 1x</td>
+				<td>1 1</td>
+				<td>特殊 10 特殊 10</td>
+			</tr>
+			<tr>
+				<td>1 1</td>
+				<td>0 0</td>
+				<td>1 1</td>
+				<td>00 10</td>
+				<td>1 1</td>
+				<td>特殊 10 特殊 10</td>
+			</tr>
+			<tr>
+				<td colspan="4">对于上述所有合法组合。</td>
+				<td>0</td>
+				<td>空 11</td>
+			</tr>
+		</table>
+		<figcaption><a href='fxsave.html#tbl-3-45'>表 3-45</a>. 重新创建 FSAVE 格式</figcaption>
+	</figure>
+
+	<p>J 位定义为尾数中十进制小数点左侧的 1 位二进制整数。M 位定义为尾数小数部分的最有效位（即紧靠十进制小数点右侧的位）。</p>
+	<p>当 M 位是尾数小数部分的最有效位时，如果小数全为 0，则它必须为 0。</p>
+
+	<h2 id="ia-32e-mode-operation">IA-32e 模式操作<a class="anchor" href="#ia-32e-mode-operation">¶</a></h2>
+	<p>在 IA-32e 模式的兼容子模式中，传统 SSE 寄存器 XMM0 至 XMM7 按照传统 FXSAVE 图进行保存。在 64 位模式下，所有的 SSE 寄存器 XMM0 至 XMM15 都会被保存。此外，在 64 位模式下，FXSAVE 图有两种不同的布局，分别对应于 FXSAVE64（需要 REX.W=1）和 FXSAVE（REX.W=0）。在 FXSAVE64 图（表 3-46）中，FPU IP 和 FPU DP 指针为 64 位宽。在 64 位模式的 FXSAVE 图（表 3-47）中，FPU IP 和 FPU DP 指针为 32 位。</p>
+
+	<figure id="tbl-3-46">
+		<table>
+			<tr>
+				<td>15 14</td>
+				<td>13 12</td>
+				<td>11 10</td>
+				<td>9 8</td>
+				<td>7 6 5 4 3 2 1 0</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr>
+				<td colspan="4">FIP</td>
+				<td>FOP</td>
+				<td>保留</td>
+				<td>FTW</td>
+				<td>FSW</td>
+				<td>FCW</td>
+				<td><strong>0</strong></td>
+			</tr>
+			<tr>
+				<td colspan="2">MXCSR_MASK</td>
+				<td colspan="2">MXCSR</td>
+				<td colspan="5">FDP</td>
+				<td><strong>16</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST0/MM0</td>
+				<td><strong>32</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST1/MM1</td>
+				<td><strong>48</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST2/MM2</td>
+				<td><strong>64</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST3/MM3</td>
+				<td><strong>80</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST4/MM4</td>
+				<td><strong>96</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST5/MM5</td>
+				<td><strong>112</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST6/MM6</td>
+				<td><strong>128</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST7/MM7</td>
+				<td><strong>144</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM0</td>
+				<td><strong>160</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM1</td>
+				<td><strong>176</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM2</td>
+				<td><strong>192</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM3</td>
+				<td><strong>208</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM4</td>
+				<td><strong>224</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM5</td>
+				<td><strong>240</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM6</td>
+				<td><strong>256</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM7</td>
+				<td><strong>272</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM8</td>
+				<td><strong>288</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM9</td>
+				<td><strong>304</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM10</td>
+				<td><strong>320</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM11</td>
+				<td><strong>336</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM12</td>
+				<td><strong>352</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM13</td>
+				<td><strong>368</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM14</td>
+				<td><strong>384</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM15</td>
+				<td><strong>400</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">保留</td>
+				<td><strong>416</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">保留</td>
+				<td><strong>432</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">保留</td>
+				<td><strong>448</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">可用</td>
+				<td><strong>464</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">可用</td>
+				<td><strong>480</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">可用</td>
+				<td><strong>496</strong></td>
+			</tr>
+		</table>
+		<figcaption><a href='fxsave.html#tbl-3-46'>表 3-46</a>. 64 位模式 FXSAVE64 图的布局（需要 REX.W = 1）</figcaption>
+	</figure>
+
+	<figure id="tbl-3-47">
+		<table>
+			<tr>
+				<td>15 14</td>
+				<td>13 12</td>
+				<td>11 10</td>
+				<td>9 8</td>
+				<td>7 6</td>
+				<td>5 4</td>
+				<td></td>
+				<td>3 2</td>
+				<td>1 0</td>
+				<th></th>
+			</tr>
+			<tr>
+				<td>保留</td>
+				<td>FCS</td>
+				<td colspan="2">FIP[31:0]</td>
+				<td>FOP</td>
+				<td>保留</td>
+				<td>FTW</td>
+				<td>FSW</td>
+				<td>FCW</td>
+				<td><strong>0</strong></td>
+			</tr>
+			<tr>
+				<td colspan="2">MXCSR_MASK</td>
+				<td colspan="2">MXCSR</td>
+				<td>保留</td>
+				<td colspan="2">FDS</td>
+				<td colspan="2">FDP[31:0]</td>
+				<td><strong>16</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST0/MM0</td>
+				<td><strong>32</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST1/MM1</td>
+				<td><strong>48</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST2/MM2</td>
+				<td><strong>64</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST3/MM3</td>
+				<td><strong>80</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST4/MM4</td>
+				<td><strong>96</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST5/MM5</td>
+				<td><strong>112</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST6/MM6</td>
+				<td><strong>128</strong></td>
+			</tr>
+			<tr>
+				<td colspan="3">保留</td>
+				<td colspan="6">ST7/MM7</td>
+				<td><strong>144</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM0</td>
+				<td><strong>160</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM1</td>
+				<td><strong>176</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM2</td>
+				<td><strong>192</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM3</td>
+				<td><strong>208</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM4</td>
+				<td><strong>224</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM5</td>
+				<td><strong>240</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM6</td>
+				<td><strong>256</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM7</td>
+				<td><strong>272</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM8</td>
+				<td><strong>288</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM9</td>
+				<td><strong>304</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM10</td>
+				<td><strong>320</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM11</td>
+				<td><strong>336</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM12</td>
+				<td><strong>352</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM13</td>
+				<td><strong>368</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM14</td>
+				<td><strong>384</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">XMM15</td>
+				<td><strong>400</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">保留</td>
+				<td><strong>416</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">保留</td>
+				<td><strong>432</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">保留</td>
+				<td><strong>448</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">可用</td>
+				<td><strong>464</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">可用</td>
+				<td><strong>480</strong></td>
+			</tr>
+			<tr>
+				<td colspan="9">可用</td>
+				<td><strong>496</strong></td>
+			</tr>
+		</table>
+		<figcaption><a href='fxsave.html#tbl-3-47'>表 3-47</a>. 64 位模式 FXSAVE 图的布局（REX.W = 0）</figcaption>
+	</figure>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF 64-Bit Mode
+    THEN
+        IF REX.W = 1
+            THEN
+                DEST := Save64BitPromotedFxsave(x87 FPU, MMX, XMM15-XMM0,
+                MXCSR);
+            ELSE
+                DEST := Save64BitDefaultFxsave(x87 FPU, MMX, XMM15-XMM0, MXCSR);
+        FI;
+    ELSE
+        DEST := SaveLegacyFxsave(x87 FPU, MMX, XMM7-XMM0, MXCSR);
+FI;
+</pre>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果 CS、DS、ES、FS 或 GS 段中的内存操作数有效地址非法。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数未对齐在 16 字节边界上，无论段如何。（请参阅下文对齐检查异常 [#AC] 的描述。）</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果 SS 段中的地址非法。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#NM</td>
+			<td>如果 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>如果 CR0.EM[bit 2] = 1。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果 CPUID.01H:EDX.FXSR[bit 24] = 0。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>#AC</td>
+			<td>如果禁用此异常，且内存操作数未对齐在 16 字节边界上，则如上所述发出一般保护异常 (#GP) 信号。如果启用了对齐检查异常 (#AC)（且 CPL 为 3），则不保证发出 #AC 信号，并且可能因实现而异，如下所示。在不发出 #AC 信号的所有实现中，将发出一般保护异常信号来代替。此外，对齐检查的宽度也可能因实现而异。例如，对于给定的实现，可能会对 2 字节未对齐发出对齐检查异常信号，而对所有其他未对齐（4、8 或 16 字节未对齐）可能会发出一般保护异常信号。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#GP</td>
+			<td>如果内存操作数未对齐在 16 字节边界上，无论段如何。</td>
+		</tr>
+		<tr>
+			<td>如果操作数的任何部分位于从 0 到 FFFFH 的有效地址空间之外。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#NM</td>
+			<td>如果 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>如果 CR0.EM[bit 2] = 1。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CPUID.01H:EDX.FXSR[bit 24] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<p>与实地址模式下的异常相同。</p>
+	<table>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC</td>
+			<td>如果内存引用未对齐。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果引用 SS 段 of 内存地址为非规范（non-canonical）形式。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果内存地址为非规范（non-canonical）形式。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数未对齐在 16 字节边界上，无论段如何。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#NM</td>
+			<td>如果 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>如果 CR0.EM[bit 2] = 1。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CPUID.01H:EDX.FXSR[bit 24] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>#AC</td>
+			<td>如果禁用此异常，且内存操作数未对齐在 16 字节边界上，则如上所述发出一般保护异常 (#GP) 信号。如果启用了对齐检查异常 (#AC)（且 CPL 为 3），则不保证发出 #AC 信号，并且可能因实现而异，如下所示。在不发出 #AC 信号的所有实现中，将发出一般保护异常信号来代替。此外，对齐检查的宽度也可能因实现而异。例如，对于给定的实现，可能会对 2 字节未对齐发出对齐检查异常信号，而对所有其他未对齐（4、8 或 16 字节未对齐）可能会发出一般保护异常信号。</td>
+		</tr>
+	</table>
+
+	<h2 id="implementation-note">实现注意事项<a class="anchor" href="#implementation-note">¶</a></h2>
+	<p>当一般保护异常 (#GP) 和缺页异常 (#PF) 都在指令边界上发生时，处理器发出信号的顺序参见《Intel® 64 和 IA-32 架构软件开发人员手册》第 3B 卷表 5-2。该顺序在不同的处理器实现中对 FXSAVE 可能有所不同。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

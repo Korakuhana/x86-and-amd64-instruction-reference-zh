@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>PMOVMSKB — 移动字节掩码</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>PMOVMSKB — 移动字节掩码</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F D7 /r<sup>1</sup> PMOVMSKB reg, mm</td>
+				<td>RM</td>
+				<td>V/V</td>
+				<td>SSE</td>
+				<td>将 mm 的字节掩码移至 reg 中。r32 或 r64 的高位清零</td>
+			</tr>
+			<tr>
+				<td>66 0F D7 /r PMOVMSKB reg, xmm</td>
+				<td>RM</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>将 xmm 的字节掩码移至 reg 中。r32 或 r64 的高位清零</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F.WIG D7 /r VPMOVMSKB reg, xmm1</td>
+				<td>RM</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>将 xmm1 的字节掩码移至 reg 中。r32 或 r64 的高位用零填充。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F.WIG D7 /r VPMOVMSKB reg, ymm1</td>
+				<td>RM</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>将 ymm1 的 32 位掩码移至 reg 中。r64 的高位用零填充。</td>
+			</tr>
+		</table>
+		<blockquote>
+			<p>1. 请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 2A 卷第 2.5 节“Intel® AVX 和 Intel® SSE 指令异常分类”中的注释，以及《Intel® 64 和 IA-32 架构软件开发人员手册》第 3B 卷第 23.25.3 节“操作 MMX 寄存器的传统 SIMD 指令的异常条件”中的注释。</p>
+		</blockquote>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>RM</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>由源操作数（第二个操作数）的每个字节的最高有效位创建一个掩码，并将结果存储在目的操作数（第一个操作数）的低位字节或字中。</p>
+		<p>对于 64 位源操作数，字节掩码为 8 位；对于 128 位源操作数，字节掩码为 16 位；对于 256 位源操作数，字节掩码为 32 位。目的操作数是通用寄存器。</p>
+		<p>在 64 位模式下，当与 REX.R 前缀结合使用时，该指令可以访问其他寄存器（XMM8-XMM15，R8-R15）。在 64 位模式下，默认操作数大小为 64 位。</p>
+		<p>传统 SSE 版本：源操作数是 MMX 技术寄存器。</p>
+		<p>128位传统 SSE 版本：源操作数是 XMM 寄存器。</p>
+		<p>VEX.128 编码版本：源操作数是 XMM 寄存器。</p>
+		<p>VEX.256 编码版本：源操作数是 YMM 寄存器。</p>
+		<p>注意：VEX.vvvv 已保留，且必须为 1111b。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="pmovmskb--with-64-bit-source-operand-and-r32-">PMOVMSKB（配合 64 位源操作数和 r32）<a class="anchor" href="#pmovmskb--with-64-bit-source-operand-and-r32-">¶</a></h3>
+		<pre>r32[0] := SRC[7];
+r32[1] := SRC[15];
+(* Repeat operation for bytes 2 through 6 *)
+r32[7] := SRC[63];
+r32[31:8] := ZERO_FILL;
+</pre>
+		<h3 id="-v-pmovmskb--with-128-bit-source-operand-and-r32-">(V)PMOVMSKB（配合 128 位源操作数和 r32）<a class="anchor" href="#-v-pmovmskb--with-128-bit-source-operand-and-r32-">¶</a></h3>
+		<pre>r32[0] := SRC[7];
+r32[1] := SRC[15];
+(* Repeat operation for bytes 2 through 14 *)
+r32[15] := SRC[127];
+r32[31:16] := ZERO_FILL;
+</pre>
+		<h3 id="vpmovmskb--with-256-bit-source-operand-and-r32-">VPMOVMSKB（配合 256 位源操作数和 r32）<a class="anchor" href="#vpmovmskb--with-256-bit-source-operand-and-r32-">¶</a></h3>
+		<pre>r32[0] := SRC[7];
+r32[1] := SRC[15];
+(* Repeat operation for bytes 3rd through 31*)
+r32[31] := SRC[255];
+</pre>
+		<h3 id="pmovmskb--with-64-bit-source-operand-and-r64-">PMOVMSKB（配合 64 位源操作数和 r64）<a class="anchor" href="#pmovmskb--with-64-bit-source-operand-and-r64-">¶</a></h3>
+		<pre>r64[0] := SRC[7];
+r64[1] := SRC[15];
+(* Repeat operation for bytes 2 through 6 *)
+r64[7] := SRC[63];
+r64[63:8] := ZERO_FILL;
+</pre>
+		<h3 id="-v-pmovmskb--with-128-bit-source-operand-and-r64-">(V)PMOVMSKB（配合 128 位源操作数和 r64）<a class="anchor" href="#-v-pmovmskb--with-128-bit-source-operand-and-r64-">¶</a></h3>
+		<pre>r64[0] := SRC[7];
+r64[1] := SRC[15];
+(* Repeat operation for bytes 2 through 14 *)
+r64[15] := SRC[127];
+r64[63:16] := ZERO_FILL;
+</pre>
+		<h3 id="vpmovmskb--with-256-bit-source-operand-and-r64-">VPMOVMSKB（配合 256 位源操作数和 r64）<a class="anchor" href="#vpmovmskb--with-256-bit-source-operand-and-r64-">¶</a></h3>
+		<pre>r64[0] := SRC[7];
+r64[1] := SRC[15];
+(* Repeat operation for bytes 2 through 31*)
+r64[31] := SRC[255];
+r64[63:32] := ZERO_FILL;
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>PMOVMSKB int _mm_movemask_pi8(__m64 a)</pre>
+		<pre>(V)PMOVMSKB int _mm_movemask_epi8 ( __m128i a)</pre>
+		<pre>VPMOVMSKB int _mm256_movemask_epi8 ( __m256i a)</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="numeric-exceptions">数值异常<a class="anchor" href="#numeric-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-24，“第 7 类异常条件”，此外：</p>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果 VEX.vvvv ≠ 1111B。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

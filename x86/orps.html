@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>ORPS — 打包单精度浮点值的按位逻辑或</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>ORPS — 打包单精度浮点值的按位逻辑或</h1>
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F 56 /r ORPS xmm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE</td>
+				<td>返回 xmm1 和 xmm2/mem 中打包单精度浮点值的按位逻辑或。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.0F 56 /r VORPS xmm1,xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>返回 xmm2 和 xmm3/mem 中打包单精度浮点值的按位逻辑或。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.0F 56 /r VORPS ymm1, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>返回 ymm2 和 ymm3/mem 中打包单精度浮点值的按位逻辑或。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.0F.W0 56 /r VORPS xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512DQ</td>
+				<td>在写掩码 k1 的控制下，返回 xmm2 和 xmm3/m128/m32bcst 中打包单精度浮点值的按位逻辑或。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.0F.W0 56 /r VORPS ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512DQ</td>
+				<td>在写掩码 k1 的控制下，返回 ymm2 和 ymm3/m256/m32bcst 中打包单精度浮点值的按位逻辑或。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.0F.W0 56 /r VORPS zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512DQ</td>
+				<td>在写掩码 k1 的控制下，返回 zmm2 和 zmm3/m512/m32bcst 中打包单精度浮点值的按位逻辑或。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (r, w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>C</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>对来自第一个源操作数和第二个源操作数的四个、八个或十六个打包单精度浮点值进行按位逻辑或，并将结果存储在目的操作数中。</p>
+		<p>EVEX 编码版本：第一个源操作数是 ZMM/YMM/XMM 寄存器。第二个源操作数可以是 ZMM/YMM/XMM 寄存器、512/256/128 位内存位置，或者从 32 位内存位置广播的 512/256/128 位向量。目的操作数是根据写掩码 k1 条件更新的 ZMM/YMM/XMM 寄存器。</p>
+		<p>VEX.256 编码版本：第一个源操作数是 YMM 寄存器。第二个源操作数是 YMM 寄存器或 256 位内存位置。目的操作数是 YMM 寄存器。对应 ZMM 寄存器目的操作数的高位（MAXVL-1:256）清零。</p>
+		<p>VEX.128 编码版本：第一个源操作数是 XMM 寄存器。第二个源操作数是 XMM 寄存器或 128 位内存位置。目的操作数是 XMM 寄存器。对应 ZMM 寄存器目的操作数的高位（MAXVL-1:128）清零。</p>
+		<p>128位传统 SSE 版本：第二个源操作数可以是 XMM 寄存器或 128 位内存位置。目的操作数与第一个源 XMM 寄存器相同，并且对应寄存器目的操作数的高位（MAXVL-1:128）保持不变。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vorps--evex-encoded-versions-">VORPS (EVEX 编码版本)<a class="anchor" href="#vorps--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j := 0 TO KL-1
+    i := j * 32
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b == 1) AND (SRC2 *is memory*)
+                THEN
+                    DEST[i+31:i] := SRC1[i+31:i] BITWISE OR SRC2[31:0]
+                ELSE
+                    DEST[i+31:i] := SRC1[i+31:i] BITWISE OR SRC2[i+31:i]
+            FI;
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE *zeroing-masking*
+                        ; zeroing-masking
+                    DEST[i+31:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vorps--vex-256-encoded-version-">VORPS (VEX.256 编码版本)<a class="anchor" href="#vorps--vex-256-encoded-version-">¶</a></h3>
+		<pre>DEST[31:0] := SRC1[31:0] BITWISE OR SRC2[31:0]
+DEST[63:32] := SRC1[63:32] BITWISE OR SRC2[63:32]
+DEST[95:64] := SRC1[95:64] BITWISE OR SRC2[95:64]
+DEST[127:96] := SRC1[127:96] BITWISE OR SRC2[127:96]
+DEST[159:128] := SRC1[159:128] BITWISE OR SRC2[159:128]
+DEST[191:160] := SRC1[191:160] BITWISE OR SRC2[191:160]
+DEST[223:192] := SRC1[223:192] BITWISE OR SRC2[223:192]
+DEST[255:224] := SRC1[255:224] BITWISE OR SRC2[255:224].
+DEST[MAXVL-1:256] := 0
+</pre>
+		<h3 id="vorps--vex-128-encoded-version-">VORPS (VEX.128 编码版本)<a class="anchor" href="#vorps--vex-128-encoded-version-">¶</a></h3>
+		<pre>DEST[31:0] := SRC1[31:0] BITWISE OR SRC2[31:0]
+DEST[63:32] := SRC1[63:32] BITWISE OR SRC2[63:32]
+DEST[95:64] := SRC1[95:64] BITWISE OR SRC2[95:64]
+DEST[127:96] := SRC1[127:96] BITWISE OR SRC2[127:96]
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="orps--128-bit-legacy-sse-version-">ORPS (128位传统 SSE 版本)<a class="anchor" href="#orps--128-bit-legacy-sse-version-">¶</a></h3>
+		<pre>DEST[31:0] := SRC1[31:0] BITWISE OR SRC2[31:0]
+DEST[63:32] := SRC1[63:32] BITWISE OR SRC2[63:32]
+DEST[95:64] := SRC1[95:64] BITWISE OR SRC2[95:64]
+DEST[127:96] := SRC1[127:96] BITWISE OR SRC2[127:96]
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VORPS __m512 _mm512_or_ps ( __m512 a, __m512 b);</pre>
+		<pre>VORPS __m512 _mm512_mask_or_ps ( __m512 s, __mmask16 k, __m512 a, __m512 b);</pre>
+		<pre>VORPS __m512 _mm512_maskz_or_ps (__mmask16 k, __m512 a, __m512 b);</pre>
+		<pre>VORPS __m256 _mm256_mask_or_ps (__m256 s, ___mmask8 k, __m256 a, __m256 b);</pre>
+		<pre>VORPS __m256 _mm256_maskz_or_ps (__mmask8 k, __m256 a, __m256 b);</pre>
+		<pre>VORPS __m128 _mm_mask_or_ps ( __m128 s, __mmask8 k, __m128 a, __m128 b);</pre>
+		<pre>VORPS __m128 _mm_maskz_or_ps (__mmask8 k, __m128 a, __m128 b);</pre>
+		<pre>VORPS __m256 _mm256_or_ps (__m256 a, __m256 b);</pre>
+		<pre>ORPS __m128 _mm_or_ps (__m128 a, __m128 b);</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>非 EVEX 编码指令，请参阅表 2-21，“第 4 类异常条件”。</p>
+		<p>EVEX 编码指令，请参阅表 2-49，“第 E4 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

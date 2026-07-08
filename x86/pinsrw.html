@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>PINSRW — 插入字</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>PINSRW — 插入字</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F C4 /<em>r</em> ib<sup>1</sup> PINSRW mm, r32/m16, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE</td>
+				<td>根据 imm8 指定的字位置，将 r32 或 m16 中的低字插入 mm 中。</td>
+			</tr>
+			<tr>
+				<td>66 0F C4 /<em>r</em> ib PINSRW xmm, r32/m16, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>根据 imm8 指定的字位置，将 r32 或 m16 中的低字移动到 xmm 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F.W0 C4 /r ib VPINSRW xmm1, xmm2, r32/m16, imm8</td>
+				<td>B</td>
+				<td>V<sup>2</sup>/V</td>
+				<td>AVX</td>
+				<td>在 imm8 指定的偏移量处，将 r32/m16 中的字插入到 xmm2 的值中，并将结果存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.WIG C4 /r ib VPINSRW xmm1, xmm2, r32/m16, imm8</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512BW</td>
+				<td>在 imm8 指定的偏移量处，将 r32/m16 中的字插入到 xmm2 的值中，并将结果存储在 xmm1 中。</td>
+			</tr>
+		</table>
+		<blockquote>
+			<p>1. 请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 2A 卷第 2.5 节“Intel® AVX 和 Intel® SSE 指令异常分类”中的注释，以及《Intel® 64 和 IA-32 架构软件开发人员手册》第 3B 卷第 23.25.3 节“操作 MMX 寄存器的传统 SIMD 指令的异常条件”中的注释。</p>
+			<p>2. 在 64 位模式下，VPINSRW 忽略 VEX.W1（类似于 PINSRW 中的传统 REX.W=1 前缀）。</p>
+		</blockquote>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>imm8</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>imm8</td>
+			</tr>
+			<tr>
+				<td>C</td>
+				<td>Tuple1 Scalar</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>imm8</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>三操作数 MMX 和 SSE 指令：</p>
+		<p>从源操作数中复制一个字，并将其插入目的操作数中由计数操作数指定的位置。（目的寄存器中的其他字保持不变。）源操作数可以是通用寄存器或 16 位内存位置。（当源操作数是通用寄存器时，复制寄存器的低字。）目的操作数可以是 MMX 技术寄存器或 XMM 寄存器。计数操作数是一个 8 位立即数。当指定 MMX 技术寄存器中的字位置时，计数操作数的最低 2 位指定该位置；对于 XMM 寄存器，最低 3 位指定该位置。</p>
+		<p>对应 YMM 目的寄存器的位（MAXVL-1:128）保持不变。</p>
+		<p>四操作数 AVX 和 AVX-512 指令：</p>
+		<p>将第一个源操作数中的字与第二个源操作数结合，并将其插入目的操作数中由计数操作数指定的位置。第二个源操作数可以是通用寄存器或 16 位内存位置。（当源操作数是通用寄存器时，复制寄存器的低字。）第一个源操作数和目的操作数是 XMM 寄存器。计数操作数是一个 8 位立即数。当指定字位置时，最低 3 位指定该位置。</p>
+		<p>目的 YMM 寄存器的位（MAXVL-1:128）清零。VEX.L/EVEX.L'L 必须为 0，否则指令将导致 #UD。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="pinsrw-dest--src--imm8--mmx-">PINSRW dest, src, imm8 (MMX)<a class="anchor" href="#pinsrw-dest--src--imm8--mmx-">¶</a></h3>
+		<pre>SEL := imm8[1:0]
+DEST.word[SEL] := src.word[0]
+</pre>
+		<h3 id="pinsrw-dest--src--imm8--sse-">PINSRW dest, src, imm8 (SSE)<a class="anchor" href="#pinsrw-dest--src--imm8--sse-">¶</a></h3>
+		<pre>SEL := imm8[2:0]
+DEST.word[SEL] := src.word[0]
+</pre>
+		<h3 id="vpinsrw-dest--src1--src2--imm8--avx-avx512-">VPINSRW dest, src1, src2, imm8 (AVX/AVX512)<a class="anchor" href="#vpinsrw-dest--src1--src2--imm8--avx-avx512-">¶</a></h3>
+		<pre>SEL := imm8[2:0]
+DEST := src1
+DEST.word[SEL] := src2.word[0]
+DEST[MAXVL-1:128] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>PINSRW __m64 _mm_insert_pi16 (__m64 a, int d, int n)</pre>
+		<pre>PINSRW __m128i _mm_insert_epi16 ( __m128i a, int b, int imm)</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="numeric-exceptions">数值异常<a class="anchor" href="#numeric-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>EVEX 编码指令，请参阅表 2-22，“第 5 类异常条件”。</p>
+		<p>EVEX 编码指令，请参阅表 2-57，“第 E9NF 类异常条件”。</p>
+		<p>此外：</p>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果 VEX.L = 1 或 EVEX.L'L &gt; 0。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>WRMSR — 写入模型特定寄存器</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>WRMSR — 写入模型特定寄存器</h1>
+
+		<table>
+			<tr>
+				<th>操作码</th>
+				<th>指令</th>
+				<th>Op/En</th>
+				<th>64位模式</th>
+				<th>兼容/传统模式</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>0F 30</td>
+				<td>WRMSR</td>
+				<td>ZO</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>将 EDX:EAX 中的值写入由 ECX 指定的 MSR。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>ZO</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将寄存器 EDX:EAX 的内容写入到由 ECX 寄存器指定的 64 位模型特定寄存器（MSR）中。（在支持 Intel 64 架构的处理器上，RCX 的高 32 位被忽略。）EDX 寄存器的内容被复制到所选 MSR 的高 32 位，EAX 寄存器的内容被复制到该 MSR 的低 32 位。（在支持 Intel 64 架构的处理器上，RAX 和 RDX 各自的高 32 位被忽略。）MSR 中未定义或保留的位应该设置为以前读取的值。</p>
+		<p>此指令必须在特权级别 0 或在实地址模式下执行；否则会触发通用保护异常 #GP(0)。在 ECX 中指定保留或未实现的 MSR 地址也会导致通用保护异常。如果软件尝试向保留的 MSR 中的位写入数据，处理器也会触发通用保护异常。</p>
+		<p>当使用 WRMSR 指令向 MTRR 写入时，TLB 会失效。这包括全局条目（参见《Intel® 64 和 IA-32 架构软件开发人员手册》卷 3A 第 3 章中的“转译后备缓冲区 (TLB)”）。</p>
+		<p>MSR 控制用于可测试性、执行跟踪、性能监控和机器检查错误的功能。《Intel® 64 和 IA-32 架构软件开发人员手册》卷 4 第 2 章“模型特定寄存器 (MSR)”列出了可以使用此指令写入的所有 MSR 及其地址。请注意，每个处理器系列都有其自己的一套 MSR。</p>
+		<p>WRMSR 指令是一条序列化指令（参见《Intel® 64 和 IA-32 架构软件开发人员手册》卷 3A 第 9 章中的“序列化指令”）。请注意，向 IA32_TSC_DEADLINE MSR（MSR 索引 6E0H）和 X2APIC MSR（MSR 索引 802H 至 83FH）执行 WRMSR 不是序列化的。</p>
+		<p>在使用此指令之前，应使用 CPUID 指令来确定是否支持 MSR（CPUID.01H:EDX[5] = 1）。</p>
+
+		<h2 id="ia-32-architecture-compatibility">IA-32 架构兼容性<a class="anchor" href="#ia-32-architecture-compatibility">¶</a></h2>
+		<p>MSR 以及使用 WRMSR 指令读取它们的能力是随 Pentium 处理器引入到 IA-32 架构中的。由早于 Pentium 处理器的 IA-32 处理器执行该指令会导致无效操作码异常 #UD。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>MSR[ECX] := EDX:EAX;
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="protected-mode-exceptions" class="exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="4">#GP(0)</td>
+				<td>如果当前特权级别不为 0。</td>
+			</tr>
+			<tr>
+				<td>如果 ECX 中的值指定了保留的或未实现的 MSR 地址。</td>
+			</tr>
+			<tr>
+				<td>如果 EDX:EAX 中的值设置了在由 ECX 指定的 MSR 中保留的位。</td>
+			</tr>
+			<tr>
+				<td>如果源寄存器（即写入的值）包含非规范地址，且 ECX 指定了以下 MSR 之一：IA32_DS_AREA、IA32_FS_BASE、IA32_GS_BASE、IA32_KERNEL_GS_BASE、IA32_L-STAR、IA32_SYSENTER_EIP、IA32_SYSENTER_ESP。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 id="real-address-mode-exceptions" class="exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="3">#GP</td>
+				<td>如果 ECX 中的值指定了保留的或未实现的 MSR 地址。</td>
+			</tr>
+			<tr>
+				<td>如果 EDX:EAX 中的值设置了在由 ECX 指定的 MSR 中保留的位。</td>
+			</tr>
+			<tr>
+				<td>如果源寄存器（即写入的值）包含非规范地址，且 ECX 指定了以下 MSR 之一：IA32_DS_AREA、IA32_FS_BASE、IA32_GS_BASE、IA32_KERNEL_GS_BASE、IA32_L-STAR、IA32_SYSENTER_EIP、IA32_SYSENTER_ESP。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 id="virtual-8086-mode-exceptions" class="exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP(0)</td>
+				<td>WRMSR 指令在虚拟-8086 模式下不被识别。</td>
+			</tr>
+		</table>
+
+		<h2 id="compatibility-mode-exceptions" class="exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 id="64-bit-mode-exceptions" class="exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

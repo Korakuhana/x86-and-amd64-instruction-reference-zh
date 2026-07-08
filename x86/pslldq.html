@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>PSLLDQ — 双四字逻辑左移</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>PSLLDQ — 双四字逻辑左移</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>66 0F 73 /7 ib PSLLDQ xmm1, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>将 xmm1 左移 imm8 字节，同时移入 0。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F.WIG 73 /7 ib VPSLLDQ xmm1, xmm2, imm8</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>将 xmm2 左移 imm8 字节，同时移入 0，并将结果存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F.WIG 73 /7 ib VPSLLDQ ymm1, ymm2, imm8</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>将 ymm2 左移 imm8 字节，同时移入 0，并将结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.WIG 73 /7 ib VPSLLDQ xmm1,xmm2/ m128, imm8</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>将 xmm2/m128 左移 imm8 字节，同时移入 0，并将结果存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.WIG 73 /7 ib VPSLLDQ ymm1, ymm2/m256, imm8</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>将 ymm2/m256 左移 imm8 字节，同时移入 0，并将结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.WIG 73 /7 ib VPSLLDQ zmm1, zmm2/m512, imm8</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512BW</td>
+				<td>将 zmm2/m512 左移 imm8 字节，同时移入 0，并将结果存储在 zmm1 中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:r/m (r, w)</td>
+				<td>imm8</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>N/A</td>
+				<td>VEX.vvvv (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>imm8</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>C</td>
+				<td>Full Mem</td>
+				<td>EVEX.vvvv (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>imm8</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将目的操作数（第一个操作数）左移计数操作数（第二个操作数）指定的字节数。空出的低位字节被清除（设置为全 0）。如果计数操作数指定的值大于 15，则目的操作数将被设置为全 0。计数操作数是一个 8 位立即数。</p>
+		<p>128位传统 SSE 版本：源操作数和目的操作数相同。对应 YMM 目的寄存器的位（MAXVL-1:128）保持不变。</p>
+		<p>VEX.128 编码版本：源操作数和目的操作数是 XMM 寄存器。目的 YMM 寄存器的位（MAXVL-1:128）清零。</p>
+		<p>VEX.256 编码版本：源操作数是 YMM 寄存器。目的操作数是 YMM 寄存器。对应 ZMM 寄存器的位（MAXVL-1:256）清零。计数操作数同时应用于低 128 位和高 128 位通道。</p>
+		<p>EVEX 编码版本：源操作数是 ZMM/YMM/XMM 寄存器或 512/256/128 位内存位置。目的操作数是 ZMM/YMM/XMM 寄存器。计数操作数应用于每个 128 位通道。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vpslldq--evex-u1-512-encoded-version-">VPSLLDQ（EVEX.U1.512 编码版本）<a class="anchor" href="#vpslldq--evex-u1-512-encoded-version-">¶</a></h3>
+		<pre>TEMP := COUNT
+IF (TEMP &gt; 15) THEN TEMP := 16; FI
+DEST[127:0] := SRC[127:0] &lt;&lt; (TEMP * 8)
+DEST[255:128] := SRC[255:128] &lt;&lt; (TEMP * 8)
+DEST[383:256] := SRC[383:256] &lt;&lt; (TEMP * 8)
+DEST[511:384] := SRC[511:384] &lt;&lt; (TEMP * 8)
+DEST[MAXVL-1:512] := 0
+</pre>
+		<h3 id="vpslldq--vex-256-and-evex-256-encoded-version-">VPSLLDQ（VEX.256 和 EVEX.256 编码版本）<a class="anchor" href="#vpslldq--vex-256-and-evex-256-encoded-version-">¶</a></h3>
+		<pre>TEMP := COUNT
+IF (TEMP &gt; 15) THEN TEMP := 16; FI
+DEST[127:0] := SRC[127:0] &lt;&lt; (TEMP * 8)
+DEST[255:128] := SRC[255:128] &lt;&lt; (TEMP * 8)
+DEST[MAXVL-1:256] := 0
+</pre>
+		<h3 id="vpslldq--vex-128-and-evex-128-encoded-version-">VPSLLDQ（VEX.128 和 EVEX.128 编码版本）<a class="anchor" href="#vpslldq--vex-128-and-evex-128-encoded-version-">¶</a></h3>
+		<pre>TEMP := COUNT
+IF (TEMP &gt; 15) THEN TEMP := 16; FI
+DEST := SRC &lt;&lt; (TEMP * 8)
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="pslldq-128-bit-legacy-sse-version-">PSLLDQ（128位传统 SSE 版本）<a class="anchor" href="#pslldq-128-bit-legacy-sse-version-">¶</a></h3>
+		<pre>TEMP := COUNT
+IF (TEMP &gt; 15) THEN TEMP := 16; FI
+DEST := DEST &lt;&lt; (TEMP * 8)
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>(V)PSLLDQ __m128i _mm_slli_si128 ( __m128i a, int imm)</pre>
+		<pre>VPSLLDQ __m256i _mm256_slli_si256 ( __m256i a, const int imm)</pre>
+		<pre>VPSLLDQ __m512i _mm512_bslli_epi128 ( __m512i a, const int imm)</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="numeric-exceptions">数值异常<a class="anchor" href="#numeric-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>非 EVEX 编码指令，请参阅表 2-24，“第 7 类异常条件”。</p>
+		<p>EVEX 编码指令，请参阅表 2-50，“第 E4NF 类异常条件”中的异常类型 E4NF.nb。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

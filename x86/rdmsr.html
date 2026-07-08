@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>RDMSR — 从模型特定寄存器中读取</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>RDMSR — 从模型特定寄存器中读取</h1>
+
+		<p><strong>操作码<sup>1</sup></strong></p>
+		<table>
+			<tr>
+				<th></th>
+				<th>指令</th>
+				<th>Op/En</th>
+				<th>64位模式</th>
+				<th>兼容/传统模式</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>0F 32</td>
+				<td>RDMSR</td>
+				<td>ZO</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>将 ECX 指定的 MSR 读取到 EDX:EAX 中。</td>
+			</tr>
+		</table>
+		<p>1. 请参阅下文的 IA-32 架构兼容性部分。</p>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>ZO</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将 ECX 寄存器中指定的 64 位模型特定寄存器 (MSR) 的内容读取到寄存器 EDX:EAX 中。（在支持 Intel 64 架构的处理器上，RCX 的高 32 位被忽略。）EDX 寄存器加载 MSR 的高 32 位，EAX 寄存器加载低 32 位。（在支持 Intel 64 架构的处理器上，RAX 和 RDX 各自的高 32 位均被清零。）如果所读取的 MSR 实现的位数少于 64 位，则在未实现位位置返回给 EDX:EAX 的值是未定义的。</p>
+		<p>此指令必须在特权级 0 或实地址模式下执行；否则，将产生通用保护异常 #GP(0)。在 ECX 中指定保留或未实现的 MSR 地址也会导致通用保护异常。</p>
+		<p>MSR 控制可测试性、执行追踪、性能监控以及机器检查错误等功能。《Intel® 64 和 IA-32 架构软件开发人员手册》第 4 卷第 2 章“模型特定寄存器 (MSR)”列出了可以使用此指令读取的所有 MSR 及其地址。请注意，每个处理器系列都有其自己的一套 MSR。</p>
+		<p>在使用此指令之前，应使用 CPUID 指令来确定是否支持 MSR (CPUID.01H:EDX[5] = 1)。</p>
+
+		<h2 id="ia-32-architecture-compatibility">IA-32 架构兼容性<a class="anchor" href="#ia-32-architecture-compatibility">¶</a></h2>
+		<p>MSR 以及使用 RDMSR 指令读取它们的能力是在 Pentium 处理器中引入到 IA-32 架构中的。早于 Pentium 处理器的 IA-32 处理器执行此指令将导致无效操作码异常 #UD。</p>
+		<p>有关此指令在 VMX 非根操作中行为的更多信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 3C 卷第 26 章中的“VMX 非根操作中指令行为的变化”。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>EDX:EAX := MSR[ECX];</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#GP(0)</td>
+				<td>如果当前特权级不为 0。</td>
+			</tr>
+			<tr>
+				<td>如果 ECX 中的值指定了保留或未实现的 MSR 地址。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP</td>
+				<td>如果 ECX 中的值指定了保留或未实现的 MSR 地址。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP(0)</td>
+				<td>RDMSR 指令在虚拟-8086 模式下不被识别。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

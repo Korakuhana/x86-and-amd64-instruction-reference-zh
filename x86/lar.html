@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>LAR — 加载访问权限字节</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>LAR — 加载访问权限字节</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>0F 02 /r</td>
+			<td>LAR r16, r16/m16</td>
+			<td>RM</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>r16 := r16/m16 引用的访问权限</td>
+		</tr>
+		<tr>
+			<td>0F 02 /r</td>
+			<td>LAR reg, r32/m16<sup>1</sup></td>
+			<td>RM</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>reg := r32/m16 引用的访问权限</td>
+		</tr>
+	</table>
+	<blockquote>
+		<p>1. 对于所有加载（无论源操作数或目的操作数的大小如何），仅使用位 16-0。其他位被忽略。</p>
+	</blockquote>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>RM</td>
+			<td>ModRM:reg (w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将第二个操作数（源操作数）指定的段描述符中的访问权限加载到第一个操作数（目的操作数）中，并设置标志寄存器中的 ZF 标志。源操作数（可以是寄存器或内存位置）包含要访问 of 段描述符的段选择子。如果源操作数是内存地址，则仅访问 16 位数据。目的操作数是通用寄存器。</p>
+	<p>作为加载过程的一部分，处理器执行访问检查。一旦加载到目的寄存器中，软件就可以对访问权限信息进行额外的检查。</p>
+	<p>段描述符的访问权限包括位于段描述符的第二个双字（字节 4-7）中的字段。LAR 指令加载以下字段：</p>
+	<ul>
+		<li>位 7:0 返回为 0</li>
+		<li>位 11:8 返回段类型。</li>
+		<li>位 12 返回 S 标志。</li>
+		<li>位 14:13 返回 DPL。</li>
+		<li>位 15 返回 P 标志。</li>
+		<li>仅当操作数大小大于 16 位时，才会返回以下字段：
+			<ul>
+				<li>位 19:16 未定义。</li>
+				<li>位 19:16 未定义。</li>
+				<li>位 20 返回描述符中软件可用的位。</li>
+				<li>位 20 返回描述符中软件可用的位。</li>
+				<li>位 21 返回 L 标志。</li>
+				<li>位 21 返回 L 标志。</li>
+				<li>位 22 返回 D/B 标志。</li>
+				<li>位 22 返回 D/B 标志。</li>
+				<li>位 23 返回 G 标志。</li>
+				<li>位 23 返回 G 标志。</li>
+				<li>位 31:24 返回为 0。</li>
+				<li>位 31:24 返回为 0。</li>
+			</ul>
+		</li>
+	</ul>
+	<p>此指令在将访问权限加载到目的寄存器之前执行以下检查：</p>
+	<ul>
+		<li>检查段选择子是否不为 NULL。</li>
+		<li>检查段选择子是否指向在要访问的 GDT 或 LDT 限制内的描述符。</li>
+		<li>检查该描述符类型对于此指令是否有效。所有代码和数据段描述符对于 LAR 指令均有效（可使用 LAR 指令访问）。合法的系统段和门描述符类型在表 3-53 中给出。</li>
+		<li>如果段不是一致代码段，它会检查指定的段描述符在 CPL 处是否可见（即，如果段选择子的 CPL 和 RPL 小于或等于段选择子的 DPL）。</li>
+	</ul>
+	<p>如果段描述符无法访问或对于该指令是无效类型，则清除 ZF 标志，且目的操作数中不会加载访问权限。</p>
+	<p>LAR 指令只能在保护模式和 IA-32e 模式下执行。</p>
+
+	<figure id="tbl-3-53">
+		<table>
+			<tr>
+				<th rowspan="2">类型</th>
+				<th colspan="2">保护模式</th>
+				<th colspan="2">IA-32e 模式</th>
+			</tr>
+			<tr>
+				<th>名称</th>
+				<th>有效</th>
+				<th>名称</th>
+				<th>有效</th>
+			</tr>
+			<tr>
+				<td>0 1 2 3 4 5 6 7 8 9 A B C D E F</td>
+				<td>保留 可用 16位 TSS LDT 忙的 16位 TSS 16位调用门 16位/32位任务门 16位中断门 16位陷阱门 保留 可用 32位 TSS 保留 忙的 32位 TSS 32位调用门 保留 32位中断门 32位陷阱门</td>
+				<td>否 是 是 是 是 是 否 否 否 是 否 是 是 否 否 否</td>
+				<td>保留 保留 LDT 保留 保留 保留 保留 保留 保留 可用 64位 TSS 保留 忙的 64位 TSS 64位调用门 保留 64位中断门 64位陷阱门</td>
+				<td>否 否 是 否 否 否 否 否 否 是 否 是 是 否 否 否</td>
+			</tr>
+		</table>
+		<figcaption><a href='lar.html#tbl-3-53'>表 3-53</a>. 段和门类型</figcaption>
+	</figure>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF Offset(SRC) &gt; descriptor table limit
+    THEN
+        ZF := 0;
+    ELSE
+        SegmentDescriptor := descriptor referenced by SRC;
+        IF SegmentDescriptor(Type) ≠ conforming code segment
+        and (CPL &gt; DPL) or (RPL &gt; DPL)
+        or SegmentDescriptor(Type) is not valid for instruction
+            THEN
+                ZF := 0;
+            ELSE
+                DEST := access rights from SegmentDescriptor as given in Description section;
+                ZF := 1;
+        FI;
+FI;
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>如果成功加载访问权限，则将 ZF 标志设置为 1；否则，将其清除为 0。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果内存操作数有效地址超出了 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>如果使用 DS、ES、FS 或 GS 寄存器访问内存且它包含一个 NULL 段选择子。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数有效地址超出了 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级为 3 时内存操作数有效地址未对齐。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>LAR 指令在实地址模式下无法识别。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>LAR 指令在虚拟-8086 模式下无法执行。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果指向 SS 段的内存操作数有效地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存操作数有效地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级为 3 时内存操作数有效地址未对齐。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

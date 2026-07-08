@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>MOVAPD — 移动对齐的打包双精度浮点值</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>MOVAPD — 移动对齐的打包双精度浮点值</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>66 0F 28 /r MOVAPD xmm1, xmm2/m128</td>
+			<td>A</td>
+			<td>有效/有效</td>
+			<td>SSE2</td>
+			<td>将对齐的打包双精度浮点值从 xmm2/mem 移动到 xmm1。</td>
+		</tr>
+		<tr>
+			<td>66 0F 29 /r MOVAPD xmm2/m128, xmm1</td>
+			<td>B</td>
+			<td>有效/有效</td>
+			<td>SSE2</td>
+			<td>将对齐的打包双精度浮点值从 xmm1 移动到 xmm2/mem。</td>
+		</tr>
+		<tr>
+			<td>VEX.128.66.0F.WIG 28 /r VMOVAPD xmm1, xmm2/m128</td>
+			<td>A</td>
+			<td>有效/有效</td>
+			<td>AVX</td>
+			<td>将对齐的打包双精度浮点值从 xmm2/mem 移动到 xmm1。</td>
+		</tr>
+		<tr>
+			<td>VEX.128.66.0F.WIG 29 /r VMOVAPD xmm2/m128, xmm1</td>
+			<td>B</td>
+			<td>有效/有效</td>
+			<td>AVX</td>
+			<td>将对齐的打包双精度浮点值从 xmm1 移动到 xmm2/mem。</td>
+		</tr>
+		<tr>
+			<td>VEX.256.66.0F.WIG 28 /r VMOVAPD ymm1, ymm2/m256</td>
+			<td>A</td>
+			<td>有效/有效</td>
+			<td>AVX</td>
+			<td>将对齐的打包双精度浮点值从 ymm2/mem 移动到 ymm1。</td>
+		</tr>
+		<tr>
+			<td>VEX.256.66.0F.WIG 29 /r VMOVAPD ymm2/m256, ymm1</td>
+			<td>B</td>
+			<td>有效/有效</td>
+			<td>AVX</td>
+			<td>将对齐的打包双精度浮点值从 ymm1 移动到 ymm2/mem。</td>
+		</tr>
+		<tr>
+			<td>EVEX.128.66.0F.W1 28 /r VMOVAPD xmm1 {k1}{z}, xmm2/m128</td>
+			<td>C</td>
+			<td>有效/有效</td>
+			<td>AVX512VL AVX512F</td>
+			<td>使用写掩码 k1 将对齐的打包双精度浮点值从 xmm2/m128 移动到 xmm1。</td>
+		</tr>
+		<tr>
+			<td>EVEX.256.66.0F.W1 28 /r VMOVAPD ymm1 {k1}{z}, ymm2/m256</td>
+			<td>C</td>
+			<td>有效/有效</td>
+			<td>AVX512VL AVX512F</td>
+			<td>使用写掩码 k1 将对齐的打包双精度浮点值从 ymm2/m256 移动到 ymm1。</td>
+		</tr>
+		<tr>
+			<td>EVEX.512.66.0F.W1 28 /r VMOVAPD zmm1 {k1}{z}, zmm2/m512</td>
+			<td>C</td>
+			<td>有效/有效</td>
+			<td>AVX512F</td>
+			<td>使用写掩码 k1 将对齐的打包双精度浮点值从 zmm2/m512 移动到 zmm1。</td>
+		</tr>
+		<tr>
+			<td>EVEX.128.66.0F.W1 29 /r VMOVAPD xmm2/m128 {k1}{z}, xmm1</td>
+			<td>D</td>
+			<td>有效/有效</td>
+			<td>AVX512VL AVX512F</td>
+			<td>使用写掩码 k1 将对齐的打包双精度浮点值从 xmm1 移动到 xmm2/m128。</td>
+		</tr>
+		<tr>
+			<td>EVEX.256.66.0F.W1 29 /r VMOVAPD ymm2/m256 {k1}{z}, ymm1</td>
+			<td>D</td>
+			<td>有效/有效</td>
+			<td>AVX512VL AVX512F</td>
+			<td>使用写掩码 k1 将对齐的打包双精度浮点值从 ymm1 移动到 ymm2/m256。</td>
+		</tr>
+		<tr>
+			<td>EVEX.512.66.0F.W1 29 /r VMOVAPD zmm2/m512 {k1}{z}, zmm1</td>
+			<td>D</td>
+			<td>有效/有效</td>
+			<td>AVX512F</td>
+			<td>使用写掩码 k1 将对齐的打包双精度浮点值从 zmm1 移动到 zmm2/m512。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>元组类型</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>A</td>
+			<td>N/A</td>
+			<td>ModRM:reg (w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>B</td>
+			<td>N/A</td>
+			<td>ModRM:r/m (w)</td>
+			<td>ModRM:reg (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>C</td>
+			<td>Full Mem</td>
+			<td>ModRM:reg (w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>D</td>
+			<td>Full Mem</td>
+			<td>ModRM:r/m (w)</td>
+			<td>ModRM:reg (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将 2、4 或 8 个双精度浮点值从源操作数（第二个操作数）移动到目的操作数（第一个操作数）。此指令可用于从 128 位、256 位或 512 位内存位置加载 XMM、YMM 或 ZMM 寄存器，将 XMM、YMM 或 ZMM 寄存器的内容存储到 128 位、256 位或 512 位内存位置中，或者在两个 XMM、两个 YMM 或两个 ZMM 寄存器之间移动数据。</p>
+	<p>当源或目的操作数是内存操作数时，操作数必须对齐在 16 字节（128 位版本）、32 字节（256 位版本）或 64 字节（EVEX.512 编码版本）边界上，否则将产生一般保护性异常 (#GP)。对于 EVEX 编码版本，操作数必须对齐到内存操作数的大小。要在未对齐 of 内存位置之间移动双精度浮点值，请使用 VMOVUPD 指令。</p>
+	<p>注意：VEX.vvvv 和 EVEX.vvvv 是保留的，必须为 1111b，否则指令将产生 #UD 异常。</p>
+	<p>EVEX.512 编码版本：</p>
+	<p>将 512 位打包双精度浮点值从源操作数（第二个操作数）移动到目的操作数（第一个操作数）。此指令可用于从 512 位 float64 内存位置加载 ZMM 寄存器，将 ZMM 寄存器的内容存储到 512 位 float64 内存位置中，或者在两个 ZMM 寄存器之间移动数据。当源或目的操作数是内存操作数时，操作数必须对齐在 64 字节边界上，否则将产生一般保护性异常 (#GP)。要在未对齐的内存位置之间移动双精度浮点值，请使用 VMOVUPD 指令。</p>
+	<p>VEX.256 和 EVEX.256 编码版本：</p>
+	<p>将 256 位打包双精度浮点值从源操作数（第二个操作数）移动到目的操作数（第一个操作数）。此指令可用于从 256 位内存位置加载 YMM 寄存器，将 YMM 寄存器的内容存储到 256 位内存位置中，或者在两个 YMM 寄存器之间移动数据。当源或目的操作数是内存操作数时，操作数必须对齐在 32 字节边界上，否则将产生一般保护性异常 (#GP)。要在未对齐的内存位置之间移动双精度浮点值，请使用 VMOVUPD 指令。</p>
+	<p>128 位版本：</p>
+	<p>将 128 位打包双精度浮点值从源操作数（第二个操作数）移动到目的操作数（第一个操作数）。此指令可用于从 128 位内存位置加载 XMM 寄存器，将 XMM 寄存器的内容存储到 128 位内存位置中，或者在两个 XMM 寄存器之间移动数据。当源或目的操作数是内存操作数时，操作数必须对齐在 16 字节边界上，否则将产生一般保护性异常 (#GP)。要在未对齐的内存位置之间移动双精度浮点值，请使用 VMOVUPD 指令。</p>
+	<p>128 位传统 SSE 版本：对应 ZMM 目的寄存器的位 (MAXVL-1:128) 保持不变。</p>
+	<p>(E)VEX.128 编码版本：目的 ZMM 寄存器的高位 (MAXVL-1:128) 被清零。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<h3 id="vmovapd--evex-encoded-versions--register-copy-form-">VMOVAPD (EVEX Encoded Versions, Register-Copy Form)<a class="anchor" href="#vmovapd--evex-encoded-versions--register-copy-form-">¶</a></h3>
+	<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i] := SRC[i+63:i]
+        ELSE
+            IF *merging-masking*
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE DEST[i+63:i] := 0 ; zeroing-masking
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+	<h3 id="vmovapd--evex-encoded-versions--store-form-">VMOVAPD (EVEX Encoded Versions, Store-Form)<a class="anchor" href="#vmovapd--evex-encoded-versions--store-form-">¶</a></h3>
+	<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i] := SRC[i+63:i]
+        ELSE
+        ELSE *DEST[i+63:i] remains unchanged*
+            ; merging-masking
+    FI;
+ENDFOR;
+</pre>
+
+	<h3 id="vmovapd--evex-encoded-versions--load-form-">VMOVAPD (EVEX Encoded Versions, Load-Form)<a class="anchor" href="#vmovapd--evex-encoded-versions--load-form-">¶</a></h3>
+	<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i] := SRC[i+63:i]
+        ELSE
+            IF *merging-masking*
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE DEST[i+63:i] := 0 ; zeroing-masking
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+	<h3 id="vmovapd--vex-256-encoded-version--load---and-register-copy-">VMOVAPD (VEX.256 Encoded Version, Load - and Register Copy)<a class="anchor" href="#vmovapd--vex-256-encoded-version--load---and-register-copy-">¶</a></h3>
+	<pre>DEST[255:0] := SRC[255:0]
+DEST[MAXVL-1:256] := 0
+</pre>
+
+	<h3 id="vmovapd--vex-256-encoded-version--store-form-">VMOVAPD (VEX.256 Encoded Version, Store-Form)<a class="anchor" href="#vmovapd--vex-256-encoded-version--store-form-">¶</a></h3>
+	<pre>DEST[255:0] := SRC[255:0]
+</pre>
+
+	<h3 id="vmovapd--vex-128-encoded-version--load---and-register-copy-">VMOVAPD (VEX.128 Encoded Version, Load - and Register Copy)<a class="anchor" href="#vmovapd--vex-128-encoded-version--load---and-register-copy-">¶</a></h3>
+	<pre>DEST[127:0] := SRC[127:0]
+DEST[MAXVL-1:128] := 0
+</pre>
+
+	<h3 id="movapd--128-bit-load--and-register-copy--form-legacy-sse-version-">MOVAPD (128-bit Load- and Register-Copy- Form Legacy SSE Version)<a class="anchor" href="#movapd--128-bit-load--and-register-copy--form-legacy-sse-version-">¶</a></h3>
+	<pre>DEST[127:0] := SRC[127:0]
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+
+	<h3 id="-v-movapd--128-bit-store-form-version-">(V)MOVAPD (128-bit Store-Form Version)<a class="anchor" href="#-v-movapd--128-bit-store-form-version-">¶</a></h3>
+	<pre>DEST[127:0] := SRC[127:0]
+</pre>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>VMOVAPD __m512d _mm512_load_pd( void * m);
+</pre>
+	<pre>VMOVAPD __m512d _mm512_mask_load_pd(__m512d s, __mmask8 k, void * m);
+</pre>
+	<pre>VMOVAPD __m512d _mm512_maskz_load_pd( __mmask8 k, void * m);
+</pre>
+	<pre>VMOVAPD void _mm512_store_pd( void * d, __m512d a);
+</pre>
+	<pre>VMOVAPD void _mm512_mask_store_pd( void * d, __mmask8 k, __m512d a);
+</pre>
+	<pre>VMOVAPD __m256d _mm256_mask_load_pd(__m256d s, __mmask8 k, void * m);
+</pre>
+	<pre>VMOVAPD __m256d _mm256_maskz_load_pd( __mmask8 k, void * m);
+</pre>
+	<pre>VMOVAPD void _mm256_mask_store_pd( void * d, __mmask8 k, __m256d a);
+</pre>
+	<pre>VMOVAPD __m128d _mm_mask_load_pd(__m128d s, __mmask8 k, void * m);
+</pre>
+	<pre>VMOVAPD __m128d _mm_maskz_load_pd( __mmask8 k, void * m);
+</pre>
+	<pre>VMOVAPD void _mm_mask_store_pd( void * d, __mmask8 k, __m128d a);
+</pre>
+	<pre>MOVAPD __m256d _mm256_load_pd (double * p);
+</pre>
+	<pre>MOVAPD void _mm256_store_pd(double * p, __m256d a);
+</pre>
+	<pre>MOVAPD __m128d _mm_load_pd (double * p);
+</pre>
+	<pre>MOVAPD void _mm_store_pd(double * p, __m128d a);
+</pre>
+
+	<h2 id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+	<p>非 EVEX 编码指令，参见表 2-18，“Type 1 类异常条件” 中的 Exceptions Type1.SSE2。</p>
+	<p>EVEX 编码指令，参见表 2-44，“Type E1 类异常条件”。</p>
+	<p>此外：</p>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果 EVEX.vvvv != 1111B 或 VEX.vvvv != 1111B。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete） or 出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

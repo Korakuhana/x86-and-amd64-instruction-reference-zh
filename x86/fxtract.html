@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>FXTRACT — 提取指数和尾数</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>FXTRACT — 提取指数和尾数</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>D9 F4 FXTRACT</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>将 ST(0) 中的值拆分为指数和尾数，将指数存储在 ST(0) 中，并将尾数压入寄存器栈。</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将 ST(0) 寄存器中的源值拆分为其指数和尾数，将指数存储在 ST(0) 中，并将尾数压入寄存器栈。在此操作之后，新的栈顶寄存器 ST(0) 包含表示为浮点值的原始尾数的值。该值的符号和尾数与源操作数中的相同，指数为 3FFFH（真指数为零的偏置值）。ST(1) 寄存器包含表示为浮点值的原始操作数的真（无偏置）指数的值。（此指令执行的操作是 IEEE 推荐的 logb(<em>x</em>) 函数的超集。）</p>
+	<p>此指令和 F2XM1 指令对于执行幂和范围缩放操作很有用。FXTRACT 指令对于将双精度扩展浮点格式的数字转换为十进制表示（例如，用于打印或显示）也很有用。</p>
+	<p>如果屏蔽了浮点除以零异常 (#Z) 且源操作数为零，则在寄存器 ST(1) 中存储值 −∞，在寄存器 ST(0) 中存储带有源操作数符号的 0。</p>
+	<p>此指令的操作在非 64 位模式和 64 位模式下相同。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>TEMP := Significand(ST(0));
+ST(0) := Exponent(ST(0));
+TOP := TOP − 1;
+ST(0) := TEMP;
+</pre>
+
+	<h2 id="fpu-flags-affected">受影响的 FPU 标志位<a class="anchor" href="#fpu-flags-affected">¶</a></h2>
+	<table>
+		<tr>
+			<td>C1</td>
+			<td>如果发生栈下溢，则设置为 0；如果发生栈溢出，则设置为 1。</td>
+		</tr>
+		<tr>
+			<td>C0, C2, C3</td>
+			<td>未定义。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="floating-point-exceptions">浮点异常<a class="anchor" href="#floating-point-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#IS</td>
+			<td>发生栈下溢或栈溢出。</td>
+		</tr>
+		<tr>
+			<td>#IA</td>
+			<td>源操作数是 SNaN 值或处于不受支持的格式。</td>
+		</tr>
+		<tr>
+			<td>#Z</td>
+			<td>ST(0) 操作数是 ±0。</td>
+		</tr>
+		<tr>
+			<td>#D</td>
+			<td>源操作数是非正规化值。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#NM</td>
+			<td>CR0.EM[bit 2] 或 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>#MF</td>
+			<td>如果存在待处理的 x87 FPU 异常。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

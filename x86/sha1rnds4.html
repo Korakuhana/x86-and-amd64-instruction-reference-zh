@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>SHA1RNDS4 — 执行四轮 SHA1 操作</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>SHA1RNDS4 — 执行四轮 SHA1 操作</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F 3A CC /r ib SHA1RNDS4 xmm1, xmm2/m128, imm8</td>
+				<td>RMI</td>
+				<td>V/V</td>
+				<td>SHA</td>
+				<td>对来自 xmm1 的 SHA1 状态 (A,B,C,D) 执行四轮 SHA1 操作，使用来自 xmm2/m128 的下 4 轮消息双字和状态变量 E 的预计算和。立即数字节控制逻辑函数和轮常数。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+			</tr>
+			<tr>
+				<td>RMI</td>
+				<td>ModRM:reg (r, w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>imm8</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>SHA1RNDS4 指令执行四轮 SHA1 操作，使用来自第一个操作数（既是源操作数又是目的操作数）的初始 SHA1 状态 (A,B,C,D)，以及来自第二个操作数（源操作数）的下 4 轮消息双字的预计算和与状态变量 E。经过四轮处理后更新的 SHA1 状态 (A,B,C,D) 存储在目的操作数中。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="sha1rnds4">SHA1RNDS4<a class="anchor" href="#sha1rnds4">¶</a></h3>
+		<pre>函数 f() 和常数 K 取决于立即数的值。
+IF ( imm8[1:0] = 0 )
+    THEN f() := f0(),
+        K := K<sub>0</sub>;
+ELSE IF ( imm8[1:0]
+        = 1 )
+    THEN f() := f1(),
+        K := K<sub>1</sub>;
+ELSE IF ( imm8[1:0]
+        = 2 )
+    THEN f() := f2(),
+        K := K<sub>2</sub>;
+ELSE IF ( imm8[1:0]
+        = 3 )
+    THEN f() := f3(),
+        K := K3;
+FI;
+A := SRC1[127:96];
+B := SRC1[95:64];
+C := SRC1[63:32];
+D := SRC1[31:0];
+W<sub>0</sub>E := SRC2[127:96];
+W<sub>1</sub> := SRC2[95:64];
+W<sub>2</sub> := SRC2[63:32];
+W<sub>3</sub> := SRC2[31:0];
+第 i = 0 轮操作:
+A_1 := f (B, C, D) + (A ROL 5) +W<sub>0</sub>E +K;
+B_1 := A;
+C_1 := B ROL 30;
+D_1 := C;
+E_1 := D;
+FOR i = 1 to 3
+    A_(i +1) := f (B_i, C_i, D_i) + (A_i ROL 5) +W<sub>i</sub>+ E_i +K;
+    B_(i +1) := A_i;
+    C_(i +1) := B_i ROL 30;
+    D_(i +1) := C_i;
+    E_(i +1) := D_i;
+ENDFOR
+DEST[127:96] := A_4;
+DEST[95:64] := B_4;
+DEST[63:32] := C_4;
+DEST[31:0] := D_4;
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>SHA1RNDS4 __m128i _mm_sha1rnds4_epu32(__m128i, __m128i, const int);</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-21，“第 4 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

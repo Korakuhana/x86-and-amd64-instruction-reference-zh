@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>UCOMISS — 无序比较标量单精度浮点值并设置 EFLAGS</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>UCOMISS — 无序比较标量单精度浮点值并设置 EFLAGS</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op / En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F 2E /r UCOMISS xmm1, xmm2/m32</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE</td>
+				<td>比较 xmm1 和 xmm2/mem32 中的低位单精度浮点值，并相应地设置 EFLAGS 标志。</td>
+			</tr>
+			<tr>
+				<td>VEX.LIG.0F.WIG 2E /r VUCOMISS xmm1, xmm2/m32</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>比较 xmm1 和 xmm2/mem32 中的低位单精度浮点值，并相应地设置 EFLAGS 标志。</td>
+			</tr>
+			<tr>
+				<td>EVEX.LLIG.0F.W0 2E /r VUCOMISS xmm1, xmm2/m32{sae}</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>比较 xmm1 和 xmm2/mem32 中的低位单精度浮点值，并相应地设置 EFLAGS 标志。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>Tuple1 Scalar</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>对操作数 1（第一个操作数）和操作数 2（第二个操作数）的低双字中的单精度浮点值进行无序比较，并根据结果（无序、大于、小于或等于）设置 EFLAGS 寄存器中的 ZF、PF 和 CF 标志。EFLAGS 寄存器中的 OF、SF 和 AF 标志被设置为 0。如果任一源操作数是 NaN（QNaN 或 SNaN），则返回无序（unordered）结果。</p>
+		<p>操作数 1 是 XMM 寄存器；操作数 2 可以是 XMM 寄存器或 32 位内存位置。</p>
+		<p>UCOMISS 指令与 COMISS 指令的不同之处在于，它仅在源操作数为 SNaN 时才触发 SIMD 浮点无效操作异常 (#I)。而 COMISS 指令在源操作数是 QNaN 或 SNaN 时均会触发无效操作异常。</p>
+		<p>如果生成了未屏蔽的 SIMD 浮点异常，则不会更新 EFLAGS 寄存器。</p>
+		<p>注意：VEX.vvvv 和 EVEX.vvvv 是保留的，必须为 1111b，否则指令将产生 #UD 异常。</p>
+		<p>软件应确保 VUCOMISS (或 VCOMISS) 使用 VEX.L=0 进行编码。对 VUCOMISS 使用 VEX.L=1 进行编码可能会在不同的处理器世代中遇到不可预测的行为。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="-v-ucomiss--all-versions-">(V)UCOMISS（所有版本）<a class="anchor" href="#-v-ucomiss--all-versions-">¶</a></h3>
+		<pre>RESULT := UnorderedCompare(DEST[31:0] &lt;&gt; SRC[31:0]) {
+(* 设置 EFLAGS *) CASE (RESULT) OF
+    UNORDERED: ZF,PF,CF := 111;
+    GREATER_THAN: ZF,PF,CF := 000;
+    LESS_THAN: ZF,PF,CF := 001;
+    EQUAL: ZF,PF,CF := 100;
+ESAC;
+OF, AF, SF := 0; }
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VUCOMISS int _mm_comi_round_ss(__m128 a, __m128 b, int imm, int sae);
+</pre>
+		<pre>UCOMISS int _mm_ucomieq_ss(__m128 a, __m128 b);
+</pre>
+		<pre>UCOMISS int _mm_ucomilt_ss(__m128 a, __m128 b);
+</pre>
+		<pre>UCOMISS int _mm_ucomile_ss(__m128 a, __m128 b);
+</pre>
+		<pre>UCOMISS int _mm_ucomigt_ss(__m128 a, __m128 b);
+</pre>
+		<pre>UCOMISS int _mm_ucomige_ss(__m128 a, __m128 b);
+</pre>
+		<pre>UCOMISS int _mm_ucomineq_ss(__m128 a, __m128 b);
+</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无效（如果是 SNaN 操作数）、非规范化（Denormal）。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>VEX 编码指令，请参阅表 2-20，“第 3 类异常条件”，此外：</p>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果 VEX.vvvv != 1111B。</td>
+			</tr>
+		</table>
+		<p>EVEX 编码指令，请参阅表 2-48，“第 E3NF 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

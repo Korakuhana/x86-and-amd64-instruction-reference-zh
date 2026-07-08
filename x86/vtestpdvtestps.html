@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VTESTPD/VTESTPS — 打包位测试</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VTESTPD/VTESTPS — 打包位测试</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.W0 0E /r VTESTPS xmm1, xmm2/m128</td>
+				<td>RM</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>根据打包单精度浮点源的符号位 AND 和 ANDN，设置 ZF 和 CF。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.W0 0E /r VTESTPS ymm1, ymm2/m256</td>
+				<td>RM</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>根据打包单精度浮点源的符号位 AND 和 ANDN，设置 ZF 和 CF。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.W0 0F /r VTESTPD xmm1, xmm2/m128</td>
+				<td>RM</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>根据打包双精度浮点源的符号位 AND 和 ANDN，设置 ZF 和 CF。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.W0 0F /r VTESTPD ymm1, ymm2/m256</td>
+				<td>RM</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>根据打包双精度浮点源的符号位 AND 和 ANDN，设置 ZF 和 CF。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>RM</td>
+				<td>ModRM:reg (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>VTESTPS 对第一源操作数中打包单精度元素的所有符号位与第二源操作数中对应的符号位进行按位比较。如果源符号位与目的符号位的 AND 结果为全零，则设置 ZF，否则清除 ZF。如果源符号位与目的符号位取反后的 AND 结果为全零，则设置 CF，否则清除 CF。试图执行带有 VEX.W=1 的 VTESTPS 会导致 #UD。</p>
+		<p>VTESTPD 对第一源操作数中打包双精度元素的所有符号位与第二源操作数中对应的符号位进行按位比较。如果源符号位与目的符号位的 AND 结果为全零，则设置 ZF，否则清除 ZF。如果源符号位与目的符号位取反后的 AND 结果为全零，则设置 CF，否则清除 CF。试图执行带有 VEX.W=1 的 VTESTPD 会导致 #UD。</p>
+		<p>第一源寄存器由 ModR/M <em>reg</em> 字段指定。</p>
+		<p>128 位版本：第一源寄存器是 XMM 寄存器。第二源寄存器可以是 XMM 寄存器或 128 位内存位置。目的寄存器不被修改。</p>
+		<p>VEX.256 编码版本：第一源寄存器是 YMM 寄存器。第二源寄存器可以是 YMM 寄存器或 256 位内存位置。目的寄存器不被修改。</p>
+		<p>注意：在 VEX 编码版本中，VEX.vvvv 是保留的，必须为 1111b，否则指令将触发 #UD 故障。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vtestps--128-bit-version-">VTESTPS (128位版本)<a class="anchor" href="#vtestps--128-bit-version-">¶</a></h3>
+		<pre>TEMP[127:0] := SRC[127:0] AND DEST[127:0]
+IF (TEMP[31] = TEMP[63] = TEMP[95] = TEMP[127] = 0)
+    THEN ZF := 1;
+    ELSE ZF := 0;
+TEMP[127:0] := SRC[127:0] AND NOT DEST[127:0]
+IF (TEMP[31] = TEMP[63] = TEMP[95] = TEMP[127] = 0)
+    THEN CF := 1;
+    ELSE CF := 0;
+DEST (unmodified)
+AF := OF := PF := SF := 0;
+</pre>
+
+		<h3 id="vtestps--vex-256-encoded-version-">VTESTPS (VEX.256 编码版本)<a class="anchor" href="#vtestps--vex-256-encoded-version-">¶</a></h3>
+		<pre>TEMP[255:0] := SRC[255:0] AND DEST[255:0]
+IF (TEMP[31] = TEMP[63] = TEMP[95] = TEMP[127]= TEMP[160] =TEMP[191] = TEMP[224] = TEMP[255] = 0)
+    THEN ZF := 1;
+    ELSE ZF := 0;
+TEMP[255:0] := SRC[255:0] AND NOT DEST[255:0]
+IF (TEMP[31] = TEMP[63] = TEMP[95] = TEMP[127]= TEMP[160] =TEMP[191] = TEMP[224] = TEMP[255] = 0)
+    THEN CF := 1;
+    ELSE CF := 0;
+DEST (unmodified)
+AF := OF := PF := SF := 0;
+</pre>
+
+		<h3 id="vtestpd--128-bit-version-">VTESTPD (128位版本)<a class="anchor" href="#vtestpd--128-bit-version-">¶</a></h3>
+		<pre>TEMP[127:0] := SRC[127:0] AND DEST[127:0]
+IF ( TEMP[63] = TEMP[127] = 0)
+    THEN ZF := 1;
+    ELSE ZF := 0;
+TEMP[127:0] := SRC[127:0] AND NOT DEST[127:0]
+IF ( TEMP[63] = TEMP[127] = 0)
+    THEN CF := 1;
+    ELSE CF := 0;
+DEST (unmodified)
+AF := OF := PF := SF := 0;
+</pre>
+
+		<h3 id="vtestpd--vex-256-encoded-version-">VTESTPD (VEX.256 编码版本)<a class="anchor" href="#vtestpd--vex-256-encoded-version-">¶</a></h3>
+		<pre>TEMP[255:0] := SRC[255:0] AND DEST[255:0]
+IF (TEMP[63] = TEMP[127] = TEMP[191] = TEMP[255] = 0)
+    THEN ZF := 1;
+    ELSE ZF := 0;
+TEMP[255:0] := SRC[255:0] AND NOT DEST[255:0]
+IF (TEMP[63] = TEMP[127] = TEMP[191] = TEMP[255] = 0)
+    THEN CF := 1;
+    ELSE CF := 0;
+DEST (unmodified)
+AF := OF := PF := SF := 0;
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VTESTPS int _mm256_testz_ps (__m256 s1, __m256 s2);
+</pre>
+		<pre>int _mm256_testc_ps (__m256 s1, __m256 s2);
+</pre>
+		<pre>int _mm256_testnzc_ps (__m256 s1, __m256 s2);
+</pre>
+		<pre>int _mm_testz_ps (__m128 s1, __m128 s2);
+</pre>
+		<pre>int _mm_testc_ps (__m128 s1, __m128 s2);
+</pre>
+		<pre>int _mm_testnzc_ps (__m128 s1, __m128 s2);
+</pre>
+		<pre>VTESTPD int _mm256_testz_pd (__m256d s1, __m256d s2);
+</pre>
+		<pre>int _mm256_testc_pd (__m256d s1, __m256d s2);
+</pre>
+		<pre>int _mm256_testnzc_pd (__m256d s1, __m256d s2);
+</pre>
+		<pre>int _mm_testz_pd (__m128d s1, __m128d s2);
+</pre>
+		<pre>int _mm_testc_pd (__m128d s1, __m128d s2);
+</pre>
+		<pre>int _mm_testnzc_pd (__m128d s1, __m128d s2);
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>OF, AF, PF, SF 标志被清零，ZF, CF 标志根据操作进行设置。</p>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-21，“第 4 类异常条件”。</p>
+		<p>此外：</p>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 VEX.vvvv ≠ 1111B。</td>
+			</tr>
+			<tr>
+				<td>如果对于 VTESTPS 或 VTESTPD，VEX.W = 1。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

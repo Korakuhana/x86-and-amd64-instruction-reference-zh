@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>INSERTPS — 插入标量单精度浮点值</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>INSERTPS — 插入标量单精度浮点值</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>66 0F 3A 21 /r ib INSERTPS xmm1, xmm2/m32, imm8</td>
+			<td>A</td>
+			<td>V/V</td>
+			<td>SSE4_1</td>
+			<td>将由 imm8 选择的来自 xmm2/m32 的单精度浮点值插入到 xmm1 中由 imm8 指定的目标元素位置，并根据 imm8 的指示将 xmm1 中的目标元素清零。</td>
+		</tr>
+		<tr>
+			<td>VEX.128.66.0F3A.WIG 21 /r ib VINSERTPS xmm1, xmm2, xmm3/m32, imm8</td>
+			<td>B</td>
+			<td>V/V</td>
+			<td>AVX</td>
+			<td>将由 imm8 选择的来自 xmm3/m32 的单精度浮点值插入，并与 xmm2 中的值在由 imm8 指定的目标元素位置进行合并，写入结果并根据 imm8 的指示将 xmm1 中的目标元素清零。</td>
+		</tr>
+		<tr>
+			<td>EVEX.128.66.0F3A.W0 21 /r ib VINSERTPS xmm1, xmm2, xmm3/m32, imm8</td>
+			<td>C</td>
+			<td>V/V</td>
+			<td>AVX512F</td>
+			<td>将由 imm8 选择的来自 xmm3/m32 的单精度浮点值插入，并与 xmm2 中的值在由 imm8 指定的目标元素位置进行合并，写入结果并根据 imm8 的指示将 xmm1 中的目标元素清零。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>Tuple 类型</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>A</td>
+			<td>N/A</td>
+			<td>ModRM:reg (r, w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>imm8</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>B</td>
+			<td>N/A</td>
+			<td>ModRM:reg (w)</td>
+			<td>VEX.vvvv (r)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>imm8</td>
+		</tr>
+		<tr>
+			<td>C</td>
+			<td>Tuple1 Scalar</td>
+			<td>ModRM:reg (w)</td>
+			<td>EVEX.vvvv (r)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>imm8</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>（寄存器源形式）</p>
+	<p>将单精度标量浮点元素复制到 128 位向量寄存器中。立即数操作数有三个字段，其中 ZMask 位指定目的操作数的哪些元素将被设置为零，Count_D 位指定目的操作数的哪个元素将被该标量值覆盖，对于向量寄存器源，Count_S 位指定要复制源操作数的哪个元素。当标量源是内存操作数时，Count_S 位会被忽略。</p>
+	<p>（内存源形式）</p>
+	<p>从 32 位内存位置加载浮点元素，并将其写入立即数操作数的 Count_D 位所指示的位置的第一个源操作数中。存储到目的操作数中，并根据立即数操作数的 ZMask 位将目的操作数中的对应元素清零。</p>
+	<p>128 位传统 SSE 版本：第一个源寄存器是 XMM 寄存器。第二个源操作数可以是 XMM 寄存器或 32 位内存位置。目的操作数与第一个源 XMM 寄存器相同，并且对应寄存器目的高位 (MAXVL-1:128) 保持不变。</p>
+	<p>VEX.128 和 EVEX 编码版本：目的寄存器和第一个源寄存器是 XMM 寄存器。第二个源操作数可以是 XMM 寄存器或 32 位内存位置。对应寄存器目的的高位 (MAXVL-1:128) 清零。</p>
+	<p>如果 VINSERTPS 编码为 VEX.L= 1，则尝试执行编码为 VEX.L= 1 的指令将导致 #UD 异常。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<h3 id="vinsertps--vex-128-and-evex-encoded-version-">VINSERTPS (VEX.128 and EVEX Encoded Version)<a class="anchor" href="#vinsertps--vex-128-and-evex-encoded-version-">¶</a></h3>
+	<pre>IF (SRC = REG) THEN COUNT_S := imm8[7:6]
+    ELSE COUNT_S := 0
+COUNT_D := imm8[5:4]
+ZMASK := imm8[3:0]
+CASE (COUNT_S) OF
+    0: TMP := SRC2[31:0]
+    1: TMP := SRC2[63:32]
+    2: TMP := SRC2[95:64]
+    3: TMP := SRC2[127:96]
+ESAC;
+CASE (COUNT_D) OF
+    0: TMP2[31:0] := TMP
+        TMP2[127:32] := SRC1[127:32]
+    1: TMP2[63:32] := TMP
+        TMP2[31:0] := SRC1[31:0]
+        TMP2[127:64] := SRC1[127:64]
+    2: TMP2[95:64] := TMP
+        TMP2[63:0] := SRC1[63:0]
+        TMP2[127:96] := SRC1[127:96]
+    3: TMP2[127:96] := TMP
+        TMP2[95:0] := SRC1[95:0]
+ESAC;
+IF (ZMASK[0] = 1) THEN DEST[31:0] := 00000000H
+    ELSE DEST[31:0] := TMP2[31:0]
+IF (ZMASK[1] = 1) THEN DEST[63:32] := 00000000H
+    ELSE DEST[63:32] := TMP2[63:32]
+IF (ZMASK[2] = 1) THEN DEST[95:64] := 00000000H
+    ELSE DEST[95:64] := TMP2[95:64]
+IF (ZMASK[3] = 1) THEN DEST[127:96] := 00000000H
+    ELSE DEST[127:96] := TMP2[127:96]
+DEST[MAXVL-1:128] := 0
+</pre>
+
+	<h3 id="insertps--128-bit-legacy-sse-version-">INSERTPS (128-bit Legacy SSE Version)<a class="anchor" href="#insertps--128-bit-legacy-sse-version-">¶</a></h3>
+	<pre>IF (SRC = REG) THEN COUNT_S :=imm8[7:6]
+    ELSE COUNT_S :=0
+COUNT_D := imm8[5:4]
+ZMASK := imm8[3:0]
+CASE (COUNT_S) OF
+    0: TMP := SRC[31:0]
+    1: TMP := SRC[63:32]
+    2: TMP := SRC[95:64]
+    3: TMP := SRC[127:96]
+ESAC;
+CASE (COUNT_D) OF
+    0: TMP2[31:0] := TMP
+        TMP2[127:32] := DEST[127:32]
+    1: TMP2[63:32] := TMP
+        TMP2[31:0] := DEST[31:0]
+        TMP2[127:64] := DEST[127:64]
+    2: TMP2[95:64] := TMP
+        TMP2[63:0] := DEST[63:0]
+        TMP2[127:96] := DEST[127:96]
+    3: TMP2[127:96] := TMP
+        TMP2[95:0] := DEST[95:0]
+ESAC;
+IF (ZMASK[0] = 1) THEN DEST[31:0] := 00000000H
+    ELSE DEST[31:0] := TMP2[31:0]
+IF (ZMASK[1] = 1) THEN DEST[63:32] := 00000000H
+    ELSE DEST[63:32] := TMP2[63:32]
+IF (ZMASK[2] = 1) THEN DEST[95:64] := 00000000H
+    ELSE DEST[95:64] := TMP2[95:64]
+IF (ZMASK[3] = 1) THEN DEST[127:96] := 00000000H
+    ELSE DEST[127:96] := TMP2[127:96]
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>VINSERTPS __m128 _mm_insert_ps(__m128 dst, __m128 src, const int nidx);
+</pre>
+	<pre>INSETRTPS __m128 _mm_insert_ps(__m128 dst, __m128 src, const int nidx);
+</pre>
+
+	<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+	<p>非 EVEX 编码的指令，参见表 2-22，“Type 5 类异常条件”，此外：</p>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果 VEX.L = 0。</td>
+		</tr>
+	</table>
+	<p>EVEX 编码的指令，参见表 2-57，“Type E9NF 类异常条件”。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

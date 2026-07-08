@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>FYL2XP1 — 计算 y ∗ log2(x + 1)</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>FYL2XP1 — 计算 y ∗ log2(x + 1)</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>D9 F9</td>
+			<td>FYL2XP1</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>用 ST(1) ∗ log<sub>2</sub>(ST(0) + 1.0) 替换 ST(1)，并弹出寄存器栈。</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>计算 (ST(1) ∗ log<sub>2</sub>(ST(0) + 1.0))，将结果存储在寄存器 ST(1) 中，并弹出 FPU 寄存器栈。ST(0) 中的源操作数必须在以下范围内：</p>
+	<svg style="width: 135.74005920000002pt; height: 12.744000000000005pt" viewbox="61.278836 0.0 118.11671600000001 15.620000000000005">
+	<g xmlns="http://www.w3.org/2000/svg" style="stroke: none; fill: none">
+	<path d="M 99.18 0.4800000000000182 L 99.18 0.0 L 94.98 0.0 L 94.92 0.18000000000006366 L 95.16000000000001 0.4800000000000182" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+	<path d="M 92.4 10.32000000000005 L 92.34 10.56000000000006 L 91.86 10.440000000000055 L 91.92 10.200000000000045" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+	<path d="M 95.4 0.3000000000000682 L 94.92 0.18000000000006366 L 91.92 10.200000000000045 L 92.4 10.32000000000005" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+	<path d="M 91.98 10.440000000000055 L 92.10000000000001 10.620000000000005 L 92.52000000000001 10.32000000000005 L 92.4 10.1400000000001" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+	<path d="M 91.98 10.440000000000055 L 92.4 10.1400000000001 L 90.42 7.260000000000105 L 90.24000000000001 6.960000000000036 L 90.0 7.260000000000105 L 90.0 7.560000000000059" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+	<path d="M 89.4 9.0 L 89.28 9.17999999999995 L 88.86 8.879999999999995 L 88.98 8.700000000000045" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+	<path d="M 90.42 7.560000000000059 L 90.0 7.260000000000105 L 88.98 8.700000000000045 L 89.4 9.000000000000114" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+	<text lengthadjust="spacingAndGlyphs" style="font-size: 11.025719999999978pt; fill: #000" textlength="113.11671600000001" x="63.778836" y="11.331360000000018">–(1– 2⁄2))to(1– 2⁄2)</text></g></svg>
+	<p>ST(1) 中的源操作数范围可以从 −∞ 到 +∞。如果 ST(0) 操作数超出其可接受范围，则结果未定义，并且软件不应依赖于产生异常。在某些情况下，当 ST(0) 超出范围时可能会产生异常，但此行为特定于具体实现且不作保证。</p>
+	<p>下表显示了在不发生下溢的情况下，计算各类数字的对数 epsilon 时获得的结果。</p>
+
+	<figure id="tbl-3-49">
+		<svg style="width: 610.272048pt; height: 173.37601199999997pt" viewbox="44.660000000000004 0.0 513.5600400000001 149.48001">
+		<g xmlns="http://www.w3.org/2000/svg" style="stroke: none; fill: none">
+		<rect height="143.52" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="47.160000000000004" y="0.48000999999999294"></rect>
+		<rect height="127.5" style="fill: rgb(0%, 0%, 0%)" width="1.5" x="102.06" y="16.980009999999993"></rect>
+		<rect height="129.0" style="fill: rgb(0%, 0%, 0%)" width="1.5" x="150.24" y="15.480009999999993"></rect>
+		<rect height="129.0" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="275.94" y="15.480009999999993"></rect>
+		<rect height="129.0" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="324.12" y="15.480009999999993"></rect>
+		<rect height="129.0" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="372.24" y="15.480009999999993"></rect>
+		<rect height="129.0" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="497.46000000000004" y="15.480009999999993"></rect>
+		<rect height="143.52" style="fill: rgb(0%, 0%, 0%)" width="0.48004" x="555.24" y="0.48000999999999294"></rect>
+		<rect height="0.48001000000000005" style="fill: rgb(0%, 0%, 0%)" width="508.56" x="47.160000000000004" y="0.0"></rect>
+		<rect height="1.5" style="fill: rgb(0%, 0%, 0%)" width="453.66" x="102.06" y="15.540009999999995"></rect>
+		<rect height="1.5" style="fill: rgb(0%, 0%, 0%)" width="453.66" x="102.06" y="31.500009999999975"></rect>
+		<rect height="0.48001000000000005" style="fill: rgb(0%, 0%, 0%)" width="453.66" x="102.06" y="48.0"></rect>
+		<rect height="0.48001000000000005" style="fill: rgb(0%, 0%, 0%)" width="453.66" x="102.06" y="64.01999999999998"></rect>
+		<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="453.66" x="102.06" y="79.98003"></rect>
+		<rect height="0.48001000000000005" style="fill: rgb(0%, 0%, 0%)" width="453.66" x="102.06" y="96.0"></rect>
+		<rect height="0.48001000000000005" style="fill: rgb(0%, 0%, 0%)" width="453.66" x="102.06" y="112.01999999999998"></rect>
+		<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="453.66" x="102.06" y="127.98003"></rect>
+		<rect height="0.48001000000000005" style="fill: rgb(0%, 0%, 0%)" width="508.56" x="47.160000000000004" y="144.0"></rect>
+		<path d="M 211.02 20.280010000000004 L 211.02 19.92000999999999 L 207.66 19.92000999999999 L 207.60000000000002 20.040009999999995 L 207.78 20.280010000000004" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+		<path d="M 205.56 28.140010000000018 L 205.5 28.320010000000025 L 205.14000000000001 28.20001000000002 L 205.2 28.020010000000013" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+		<path d="M 207.96 20.16001 L 207.6 20.040009999999995 L 205.20000000000002 28.020010000000013 L 205.56 28.140010000000018" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+		<path d="M 205.26 28.20001000000002 L 205.32 28.320010000000025 L 205.62 28.140010000000018 L 205.56 28.020010000000013" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+		<path d="M 205.26 28.20001000000002 L 205.56 28.020010000000013 L 204.0 25.74001000000004 L 203.82 25.50001000000003 L 203.7 25.68001000000004 L 203.7 25.920010000000048" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+		<path d="M 203.16 27.060009999999977 L 203.04 27.18000999999998 L 202.74 26.940009999999972 L 202.85999999999999 26.820009999999968" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+		<path d="M 204.0 25.92000999999999 L 203.7 25.68000999999998 L 202.86 26.820009999999968 L 203.16 27.060009999999977" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+		<path d="M 453.78000000000003 20.280010000000004 L 453.78000000000003 19.92000999999999 L 450.48 19.92000999999999 L 450.42 20.040009999999995 L 450.6 20.280010000000004" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+		<path d="M 448.38 28.140010000000018 L 448.32 28.320010000000025 L 447.96 28.20001000000002 L 448.02 28.020010000000013" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+		<path d="M 450.78000000000003 20.16001 L 450.42 20.040009999999995 L 448.02000000000004 28.020010000000013 L 448.38000000000005 28.140010000000018" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+		<path d="M 448.08 28.20001000000002 L 448.14 28.320010000000025 L 448.44 28.140010000000018 L 448.38 28.020010000000013" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+		<path d="M 448.08 28.20001000000002 L 448.38 28.020010000000013 L 446.76 25.74001000000004 L 446.64 25.50001000000003 L 446.46 25.74001000000004 L 446.46 25.920010000000048" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+		<path d="M 445.98 27.060009999999977 L 445.92 27.18000999999998 L 445.62 27.000009999999975 L 445.68 26.88000999999997" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+		<path d="M 446.76 25.92000999999999 L 446.46 25.740009999999984 L 445.68 26.88000999999997 L 445.98 27.060009999999977" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 11.276999999999987pt; fill: #000" textlength="21.425400000000025" x="313.62" y="13.164010000000019">ST(0)</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="9.813600000000008" x="295.38" y="29.121009999999956">-0</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="13.089599999999962" x="341.892" y="29.121009999999956">+0</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.107835200000011pt; fill: #000" textlength="80.33580320000002" x="173.4" y="29.15107919999997">−(1−( 2⁄2 ))to−0</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.107835200000011pt; fill: #000" textlength="78.01773287999993" x="396.11969999999997" y="29.15107919999997">+0to+(1-( 2⁄2 ))</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.107835200000011pt; fill: #000" textlength="17.996656400000006" x="517.6210500799999" y="29.15107919999997">NaN</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.926000000000002pt; fill: #000" textlength="5.7239999999999895" x="297.42" y="45.14100999999995">*</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.926000000000002pt; fill: #000" textlength="5.7239999999999895" x="345.5421" y="45.14100999999995">*</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.107835200000011pt; fill: #000" textlength="17.996656400000006" x="517.6199" y="45.17107919999995">NaN</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 9.687720000000013pt; fill: #000" textlength="13.64148000000003" x="206.76" y="44.92782999999997">+∞</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 4.294218750000027pt; fill: #000" textlength="14.541600000000003" x="119.58" y="40.570556874999966">−∞</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 4.294218750000027pt; fill: #000" textlength="14.541300000000035" x="427.8003" y="40.570556874999966">−∞</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 11.276999999999987pt; fill: #000" textlength="21.491100000000003" x="64.38" y="61.16401000000002">ST(1)</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="13.279500000000013" x="120.24029999999999" y="61.101009999999974">−F</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="12.551400000000001" x="207.3072" y="61.101009999999974">+F</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="13.100400000000036" x="293.70629999999994" y="61.101009999999974">+0</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="9.80279999999999" x="343.50509999999997" y="61.101009999999974">-0</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="13.279499999999985" x="428.4606" y="61.101009999999974">−F</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.107835200000011pt; fill: #000" textlength="17.996656400000006" x="517.6199" y="61.13107919999999">NaN</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="13.828499999999991" x="120.0" y="77.12100999999996">−0</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="13.040999999999997" x="207.0669" y="77.12100999999996">+0</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="13.10039999999998" x="293.7063" y="77.12100999999996">+0</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="9.802800000000047" x="343.50509999999997" y="77.12100999999996">-0</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="13.768199999999979" x="428.2203" y="77.12100999999996">−0</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.107835200000011pt; fill: #000" textlength="17.996656400000006" x="517.6199" y="77.15107919999997">NaN</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="13.041000000000011" x="120.36" y="93.14100999999994">+0</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="13.82759999999999" x="206.64030000000002" y="93.14100999999994">−0</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="13.828499999999963" x="293.34000000000003" y="93.14100999999994">−0</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="13.10039999999998" x="341.8869" y="93.14100999999994">+0</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="13.040999999999997" x="428.58570000000003" y="93.14100999999994">+0</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.107835200000011pt; fill: #000" textlength="17.996656400000006" x="517.6199" y="93.17107919999995">NaN</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="12.551400000000015" x="120.60000000000001" y="109.10100999999997">+F</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="13.279500000000013" x="206.93970000000002" y="109.10100999999997">−F</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="13.828499999999963" x="293.3397" y="109.10100999999997">−0</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="13.10039999999998" x="341.8866" y="109.10100999999997">+0</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="12.551400000000001" x="428.8257" y="109.10100999999997">+F</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.107835200000011pt; fill: #000" textlength="17.996656400000006" x="517.6199" y="109.13107919999999">NaN</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="14.48147999999999" x="119.64" y="125.12100999999996">+应用开发</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.926000000000002pt; fill: #000" textlength="5.7239999999999895" x="297.42" y="125.12100999999997">*</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.926000000000002pt; fill: #000" textlength="5.7239999999999895" x="345.5421" y="125.12100999999997">*</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="14.477280000000007" x="427.8642" y="125.12100999999996">+∞</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.107835200000011pt; fill: #000" textlength="17.996656400000006" x="517.6199" y="125.15107919999997">NaN</text>
+		<path d="M 206.28 120.55055687499998" style="fill: none; stroke: none"></path>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="18.856800000000007" x="117.48" y="141.14101">NaN</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="18.915299999999974" x="204.1248" y="141.14101">NaN</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="18.85680000000002" x="290.82809999999995" y="141.14101">NaN</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="18.852300000000014" x="339.0123" y="141.14101">NaN</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.925999999999988pt; fill: #000" textlength="18.85680000000002" x="425.712" y="141.14101">NaN</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.107835200000011pt; fill: #000" textlength="17.996656400000006" x="517.6199" y="141.1710792">NaN</text>
+		</g>
+		</svg>
+		<figcaption><a href='fyl2xp1.html#tbl-3-49'>表 3-49</a>. FYL2XP1 结果</figcaption>
+	</figure>
+	<blockquote>
+		<p>F 表示有限浮点值。</p>
+		<p>* 表示浮点数无效操作 (#IA) 异常。</p>
+	</blockquote>
+
+	<p>此指令对于与 0 接近的 epsilon 值 [寄存器 ST(0) 中的值] 提供最佳精度。对于较小的 epsilon (ε) 值，使用 FYL2XP1 指令比使用 (ε+1) 作为 FYL2X 指令的参数，可以保留更多有效数字。表达式 (ε+1) 通常见于复利和年金计算。通过在 ST(1) 源操作数中包含比例因子，结果可以简单地转换为另一个对数底数的值。以下等式用于计算特定对数底数的比例因子，其中 n 是 FYL2XP1 指令结果所需的对数底数：</p>
+	<p>比例因子 := log<sub>n</sub> 2</p>
+	<p>此指令的操作在非 64 位模式和 64 位模式下相同。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>ST(1) := ST(1) ∗ log<sub>2</sub>(ST(0) + 1.0);
+PopRegisterStack;
+</pre>
+
+	<h2 id="fpu-flags-affected">受影响的 FPU 标志位<a class="anchor" href="#fpu-flags-affected">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">C1</td>
+			<td>如果发生栈下溢，则设置为 0。</td>
+		</tr>
+		<tr>
+			<td>如果结果向上舍入，则设置；否则清除。</td>
+		</tr>
+		<tr>
+			<td>C0, C2, C3</td>
+			<td>未定义。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="floating-point-exceptions">浮点异常<a class="anchor" href="#floating-point-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#IS</td>
+			<td>发生栈下溢。</td>
+		</tr>
+		<tr>
+			<td>#IA</td>
+			<td>任一操作数是 SNaN 值或处于不受支持的格式。</td>
+		</tr>
+		<tr>
+			<td>#D</td>
+			<td>源操作数是非正规化值。</td>
+		</tr>
+		<tr>
+			<td>#U</td>
+			<td>结果对于目的格式来说太小。</td>
+		</tr>
+		<tr>
+			<td>#O</td>
+			<td>结果对于目的格式来说太大。</td>
+		</tr>
+		<tr>
+			<td>#P</td>
+			<td>值无法在目的格式中精确表示。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#NM</td>
+			<td>CR0.EM[bit 2] 或 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>#MF</td>
+			<td>如果存在待处理的 x87 FPU 异常。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>XLAT/XLATB — 查表转换</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>XLAT/XLATB — 查表转换</h1>
+
+		<table>
+			<tr>
+				<th>操作码</th>
+				<th>指令</th>
+				<th>Op/En</th>
+				<th>64位模式</th>
+				<th>兼容/传统模式</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>D7</td>
+				<td>XLAT m8</td>
+				<td>ZO</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>将 AL 设置为内存字节 DS:[(E)BX + 无符号 AL]。</td>
+			</tr>
+			<tr>
+				<td>D7</td>
+				<td>XLATB</td>
+				<td>ZO</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>将 AL 设置为内存字节 DS:[(E)BX + 无符号 AL]。</td>
+			</tr>
+			<tr>
+				<td>REX.W + D7</td>
+				<td>XLATB</td>
+				<td>ZO</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>将 AL 设置为内存字节 [RBX + 无符号 AL]。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>ZO</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>使用 AL 寄存器的内容作为表索引定位内存表中的字节条目，然后将表条目的内容复制回 AL 寄存器。AL 寄存器中的索引被视为无符号整数。XLAT 和 XLATB 指令从 DS:EBX 或 DS:BX 寄存器获取内存中表的基地址（分别取决于指令的地址大小属性，即 32 或 16）。（DS 段可以使用段超越前缀进行覆盖。）</p>
+		<p>在汇编代码级别，允许使用该指令的两种形式：“显式操作数”形式和“无操作数”形式。显式操作数形式（通过助记符 XLAT 指定）允许使用符号显式指定表的基地址。提供这种显式操作数形式是为了便于编写文档；然而，请注意，此形式提供的文档可能会引起误解。也就是说，该符号不必指定正确的基地址。基地址始终由 DS:(E)BX 寄存器指定，在执行 XLAT 指令之前必须正确加载这些寄存器。</p>
+		<p>无操作数形式 (XLATB) 提供了 XLAT 指令的“短形式”。在这里，处理器同样假设 DS:(E)BX 寄存器包含表的基地址。</p>
+		<p>在 64 位模式下，操作类似于传统或兼容模式。AL 用于指定表索引（操作数大小固定为 8 位）。然而，RBX 用于指定表的基地址。有关编码数据和限制，请参阅本节开头的汇总图表。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>IF AddressSize = 16
+    THEN
+        AL := (DS:BX + ZeroExtend(AL));
+    ELSE IF (AddressSize = 32)
+        AL := (DS:EBX + ZeroExtend(AL)); FI;
+    ELSE (AddressSize = 64)
+        AL := (RBX + ZeroExtend(AL));
+FI;
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="protected-mode-exceptions" class="exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#GP(0)</td>
+				<td>如果内存操作数有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+			</tr>
+			<tr>
+				<td>如果 DS、ES、FS 或 GS 寄存器包含一个空段选择子。</td>
+			</tr>
+			<tr>
+				<td>#SS(0)</td>
+				<td>如果内存操作数有效地址超出 SS 段限制。</td>
+			</tr>
+			<tr>
+				<td>#PF(错误码)</td>
+				<td>如果发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 id="real-address-mode-exceptions" class="exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP</td>
+				<td>如果内存操作数有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+			</tr>
+			<tr>
+				<td>#SS</td>
+				<td>如果内存操作数有效地址超出 SS 段限制。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 id="virtual-8086-mode-exceptions" class="exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP(0)</td>
+				<td>如果内存操作数有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+			</tr>
+			<tr>
+				<td>#SS(0)</td>
+				<td>如果内存操作数有效地址超出 SS 段限制。</td>
+			</tr>
+			<tr>
+				<td>#PF(错误码)</td>
+				<td>如果发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 id="compatibility-mode-exceptions" class="exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 id="64-bit-mode-exceptions" class="exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#SS(0)</td>
+				<td>如果引用 SS 段的内存地址为非规范形式。</td>
+			</tr>
+			<tr>
+				<td>#GP(0)</td>
+				<td>如果内存地址为非规范形式。</td>
+			</tr>
+			<tr>
+				<td>#PF(错误码)</td>
+				<td>如果发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

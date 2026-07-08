@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>XACQUIRE/XRELEASE — 硬件锁消除前缀提示</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>XACQUIRE/XRELEASE — 硬件锁消除前缀提示</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>F2 XACQUIRE</td>
+				<td>V/V</td>
+				<td>HLE<sup>1</sup></td>
+				<td>与“启用 XACQUIRE”的指令一起使用的提示，以在指令内存操作数地址上开始锁消除。</td>
+			</tr>
+			<tr>
+				<td>F3 XRELEASE</td>
+				<td>V/V</td>
+				<td>HLE</td>
+				<td>与“启用 XRELEASE”的指令一起使用的提示，以在指令内存操作数地址上结束锁消除。</td>
+			</tr>
+		</table>
+		<blockquote>
+			<p>1. 软件不需要检查 HLE 功能标志即可使用 XACQUIRE 或 XRELEASE，因为如果 HLE 功能标志报告为 0，它们将被视为普通前缀。</p>
+		</blockquote>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>XACQUIRE 前缀是一个提示，用于在指令指定的内存地址上启动锁消除，而 XRELEASE 前缀是一个提示，用于在指令指定的内存地址上结束锁消除。</p>
+		<p>XACQUIRE 前缀提示只能与以下指令一起使用（与 XACQUIRE 前缀一起使用时，这些指令也被称为启用 XACQUIRE 的指令）：</p>
+		<ul>
+			<li>在目的操作数为内存操作数的指令形式前加上显式 LOCK 前缀 (F0H) 的指令：ADD、ADC、AND、BTC、BTR、BTS、CMPXCHG、CMPXCHG8B、DEC、INC、NEG、NOT、OR、SBB、SUB、XOR、XADD 和 XCHG。</li>
+			<li>存在或不存在 LOCK 前缀的 XCHG 指令。</li>
+		</ul>
+		<p>XRELEASE 前缀提示只能与以下指令一起使用（与 XRELEASE 前缀一起使用时，这些指令也被称为启用 XRELEASE 的指令）：</p>
+		<ul>
+			<li>在目的操作数为内存操作数的指令形式前加上显式 LOCK 前缀 (F0H) 的指令：ADD、ADC、AND、BTC、BTR、BTS、CMPXCHG、CMPXCHG8B、DEC、INC、NEG、NOT、OR、SBB、SUB、XOR、XADD 和 XCHG。</li>
+			<li>存在或不存在 LOCK 前缀的 XCHG 指令。</li>
+			<li>“MOV mem, reg”（操作码 88H/89H）和 “MOV mem, imm”（操作码 C6H/C7H）指令。在这些情况下，即使没有 LOCK 前缀，XRELEASE 也能被识别。</li>
+		</ul>
+		<p>锁变量必须满足《Intel® 64 和 IA-32 架构软件开发人员手册》卷 1 第 16.3.3 节中描述的准则，锁消除才能成功，否则可能会发出 HLE 终止信号。</p>
+		<p>如果满足 XACQUIRE/XRELEASE 要求的编码字节序列中同时包含这两个前缀，则 HLE 语义由最靠近指令操作数的前缀字节决定。例如，F3F2C6 不会被视为启用 XRELEASE 的指令，因为 F2H (XACQUIRE) 最靠近指令操作码 C6。类似地，带 F2F3F0 前缀的指令将被视为启用 XRELEASE 的指令，因为 F3H (XRELEASE) 最靠近指令操作码。</p>
+		<p><strong>Intel 64 和 IA-32 兼容性</strong></p>
+		<p>XACQUIRE/XRELEASE 前缀提示的效果在非 64 位模式和 64 位模式下相同。</p>
+		<p>对于不支持 XACQUIRE 提示的指令，F2H 前缀的存在行为与之前的硬件相同，根据：</p>
+		<ul>
+			<li>字符串指令的 REPNE/REPNZ 语义，</li>
+			<li>用作操作 XMM 寄存器的传统 SIMD 指令的 SIMD 前缀，</li>
+			<li>如果放在 VEX 前缀之前则引发 #UD，</li>
+			<li>对于非字符串指令或其他情况未定义。</li>
+		</ul>
+		<p>对于不支持 XRELEASE 提示的指令，F3H 前缀的存在行为与之前的硬件相同，根据：</p>
+		<ul>
+			<li>字符串指令的 REP/REPE/REPZ 语义，</li>
+			<li>用作操作 XMM 寄存器的传统 SIMD 指令的 SIMD 前缀，</li>
+			<li>如果放在 VEX 前缀之前则引发 #UD，</li>
+			<li>对于非字符串指令或其他情况未定义。</li>
+		</ul>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="xacquire">XACQUIRE<a class="anchor" href="#xacquire">¶</a></h3>
+		<pre>IF XACQUIRE-enabled instruction
+    THEN
+        IF (HLE_NEST_COUNT &lt; MAX_HLE_NEST_COUNT) THEN
+            HLE_NEST_COUNT++
+            IF (HLE_NEST_COUNT = 1) THEN
+                HLE_ACTIVE := 1
+                IF 64-bit mode
+                    THEN
+                        restartRIP := instruction pointer of the XACQUIRE-enabled instruction
+                    ELSE
+                        restartEIP := instruction pointer of the XACQUIRE-enabled instruction
+                FI;
+                Enter HLE Execution (* 记录寄存器状态，开始跟踪内存状态 *)
+            FI; (* HLE_NEST_COUNT = 1*)
+            IF ElisionBufferAvailable
+                THEN
+                    Allocate elision buffer
+                    Record address and data for forwarding and commit checking
+                    Perform elision
+                ELSE
+                    Perform lock acquire operation transactionally but without elision
+            FI;
+        ELSE (* HLE_NEST_COUNT = MAX_HLE_NEST_COUNT*)
+                GOTO HLE_ABORT_PROCESSING
+        FI;
+    ELSE
+        Treat instruction as non-XACQUIRE F2H prefixed legacy instruction
+FI;
+</pre>
+
+		<h3 id="xrelease">XRELEASE<a class="anchor" href="#xrelease">¶</a></h3>
+		<pre>IF XRELEASE-enabled instruction
+    THEN
+        IF (HLE_NEST_COUNT &gt; 0)
+            THEN
+                HLE_NEST_COUNT--
+                IF lock address matches in elision buffer THEN
+                    IF lock satisfies address and value requirements THEN
+                        Deallocate elision buffer
+                    ELSE
+                        GOTO HLE_ABORT_PROCESSING
+                    FI;
+                FI;
+                IF (HLE_NEST_COUNT = 0)
+                    THEN
+                        IF NoAllocatedElisionBuffer
+                            THEN
+                                Try to commit transactional execution
+                                IF fail to commit transactional execution
+                                    THEN
+                                        GOTO HLE_ABORT_PROCESSING;
+                                    ELSE (* 提交成功 *)
+                                        HLE_ACTIVE := 0
+                                FI;
+                            ELSE
+                                GOTO HLE_ABORT_PROCESSING
+                        FI;
+                FI;
+        FI; (* HLE_NEST_COUNT &gt; 0 *)
+    ELSE
+        Treat instruction as non-XRELEASE F3H prefixed legacy instruction
+FI;
+(* 对于在 HLE 执行期间遇到的任何 HLE 终止条件 *)
+HLE_ABORT_PROCESSING:
+    HLE_ACTIVE := 0
+    HLE_NEST_COUNT := 0
+    Restore architectural register state
+    Discard memory updates performed in transaction
+    Free any allocated lock elision buffers
+    IF 64-bit mode
+        THEN
+            RIP := restartRIP
+        ELSE
+            EIP := restartEIP
+    FI;
+    Execute and retire instruction at RIP (or EIP) and ignore any HLE hint
+END
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP(0)</td>
+				<td>如果使用前缀导致指令长度超过 15 字节。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

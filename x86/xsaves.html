@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>XSAVES — 保存处理器扩展状态（主管级）</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>XSAVES — 保存处理器扩展状态（主管级）</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F C7 /5 XSAVES mem</td>
+				<td>M</td>
+				<td>V/V</td>
+				<td>XSS</td>
+				<td>使用紧凑方式将由 EDX:EAX 指定的状态组件保存到 mem，如果可能则进行优化。</td>
+			</tr>
+			<tr>
+				<td>NP REX.W + 0F C7 /5 XSAVES64 mem</td>
+				<td>M</td>
+				<td>V/N.E.</td>
+				<td>XSS</td>
+				<td>使用紧凑方式将由 EDX:EAX 指定的状态组件保存到 mem，如果可能则进行优化。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>M</td>
+				<td>ModRM:r/m (w)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将处理器状态组件的全部或部分保存到由目的操作数指定的内存地址处的 XSAVE 区域。隐式的 EDX:EAX 寄存器对指定了 64 位指令掩码。保存的具体状态组件对应于请求功能位图 (RFBM) 中设置的位，该位图是 EDX:EAX 与 XCR0 和 IA32_XSS MSR 的逻辑或进行逻辑与的结果。XSAVES 只能在 CPL = 0 时执行。</p>
+		<p>XSAVE 区域的格式在《Intel® 64 和 IA-32 架构软件开发人员手册》卷 1 第 13.4 节“XSAVE 区域”中详细介绍。像 FXRSTOR 和 FXSAVE 一样，用于 x87 状态的内存格式取决于 REX.W 前缀；参见《Intel® 64 和 IA-32 架构软件开发人员手册》卷 1 第 13.5.1 节“x87 状态”。</p>
+		<p>《Intel® 64 和 IA-32 架构软件开发人员手册》卷 1 第 13.11 节“XSAVES 的操作”提供了关于 XSAVES 指令操作的详细描述。以下条目提供了高级大纲：</p>
+		<ul>
+			<li>XSAVES 的执行类似于 XSAVEC。XSAVES 与 XSAVEC 的不同之处在于它可以保存与 IA32_XSS MSR 中设置的位对应的状态组件，并且它可以使用修改优化。</li>
+			<li>仅当 RFBM[i] = 1 且 XINUSE[i] = 1 时，XSAVES 才会保存状态组件 i。<sup>1</sup>（XINUSE 是一个位图，处理器通过它跟踪各种状态组件的状态。请参见《Intel® 64 和 IA-32 架构软件开发人员手册》卷 1 第 13.6 节“XSAVE 管理状态 of 处理器跟踪”。）即使这两位都为 1，XSAVES 也可能会在以下情况下优化且不保存状态组件 i：(1) 自上次执行 XRSTOR 或 XRSTORS 以来，状态组件 i 未被修改；并且 (2) 根据内部值 XRSTOR_INFO 的确定，本次执行的 XSAVES 与上次执行的 XRSTOR 或 XRSTORS 对应（参见下面的操作部分）。</li>
+			<li>XSAVES 不修改 XSAVE 区域传统区域的 511:464 字节（参见《Intel® 64 和 IA-32 架构软件开发人员手册》卷 1 第 13.4.1 节“XSAVE 区域的传统区域”）。</li>
+			<li>XSAVES 将 RFBM 和 XINUSE 的逻辑与写入 XSAVE 标头的 XSTATE_BV 字段。<sup>2</sup>（参见《Intel® 64 和 IA-32 架构软件开发人员手册》卷 1 第 13.4.2 节“XSAVE 标头”。）XSAVES 将 XCOMP_BV 字段的第 63 位设置为 1，并将该字段的 62:0 位设置为 RFBM[62:0]。除 XSTATE_BV 和 XCOMP_BV 字段外，XSAVES 不写入 XSAVE 标头的任何其他部分。</li>
+			<li>XSAVES 始终使用 XSAVE 区域扩展区域的紧凑格式（参见《Intel® 64 和 IA-32 架构软件开发人员手册》卷 1 第 13.4.3 节“XSAVE 区域的扩展区域”）。</li>
+		</ul>
+		<p>在 64 位或 32 位模式下，使用未对齐到 64 字节边界的目的操作数都会导致通用保护 (#GP) 异常。在 64 位模式下，RDX 和 RAX 的高 32 位被忽略。</p>
+		<blockquote>
+			<p>1. 对于状态组件 1 (SSE) 存在特例。MXCSR 是 SSE 状态的一部分，但即使 MXCSR 不具有其初始值 1F80H，XINUSE[1] 也可能为 0。在这种情况下，初始化优化不适用，只要 RFBM[1] = 1 并且未应用修改优化，XSAVES 就会保存 SSE 状态。</p>
+			<p>2. 对于状态组件 1 (SSE) 存在特例。MXCSR 是 SSE 状态的一部分，但即使 MXCSR 不具有其初始值 1F80H，XINUSE[1] 也可能为 0。在这种情况下，只要 RFBM[1] = 1，XSAVES 就会将 XSTATE_BV[1] 设置为 1。</p>
+		</blockquote>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>RFBM := (XCR0 OR IA32_XSS) AND EDX:EAX;
+                                /* bitwise logical OR and AND */
+IF in VMX non-root operation
+    THEN VMXNR := 1;
+    ELSE VMXNR := 0;
+FI;
+LAXA := linear address of XSAVE area;
+COMPMASK := RFBM OR 80000000_00000000H;
+TO_BE_SAVED := RFBM AND XINUSE;
+IF XRSTOR_INFO = CPL,VMXNR,LAXA,COMPMASK
+    THEN TO_BE_SAVED := TO_BE_SAVED AND XMODIFIED;
+FI;
+IF MXCSR ≠ 1F80H AND RFBM[1]
+    THEN TO_BE_SAVED[1] = 1;
+FI;
+IF TO_BE_SAVED[0] = 1
+    THEN store x87 state into legacy region of XSAVE area;
+FI;
+IF TO_BE_SAVED[1] = 1
+    THEN store SSE state into legacy region of XSAVE area; // this step saves the XMM registers, MXCSR, and MXCSR_MASK
+FI;
+NEXT_FEATURE_OFFSET = 576;
+                            // Legacy area and XSAVE header consume 576 bytes
+FOR i := 2 TO 62
+    IF RFBM[i] = 1
+        THEN
+            IF TO_BE_SAVED[i]
+                THEN
+                    save XSAVE state component i at offset NEXT_FEATURE_OFFSET from base of XSAVE area;
+                    IF i = 8 // 状态组件 8 用于 PT 状态
+                        THEN IA32_RTIT_CTL.TraceEn[bit 0] := 0;
+                    FI;
+            FI;
+            NEXT_FEATURE_OFFSET = NEXT_FEATURE_OFFSET + n (n enumerated by CPUID(EAX=0DH,ECX=i):EAX);
+    FI;
+ENDFOR;
+NEW_HEADER := RFBM AND XINUSE;
+IF MXCSR ≠ 1F80H AND RFBM[1]
+    THEN NEW_HEADER[1] = 1;
+FI;
+XSTATE_BV field in XSAVE header := NEW_HEADER;
+XCOMP_BV field in XSAVE header := COMPMASK;
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>XSAVES void _xsaves( void * , unsigned __int64);
+</pre>
+		<pre>XSAVES64 void _xsaves64( void * , unsigned __int64);
+</pre>
+
+		<h2 id="protected-mode-exceptions" class="exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="3">#GP(0)</td>
+				<td>如果 CPL &gt; 0。</td>
+			</tr>
+			<tr>
+				<td>如果内存操作数有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+			</tr>
+			<tr>
+				<td>无论段如何，如果内存操作数未在 64 字节边界上对齐。</td>
+			</tr>
+			<tr>
+				<td>#SS(0)</td>
+				<td>如果内存操作数有效地址超出 SS 段限制。</td>
+			</tr>
+			<tr>
+				<td>#PF(错误码)</td>
+				<td>如果发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td>#NM</td>
+				<td>如果 CR0.TS[bit 3] = 1。</td>
+			</tr>
+			<tr>
+				<td rowspan="3">#UD</td>
+				<td>如果 CPUID.01H:ECX.XSAVE[bit 26] = 0 或 CPUID.(EAX=0DH,ECX=1):EAX.XSS[bit 3] = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 CR4.OSXSAVE[bit 18] = 0。</td>
+			</tr>
+			<tr>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 id="real-address-mode-exceptions" class="exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#GP</td>
+				<td>无论段如何，如果内存操作数未在 64 字节边界上对齐。</td>
+			</tr>
+			<tr>
+				<td>如果操作数的任何部分超出 0 到 FFFFH 的有效地址空间。</td>
+			</tr>
+			<tr>
+				<td>#NM</td>
+				<td>如果 CR0.TS[bit 3] = 1。</td>
+			</tr>
+			<tr>
+				<td rowspan="3">#UD</td>
+				<td>如果 CPUID.01H:ECX.XSAVE[bit 26] = 0 或 CPUID.(EAX=0DH,ECX=1):EAX.XSS[bit 3] = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 CR4.OSXSAVE[bit 18] = 0。</td>
+			</tr>
+			<tr>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 id="virtual-8086-mode-exceptions" class="exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 id="compatibility-mode-exceptions" class="exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 id="64-bit-mode-exceptions" class="exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="3">#GP(0)</td>
+				<td>如果 CPL &gt; 0。</td>
+			</tr>
+			<tr>
+				<td>如果内存地址为非规范形式。</td>
+			</tr>
+			<tr>
+				<td>无论段如何，如果内存操作数未在 64 字节边界上对齐。</td>
+			</tr>
+			<tr>
+				<td>#SS(0)</td>
+				<td>如果引用 SS 段的内存地址为非规范形式。</td>
+			</tr>
+			<tr>
+				<td>#PF(错误码)</td>
+				<td>如果发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td>#NM</td>
+				<td>如果 CR0.TS[bit 3] = 1。</td>
+			</tr>
+			<tr>
+				<td rowspan="3">#UD</td>
+				<td>如果 CPUID.01H:ECX.XSAVE[bit 26] = 0 或 CPUID.(EAX=0DH,ECX=1):EAX.XSS[bit 3] = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 CR4.OSXSAVE[bit 18] = 0。</td>
+			</tr>
+			<tr>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

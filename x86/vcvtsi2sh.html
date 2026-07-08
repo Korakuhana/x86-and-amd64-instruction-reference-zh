@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VCVTSI2SH — 将有符号双字/四字整数转换为 FP16 值</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VCVTSI2SH — 将有符号双字/四字整数转换为 FP16 值</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.LLIG.F3.MAP5.W0 2A /r VCVTSI2SH xmm1, xmm2, r32/m32 {er}</td>
+				<td>A</td>
+				<td>V/V<sup>1</sup></td>
+				<td>AVX512-FP16</td>
+				<td>将 r32/m32 中的有符号双字整数转换为 FP16 值，并将结果存储在 xmm1 中。xmm2 的 127:16 位被复制到 xmm1[127:16]。</td>
+			</tr>
+			<tr>
+				<td>EVEX.LLIG.F3.MAP5.W1 2A /r VCVTSI2SH xmm1, xmm2, r64/m64 {er}</td>
+				<td>A</td>
+				<td>V/N.E.</td>
+				<td>AVX512-FP16</td>
+				<td>将 r64/m64 中的有符号四字整数转换为 FP16 值，并将结果存储在 xmm1 中。xmm2 的 127:16 位被复制到 xmm1[127:16]。</td>
+			</tr>
+		</table>
+		<blockquote>
+			<p>1. 在非 64 位模式下，EVEX.W 字段被忽略。该指令的行为类似于使用 W=0 版本。</p>
+		</blockquote>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Scalar</td>
+				<td>ModRM:reg (w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>此指令将第二个源操作数中的有符号双字整数（如果操作数大小为 64 位，则为有符号四字整数）转换为目的操作数中的 FP16 值。结果存储在目的操作数的低位字中。当转换不精确时，返回的值根据 MXCSR 寄存器中的舍入控制位或嵌入式舍入控制位进行舍入。</p>
+		<p>第二个源操作数可以是通用寄存器或 32/64 位 memory 位置。第一个源操作数和目的操作数是 XMM 寄存器。XMM 目的寄存器的 127:16 位从第一个源操作数的对应位复制。目的寄存器的 MAXVL-1:128 位清零。</p>
+		<p>如果转换操作的结果溢出且 MXCSR.OM=0，则会引发 SIMD 异常，且 OE=1，PE=1。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vcvtsi2sh-dest--src1--src2">VCVTSI2SH dest, src1, src2<a class="anchor" href="#vcvtsi2sh-dest--src1--src2">¶</a></h3>
+		<pre>IF *SRC2 is a register* and (EVEX.b = 1):
+    SET_RM(EVEX.RC)
+ELSE:
+    SET_RM(MXCSR.RC)
+IF 64-mode and OperandSize == 64:
+    DEST.fp16[0] := Convert_integer64_to_fp16(SRC2.qword)
+ELSE:
+    DEST.fp16[0] := Convert_integer32_to_fp16(SRC2.dword)
+DEST[127:16] := SRC1[127:16]
+DEST[MAXVL-1:128] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VCVTSI2SH __m128h _mm_cvt_roundi32_sh (__m128h a, int b, int rounding);
+</pre>
+		<pre>VCVTSI2SH __m128h _mm_cvt_roundi64_sh (__m128h a, __int64 b, int rounding);
+</pre>
+		<pre>VCVTSI2SH __m128h _mm_cvti32_sh (__m128h a, int b);
+</pre>
+		<pre>VCVTSI2SH __m128h _mm_cvti64_sh (__m128h a, __int64 b);
+</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>溢出、精度。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>EVEX 编码指令，请参阅表 2-48，“第 E3NF 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

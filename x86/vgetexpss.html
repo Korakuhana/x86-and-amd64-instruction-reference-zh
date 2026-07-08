@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VGETEXPSS — 将标量单精度浮点值的指数转换为单精度浮点值</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VGETEXPSS — 将标量单精度浮点值的指数转换为单精度浮点值</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.LLIG.66.0F38.W0 43 /r VGETEXPSS xmm1 {k1}{z}, xmm2, xmm3/m32{sae}</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>将 xmm3/m32 中低位单精度浮点值的有偏指数（第 30:23 位）转换为表示无偏整数指数的单精度浮点值。在写掩码 k1 下将结果存储到 xmm1 中，并与 xmm2 的其他元素合并。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Tuple1 Scalar</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>从源操作数（第三操作数）低位双字数据元素的规范化单精度浮点表示中提取有偏指数作为无偏有符号整数值，或者将输入数据的非规范表示转换为无偏负整数值。无偏指数的整数值被转换为单精度浮点值，并作为单精度浮点数写入目的操作数（第一操作数）。目的 XMM 寄存器的第 (127:32) 位复制自第一源操作数中的对应位。</p>
+		<p>目的操作数必须是 XMM 寄存器，源操作数可以是 XMM 寄存器或 float32 内存位置。</p>
+		<p>如果使用写掩码，目的操作数低位的双字元素将根据写掩码寄存器 k1 的值有条件地更新。如果不使用写掩码，目的操作数的低位双字元素将被无条件更新。</p>
+		<p>每个 GETEXP 操作都会将指数值转换为浮点数（允许非规范表示的输入值）。输入值的特殊情况在 <a href="vgetexpps.html#tbl-5-17">表 5-17</a> 中列出。</p>
+		<p>公式为：</p>
+		<p>GETEXP(x) = floor(log<sub>2</sub>(|x|))</p>
+		<p>记号 <strong>floor(x)</strong> 表示不超过实数 x 的最大整数。</p>
+		<p>VGETEXPxx 和 VGETMANTxx 指令的软件使用通常结合了 GETEXP 操作和 GETMANT 操作（参见 VGETMANTPD）。因此，VGETEXPxx 指令不需要软件来处理 SIMD 浮点异常。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>// NormalizeExpTinySPFP(SRC[31:0]) is defined in the Operation section of VGETEXPPS
+// ConvertExpSPFP(SRC[31:0]) is defined in the Operation section of VGETEXPPS
+</pre>
+		<h3 id="vgetexpss--evex-encoded-version-">VGETEXPSS (EVEX 编码版本)<a class="anchor" href="#vgetexpss--evex-encoded-version-">¶</a></h3>
+		<pre>IF k1[0] OR *no writemask*
+    THEN DEST[31:0] :=
+            ConvertExpDPFP(SRC2[31:0])
+    ELSE
+        IF *merging-masking*
+            THEN *DEST[31:0] remains unchanged*
+            ELSE ; zeroing-masking
+                DEST[31:0]:= 0
+        FI
+FI;
+ENDFOR
+DEST[127:32] := SRC1[127:32]
+DEST[MAXVL-1:128] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VGETEXPSS __m128 _mm_getexp_ss( __m128 a, __m128 b);
+</pre>
+		<pre>VGETEXPSS __m128 _mm_mask_getexp_ss(__m128 s, __mmask8 k, __m128 a, __m128 b);
+</pre>
+		<pre>VGETEXPSS __m128 _mm_maskz_getexp_ss( __mmask8 k, __m128 a, __m128 b);
+</pre>
+		<pre>VGETEXPSS __m128 _mm_getexp_round_ss( __m128 a, __m128 b, int sae);
+</pre>
+		<pre>VGETEXPSS __m128 _mm_mask_getexp_round_ss(__m128 s, __mmask8 k, __m128 a, __m128 b, int sae);
+</pre>
+		<pre>VGETEXPSS __m128 _mm_maskz_getexp_round_ss( __mmask8 k, __m128 a, __m128 b, int sae);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无效, 非规范化</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-47，“第 E3 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

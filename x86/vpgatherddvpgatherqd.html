@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VPGATHERDD/VPGATHERQD — 使用有符号双字/四字索引收集打包双字值</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VPGATHERDD/VPGATHERQD — 使用有符号双字/四字索引收集打包双字值</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.W0 90 /r VPGATHERDD xmm1, vm32x, xmm2</td>
+				<td>RMV</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>使用 vm32x 中指定的双字索引，根据 xmm2 中指定的掩码从内存收集双字值。条件收集的元素合并到 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.W0 91 /r VPGATHERQD xmm1, vm64x, xmm2</td>
+				<td>RMV</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>使用 vm64x 中指定的四字索引，根据 xmm2 中指定的掩码从内存收集双字值。条件收集的元素合并到 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.W0 90 /r VPGATHERDD ymm1, vm32y, ymm2</td>
+				<td>RMV</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>使用 vm32y 中指定的双字索引，根据 ymm2 中指定的掩码从内存收集双字值。条件收集的元素合并到 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.W0 91 /r VPGATHERQD xmm1, vm64y, xmm2</td>
+				<td>RMV</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>使用 vm64y 中指定的四字索引，根据 xmm2 中指定的掩码从内存收集双字值。条件收集的元素合并到 xmm1 中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>RMV</td>
+				<td>ModRM:reg (r,w)</td>
+				<td>基址寄存器 (R): VSIB:base, 向量寄存器(R): VSIB:index</td>
+				<td>VEX.vvvv (r, w)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>该指令使用双字索引，有条件地从内存操作数（第二操作数）指定的内存地址加载最多 4 或 8 个双字值。内存操作数使用 SIB 字节的 VSIB 形式，来指定一个通用寄存器操作数作为通用基址，指定一个向量寄存器来存放相对于该基址的索引数组，以及一个常数比例因子。</p>
+		<p>掩码操作数（第三操作数）指定从每个内存地址的条件加载操作以及目的地操作数（第一操作数）中每个数据元素的相应更新。条件性由掩码寄存器中每个数据元素的最显著位指定。如果某元素的掩码位未设置，则目的地寄存器的对应元素保持不变。目的地寄存器和掩码寄存器中的数据元素宽度是相同的。除非指令引发异常，否则此指令会将整个掩码寄存器设置为 0。</p>
+		<p>使用四字索引，该指令有条件地从 VSIB 寻址内存操作数中加载最多 2 或 4 个四字值，并更新目的地寄存器的下半部分。在四字索引下，目的寄存器的高 128 或 256 位清零。</p>
+		<p>如果至少已经收集了一个元素（即，如果异常是由其掩码位置位的最右侧元素以外的元素触发的），则该指令可以被异常暂停。当发生这种情况时，目的地寄存器和掩码操作数会被部分更新；那些已经收集的元素被放入目的寄存器中，且它们的掩码位被清零。如果来自已收集元素的任何陷阱或中断处于挂起状态，它们将代替异常被递送；在这种情况下，EFLAG.RF 被设置为 1，以便在指令继续执行时不会重新触发指令断点。</p>
+		<p>如果数据大小和索引大小不同，目的地寄存器的一部分和掩码寄存器的一部分不对应于正在收集的任何元素。此指令将这些部分设置为 0。即使指令触发异常，甚至在收集任何元素之前触发异常，它也可能对这两个寄存器中的一个或两个执行此操作。</p>
+		<p>VEX.128 版本：对于双字索引，该指令将收集四个双字值。对于四字索引，该指令将收集两个值，并将目的地的上 64 位清零。</p>
+		<p>VEX.256 版本：对于双字索引，该指令将收集八个双字值。对于四字索引，该指令将收集四个值，并将目的地的上 128 位清零。</p>
+		<p>注意：</p>
+		<ul>
+			<li>如果索引、掩码或目的地寄存器中任何两个寄存器相同，此指令会导致 UD 故障。</li>
+			<li>可以以任何顺序从内存中读取这些值。与其他指令的内存排序遵循 Intel-64 memory-ordering 模型。</li>
+			<li>故障以从右到左的方式递送。也就是说，如果一个元素触发了故障并递送，所有更靠近目的地 LSB 的元素都将被完成（且无故障）。更靠近 MSB 的个别元素可能完成，也可能未完成。如果给定元素触发多个故障，它们将按常规顺序递送。</li>
+			<li>元素可以以任何顺序收集，但故障必须按从右到左的顺序递送；因此，在递送故障之前，可能会收集故障元素左侧的元素。此指令的给定实现是可重复的——在相同的输入值和架构状态下，将收集故障元素左侧的同一组元素。</li>
+			<li>此指令不执行 AC 检查，因此永远不会递送 AC 故障。</li>
+			<li>如果地址大小属性为 16 位，此指令将导致 #UD。</li>
+			<li>如果内存操作数的编码没有 SIB 字节，此指令将导致 #UD。</li>
+			<li>此指令不应该用于访问内存映射 I/O，因为它所执行的单个加载的排序是特定于实现的，某些实现可能会使用大于数据元素大小的加载，或者加载元素不确定的次数。</li>
+			<li>与处理器使用的地址位相比，缩放后的索引可能需要更多位来表示（例如，在 32 位模式下，如果比例因子大于 1）。在这种情况下，超出地址位数的最显著位将被忽略。</li>
+		</ul>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>DEST := SRC1;
+BASE_ADDR: base register encoded in VSIB addressing;
+VINDEX: the vector index register encoded by VSIB addressing;
+SCALE: scale factor encoded by SIB:[7:6];
+DISP: optional 1, 4 byte displacement;
+MASK := SRC3;
+</pre>
+		<h3 id="vpgatherdd--vex-128-version-">VPGATHERDD (VEX.128 版本)<a class="anchor" href="#vpgatherdd--vex-128-version-">¶</a></h3>
+		<pre>MASK[MAXVL-1:128] := 0;
+FOR j := 0 to 3
+    i := j * 32;
+    IF MASK[31+i] THEN
+        MASK[i +31:i] := FFFFFFFFH; // extend from most significant bit
+    ELSE
+        MASK[i +31:i] := 0;
+    FI;
+ENDFOR
+FOR j := 0 to 3
+    i := j * 32;
+    DATA_ADDR := BASE_ADDR + (SignExtend(VINDEX[i+31:i])*SCALE + DISP;
+    IF MASK[31+i] THEN
+        DEST[i +31:i] := FETCH_32BITS(DATA_ADDR); // a fault exits the instruction
+    FI;
+    MASK[i +31:i] := 0;
+ENDFOR
+DEST[MAXVL-1:128] := 0;
+</pre>
+		<h3 id="vpgatherqd--vex-128-version-">VPGATHERQD (VEX.128 版本)<a class="anchor" href="#vpgatherqd--vex-128-version-">¶</a></h3>
+		<pre>MASK[MAXVL-1:64] := 0;
+FOR j := 0 to 3
+    i := j * 32;
+    IF MASK[31+i] THEN
+        MASK[i +31:i] := FFFFFFFFH; // extend from most significant bit
+    ELSE
+        MASK[i +31:i] := 0;
+    FI;
+ENDFOR
+FOR j := 0 to 1
+    k := j * 64;
+    i := j * 32;
+    DATA_ADDR := BASE_ADDR + (SignExtend(VINDEX1[k+63:k])*SCALE + DISP;
+    IF MASK[31+i] THEN
+        DEST[i +31:i] := FETCH_32BITS(DATA_ADDR); // a fault exits the instruction
+    FI;
+    MASK[i +31:i] := 0;
+ENDFOR
+DEST[MAXVL-1:64] := 0;
+</pre>
+		<h3 id="vpgatherdd--vex-256-version-">VPGATHERDD (VEX.256 版本)<a class="anchor" href="#vpgatherdd--vex-256-version-">¶</a></h3>
+		<pre>MASK[MAXVL-1:256] := 0;
+FOR j := 0 to 7
+    i := j * 32;
+    IF MASK[31+i] THEN
+        MASK[i +31:i] := FFFFFFFFH; // extend from most significant bit
+    ELSE
+        MASK[i +31:i] := 0;
+    FI;
+ENDFOR
+FOR j := 0 to 7
+    i := j * 32;
+    DATA_ADDR := BASE_ADDR + (SignExtend(VINDEX1[i+31:i])*SCALE + DISP;
+    IF MASK[31+i] THEN
+        DEST[i +31:i] := FETCH_32BITS(DATA_ADDR); // a fault exits the instruction
+    FI;
+    MASK[i +31:i] := 0;
+ENDFOR
+DEST[MAXVL-1:256] := 0;
+</pre>
+		<h3 id="vpgatherqd--vex-256-version-">VPGATHERQD (VEX.256 版本)<a class="anchor" href="#vpgatherqd--vex-256-version-">¶</a></h3>
+		<pre>MASK[MAXVL-1:128] := 0;
+FOR j := 0 to 7
+    i := j * 32;
+    IF MASK[31+i] THEN
+        MASK[i +31:i] := FFFFFFFFH; // extend from most significant bit
+    ELSE
+        MASK[i +31:i] := 0;
+    FI;
+ENDFOR
+FOR j := 0 to 3
+    k := j * 64;
+    i := j * 32;
+    DATA_ADDR := BASE_ADDR + (SignExtend(VINDEX1[k+63:k])*SCALE + DISP;
+    IF MASK[31+i] THEN
+        DEST[i +31:i] := FETCH_32BITS(DATA_ADDR); // a fault exits the instruction
+    FI;
+    MASK[i +31:i] := 0;
+ENDFOR
+DEST[MAXVL-1:128] := 0;
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VPGATHERDD: __m128i _mm_i32gather_epi32 (int const * base, __m128i index, const int scale);
+</pre>
+		<pre>VPGATHERDD: __m128i _mm_mask_i32gather_epi32 (__m128i src, int const * base, __m128i index, __m128i mask, const int scale);
+</pre>
+		<pre>VPGATHERDD: __m256i _mm256_i32gather_epi32 ( int const * base, __m256i index, const int scale);
+</pre>
+		<pre>VPGATHERDD: __m256i _mm256_mask_i32gather_epi32 (__m256i src, int const * base, __m256i index, __m256i mask, const int scale);
+</pre>
+		<pre>VPGATHERQD: __m128i _mm_i64gather_epi32 (int const * base, __m128i index, const int scale);
+</pre>
+		<pre>VPGATHERQD: __m128i _mm_mask_i64gather_epi32 (__m128i src, int const * base, __m128i index, __m128i mask, const int scale);
+</pre>
+		<pre>VPGATHERQD: __m128i _mm256_i64gather_epi32 (int const * base, __m256i index, const int scale);
+</pre>
+		<pre>VPGATHERQD: __m128i _mm256_mask_i64gather_epi32 (__m128i src, int const * base, __m256i index, __m128i mask, const int scale);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-27，“第 12 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>V4FMADDPS/V4FNMADDPS — 打包单精度浮点融合乘加（4次迭代）</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>V4FMADDPS/V4FNMADDPS — 打包单精度浮点融合乘加（4次迭代）</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.512.F2.0F38.W0 9A /r V4FMADDPS zmm1{k1}{z}, zmm2+3, m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512_4FMAPS</td>
+				<td>将 zmm2 指示的源寄存器块中的打包单精度浮点值与来自 m128 的值相乘，并将结果累加到 zmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.F2.0F38.W0 AA /r V4FNMADDPS zmm1{k1}{z}, zmm2+3, m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512_4FMAPS</td>
+				<td>将 zmm2 指示的源寄存器块中的打包单精度浮点值与来自 m128 的值相乘并取反，并将结果累加到 zmm1 中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Tuple1_4X</td>
+				<td>ModRM:reg (r, w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>此指令计算 4 个连续的打包融合单精度浮点乘加指令，在四个步骤的每个步骤中均有顺序选择的内存操作数。</p>
+		<p>在上面的框中，记号“+3”用于表示该指令根据该操作数访问 4 个源寄存器；源寄存器是连续的，从 4 的倍数边界开始，并包含编码的寄存器操作数。</p>
+		<p>此指令支持内存故障抑制。如果 16 个最低有效掩码位中的任何一个设置为 1，或者如果使用“无掩码”编码，则加载整个内存操作数。</p>
+		<p>元组类型 Tuple1_4X 意味着此指令的内存操作部分引用了四个 32 位元素（16 字节）。</p>
+		<p>在每个 FMA（融合乘加）边界处执行舍入。异常也按顺序获取。第一 FMA 的计算前和计算后异常优先于第二 FMA 的计算前和计算后异常，依此类推。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>src_reg_id is the 5 bit index of the vector register specified in the instruction as the src1 register.
+define NFMA_PS(kl, vl, dest, k1, msrc, regs_loaded, src_base, posneg):
+    tmpdest := dest
+    // reg[] is an array representing the SIMD register file.
+    FOR j := 0 to regs_loaded-1:
+        FOR i := 0 to kl-1:
+            IF k1[i] or *no writemask*:
+                IF posneg = 0:
+                    tmpdest.single[i] := RoundFPControl_MXCSR(tmpdest.single[i] - reg[src_base + j ].single[i] * msrc.single[j])
+                ELSE:
+                    tmpdest.single[i] := RoundFPControl_MXCSR(tmpdest.single[i] + reg[src_base + j ].single[i] * msrc.single[j])
+            ELSE IF *zeroing*:
+                tmpdest.single[i] := 0
+    dest := tmpdst
+    dest[MAX_VL-1:VL] := 0
+V4FMADDPS and V4FNMADDPS dest{k1}, src1, msrc (AVX512)
+KL, VL = (16,512)
+regs_loaded := 4
+src_base := src_reg_id &amp; ~3 // for src1 operand
+posneg := 0 if negative form, 1 otherwise
+NFMA_PS(kl, vl, dest, k1, msrc, regs_loaded, src_base, posneg)
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>V4FMADDPS __m512 _mm512_4fmadd_ps( __m512, __m512x4, __m128 *);
+</pre>
+		<pre>V4FMADDPS __m512 _mm512_mask_4fmadd_ps(__m512, __mmask16, __m512x4, __m128 *);
+</pre>
+		<pre>V4FMADDPS __m512 _mm512_maskz_4fmadd_ps(__mmask16, __m512, __m512x4, __m128 *);
+</pre>
+		<pre>V4FNMADDPS __m512 _mm512_4fnmadd_ps(__m512, __m512x4, __m128 *);
+</pre>
+		<pre>V4FNMADDPS __m512 _mm512_mask_4fnmadd_ps(__m512, __mmask16, __m512x4, __m128 *);
+</pre>
+		<pre>V4FNMADDPS __m512 _mm512_maskz_4fnmadd_ps(__mmask16, __m512, __m512x4, __m128 *);
+</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>溢出、欠溢、无效、精度、反常数。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅 Type E2；此外：</p>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果 EVEX 广播位设置为 1。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果 MODRM.mod = 0b11。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

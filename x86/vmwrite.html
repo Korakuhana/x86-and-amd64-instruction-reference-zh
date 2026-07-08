@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VMWRITE — 向虚拟机控制结构写入字段</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VMWRITE — 向虚拟机控制结构写入字段</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F 79 VMWRITE r64, r/m64</td>
+				<td>RM</td>
+				<td>写入指定的 VMCS 字段（在 64 位模式下）。</td>
+			</tr>
+			<tr>
+				<td>NP 0F 79 VMWRITE r32, r/m32</td>
+				<td>RM</td>
+				<td>写入指定的 VMCS 字段（在 64 位模式以外）。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>RM</td>
+				<td>ModRM:reg (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>NA</td>
+				<td>NA</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将主要源操作数（寄存器或内存）的内容写入到 VMCS 中的指定字段。在 VMX 根操作中，该指令写入当前 VMCS。如果在 VMX 非根操作中执行，该指令将写入当前 VMCS 中“VMCS 链接指针”字段所引用的 VMCS。</p>
+		<p>VMCS 字段由寄存器辅助源操作数中包含的 VMCS 字段编码指定。在 IA-32e 模式外，无论 CS.D 的值如何，辅助源操作数始终为 32 位。在 64 位模式下，辅助源操作数有 64 位。</p>
+		<p>主要源操作数（可以是寄存器或在内存中）的有效大小在 IA-32e 模式外始终为 32 位（就操作数大小而言，CS.D 的设置将被忽略），而在 64 位模式下为 64 位。如果由辅助源操作数指定的 VMCS 字段短于此有效操作数大小，则忽略主要源操作数的高位。如果 VMCS 字段较长，则该字段的高位被清零为 0。</p>
+		<p>请注意，访问内存源操作数所导致的任何故障，均在下方的操作部分中确定相关 VMCS 指针有效之后、但在确定是否支持目的 VMCS 字段之前发生。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>IF (not in VMX operation) or (CR0.PE = 0) or (RFLAGS.VM = 1) or (IA32_EFER.LMA = 1 and CS.L = 0)
+    THEN #UD;
+ELSIF in VMX non-root operation AND (“VMCS shadowing” is 0 OR secondary source operand sets bits in range 63:15 OR
+VMWRITE bit corresponding to bits 14:0 of secondary source operand is 1)<sup>1</sup>
+    THEN VMexit;
+ELSIF CPL &gt; 0
+    THEN #GP(0);
+ELSIF (in VMX root operation AND current-VMCS pointer is not valid) OR
+(in VMX non-root operation AND VMCS-link pointer is not valid)
+    THEN VMfailInvalid;
+ELSIF secondary source operand does not correspond to any VMCS field
+    THEN VMfailValid(VMREAD/VMWRITE from/to unsupported VMCS component);
+ELSIF VMCS field indexed by secondary source operand is a VM-exit information field AND
+processor does not support writing to such fields<sup>2</sup>
+    THEN VMfailValid(VMWRITE to read-only VMCS component);
+    ELSE
+</pre>
+		<blockquote>
+			<p>1. 辅助源操作数的 VMWRITE 位定义如下。设 x 为辅助源操作数第 14:0 位的值，设 addr 为 VMWRITE 位图地址。对应的 VMWRITE 位处于物理地址 addr | (x » 3) 处的字节中的 bit 位置 x &amp; 7。</p>
+			<p>2. 软件可以通过读取 VMX 能力 MSR IA32_VMX_MISC（参见附录 A.6）来发现这些字段是否可以写入。</p>
+		</blockquote>
+		<pre>        IF in VMX root operation
+            THEN field indexed by secondary source operand in current VMCS := primary source operand;
+            ELSE field indexed by secondary source operand in VMCS referenced by VMCS link pointer := primary source operand;
+    FI;
+    VMsucceed;
+FI;
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>请参阅操作部分和第 31.2 节。</p>
+
+		<h2 id="protected-mode-exceptions" class="exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="4">#GP(0)</td>
+				<td>如果当前特权级别不为 0。</td>
+			</tr>
+			<tr>
+				<td>如果内存源操作数有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+			</tr>
+			<tr>
+				<td>如果 DS、ES、FS 或 GS 寄存器包含不可用的段。</td>
+			</tr>
+			<tr>
+				<td>如果源操作数位于仅执行代码段中。</td>
+			</tr>
+			<tr>
+				<td>#PF(错误码)</td>
+				<td>如果访问内存源操作数时发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td rowspan="2">#SS(0)</td>
+				<td>如果内存源操作数有效地址超出 SS 段限制。</td>
+			</tr>
+			<tr>
+				<td>如果 SS 寄存器包含不可用的段。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果不在 VMX 操作中。</td>
+			</tr>
+		</table>
+
+		<h2 id="real-address-mode-exceptions" class="exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>在实地址模式下无法识别 VMWRITE 指令。</td>
+			</tr>
+		</table>
+
+		<h2 id="virtual-8086-mode-exceptions" class="exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>在虚拟-8086 模式下无法识别 VMWRITE 指令。</td>
+			</tr>
+		</table>
+
+		<h2 id="compatibility-mode-exceptions" class="exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>在兼容模式下无法识别 VMWRITE 指令。</td>
+			</tr>
+		</table>
+
+		<h2 id="64-bit-mode-exceptions" class="exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#GP(0)</td>
+				<td>如果当前特权级别不为 0。</td>
+			</tr>
+			<tr>
+				<td>如果内存源操作数位于 CS、DS、ES、FS 或 GS 段中，且内存地址为非规范形式。</td>
+			</tr>
+			<tr>
+				<td>#PF(错误码)</td>
+				<td>如果访问内存源操作数时发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td>#SS(0)</td>
+				<td>如果内存源操作数位于 SS 段中，且内存地址为非规范形式。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果不在 VMX 操作中。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

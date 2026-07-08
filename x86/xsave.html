@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>XSAVE — 保存处理器扩展状态</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>XSAVE — 保存处理器扩展状态</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F AE /4 XSAVE mem</td>
+				<td>M</td>
+				<td>V/V</td>
+				<td>XSAVE</td>
+				<td>将由 EDX:EAX 指定的状态组件保存到 mem。</td>
+			</tr>
+			<tr>
+				<td>NP REX.W + 0F AE /4 XSAVE64 mem</td>
+				<td>M</td>
+				<td>V/N.E.</td>
+				<td>XSAVE</td>
+				<td>将由 EDX:EAX 指定的状态组件保存到 mem。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>M</td>
+				<td>ModRM:r/m (r, w)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将处理器状态组件的全部或部分保存到由目的操作数指定的内存地址处的 XSAVE 区域。隐式的 EDX:EAX 寄存器对指定了 64 位指令掩码。保存的具体状态组件对应于请求功能位图 (RFBM) 中设置的位，该位图是 EDX:EAX 和 XCR0 的逻辑与。</p>
+		<p>XSAVE 区域的格式在《Intel® 64 和 IA-32 架构软件开发人员手册》卷 1 第 13.4 节“XSAVE 区域”中详细介绍。像 FXRSTOR 和 FXSAVE 一样，用于 x87 状态的内存格式取决于 REX.W 前缀；参见《Intel® 64 和 IA-32 架构软件开发人员手册》卷 1 第 13.5.1 节“x87 状态”。</p>
+		<p>《Intel® 64 和 IA-32 架构软件开发人员手册》卷 1 第 13.7 节“XSAVE 的操作”提供了关于 XSAVE 指令操作的详细描述。以下条目提供了高级大纲：</p>
+		<ul>
+			<li>当且仅当 RFBM[i] = 1 时，XSAVE 会保存状态组件 i。<sup>1</sup></li>
+			<li>XSAVE 不修改 XSAVE 区域传统区域的 511:464 字节（参见《Intel® 64 和 IA-32 架构软件开发人员手册》卷 1 第 13.4.1 节“XSAVE 区域的传统区域”）。</li>
+			<li>XSAVE 读取 XSAVE 标头的 XSTATE_BV 字段（参见《Intel® 64 和 IA-32 架构软件开发人员手册》卷 1 第 13.4.2 节“XSAVE 标头”），并将修改后的值写回内存，如下所示。如果 RFBM[i] = 1，XSAVE 用 XINUSE[i] 的值写入 XSTATE_BV[i]。（XINUSE 是一个位图，处理器通过它跟踪各种状态组件的状态。请参见《Intel® 64 和 IA-32 架构软件开发人员手册》卷 1 第 13.6 节“XSAVE 管理状态的处理器跟踪”。）如果 RFBM[i] = 0，XSAVE 用它从内存中读取的值写入 XSTATE_BV[i]（它不修改该位）。除 XSTATE_BV 字段外，XSAVE 不写入 XSAVE 标头的任何其他部分。</li>
+			<li>XSAVE 始终使用 XSAVE 区域扩展区域的标准格式（参见《Intel® 64 和 IA-32 架构软件开发人员手册》卷 1 第 13.4.3 节“XSAVE 区域的扩展区域”）。</li>
+		</ul>
+		<p>在 64 位或 32 位模式下，使用未对齐到 64 字节边界的目的操作数都会导致通用保护 (#GP) 异常。在 64 位模式下，RDX 和 RAX 的高 32 位被忽略。</p>
+		<blockquote>
+			<p>1. 对于属于状态组件 1 — SSE 的 MXCSR 和 MXCSR_MASK，存在特例。如果 RFBM[1] 或 RFBM[2] 中的任何一个为 1，则 XSAVE 将这些值保存到内存中。</p>
+		</blockquote>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>RFBM := XCR0 AND EDX:EAX; /* bitwise logical AND */
+OLD_BV := XSTATE_BV field from XSAVE header;
+IF RFBM[0] = 1
+    THEN store x87 state into legacy region of XSAVE area;
+FI;
+IF RFBM[1] = 1
+    THEN store XMM registers into legacy region of XSAVE area; // this step does not save MXCSR or MXCSR_MASK
+FI;
+IF RFBM[1] = 1 OR RFBM[2] = 1
+    THEN store MXCSR and MXCSR_MASK into legacy region of XSAVE area;
+FI;
+FOR i := 2 TO 62
+    IF RFBM[i] = 1
+        THEN save XSAVE state component i at offset n from base of XSAVE area (n enumerated by CPUID(EAX=0DH,ECX=i):EBX);
+    FI;
+ENDFOR;
+XSTATE_BV field in XSAVE header := (OLD_BV AND NOT RFBM) OR (XINUSE AND RFBM);
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>XSAVE void _xsave( void * , unsigned __int64);
+</pre>
+		<pre>XSAVE void _xsave64( void * , unsigned __int64);
+</pre>
+
+		<h2 id="protected-mode-exceptions" class="exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#GP(0)</td>
+				<td>如果内存操作数有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+			</tr>
+			<tr>
+				<td>无论段如何，如果内存操作数未在 64 字节边界上对齐。</td>
+			</tr>
+			<tr>
+				<td>#SS(0)</td>
+				<td>如果内存操作数有效地址超出 SS 段限制。</td>
+			</tr>
+			<tr>
+				<td>#PF(错误码)</td>
+				<td>如果发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td>#NM</td>
+				<td>如果 CR0.TS[bit 3] = 1。</td>
+			</tr>
+			<tr>
+				<td rowspan="3">#UD</td>
+				<td>如果 CPUID.01H:ECX.XSAVE[bit 26] = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 CR4.OSXSAVE[bit 18] = 0。</td>
+			</tr>
+			<tr>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+			<tr>
+				<td>#AC</td>
+				<td>如上所述，如果此异常被禁用，且内存操作数未对齐在 64 字节边界上，则会发出通用保护异常 (#GP)。如果启用了对齐检查异常 (#AC)（且 CPL 为 3），则不保证会发出 #AC，并且具体情况可能因实现而异，如下所示。在所有未发出 #AC 的实现中，会发出通用保护异常来代替它。此外，对齐检查的宽度也可能因实现而异。例如，对于特定的实现，可能会针对 2 字节未对齐发出对齐检查异常，而针对所有其他未对齐（4、8 或 16 字节未对齐）可能会发出通用保护异常。</td>
+			</tr>
+		</table>
+
+		<h2 id="real-address-mode-exceptions" class="exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#GP</td>
+				<td>无论段如何，如果内存操作数未在 64 字节边界上对齐。</td>
+			</tr>
+			<tr>
+				<td>如果操作数的任何部分超出 0 到 FFFFH 的有效地址空间。</td>
+			</tr>
+			<tr>
+				<td>#NM</td>
+				<td>如果 CR0.TS[bit 3] = 1。</td>
+			</tr>
+			<tr>
+				<td rowspan="3">#UD</td>
+				<td>如果 CPUID.01H:ECX.XSAVE[bit 26] = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 CR4.OSXSAVE[bit 18] = 0。</td>
+			</tr>
+			<tr>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 id="virtual-8086-mode-exceptions" class="exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 id="compatibility-mode-exceptions" class="exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 id="64-bit-mode-exceptions" class="exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#GP(0)</td>
+				<td>如果内存地址为非规范形式。</td>
+			</tr>
+			<tr>
+				<td>无论段如何，如果内存操作数未在 64 字节边界上对齐。</td>
+			</tr>
+			<tr>
+				<td>#SS(0)</td>
+				<td>如果引用 SS 段的内存地址为非规范形式。</td>
+			</tr>
+			<tr>
+				<td>#PF(错误码)</td>
+				<td>如果发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td>#NM</td>
+				<td>如果 CR0.TS[bit 3] = 1。</td>
+			</tr>
+			<tr>
+				<td rowspan="3">#UD</td>
+				<td>如果 CPUID.01H:ECX.XSAVE[bit 26] = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 CR4.OSXSAVE[bit 18] = 0。</td>
+			</tr>
+			<tr>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+			<tr>
+				<td>#AC</td>
+				<td>如上所述，如果此异常被禁用，且内存操作数未对齐在 64 字节边界上，则会发出通用保护异常 (#GP)。如果启用了对齐检查异常 (#AC)（且 CPL 为 3），则不保证会发出 #AC，并且具体情况可能因实现而异，如下所示。在所有未发出 #AC 的实现中，会发出通用保护异常来代替它。此外，对齐检查的宽度也可能因实现而异。例如，对于特定的实现，可能会针对 2 字节未对齐发出对齐检查异常，而针对所有其他未对齐（4、8 或 16 字节未对齐）可能会发出通用保护异常。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

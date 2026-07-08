@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VPCOMPRESSD — 将稀疏打包的双字整数值存储到紧凑内存/寄存器中</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VPCOMPRESSD — 将稀疏打包的双字整数值存储到紧凑内存/寄存器中</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W0 8B /r VPCOMPRESSD xmm1/m128 {k1}{z}, xmm2</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在控制掩码 k1 下，将 xmm2 中的打包双字整数值压缩存储到 xmm1/m128。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W0 8B /r VPCOMPRESSD ymm1/m256 {k1}{z}, ymm2</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在控制掩码 k1 下，将 ymm2 中的打包双字整数值压缩存储到 ymm1/m256。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W0 8B /r VPCOMPRESSD zmm1/m512 {k1}{z}, zmm2</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>在控制掩码 k1 下，将 zmm2 中的打包双字整数值压缩存储到 zmm1/m512。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Tuple1 Scalar</td>
+				<td>ModRM:r/m (w)</td>
+				<td>ModRM:reg (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将源操作数（第二操作数）中的最多 16/8/4 个双字整数值压缩（存储）到目的操作数（第一操作数）中。源操作数是 ZMM/YMM/XMM 寄存器，目的操作数可以是 ZMM/YMM/XMM 寄存器或 512/256/128 位内存位置。</p>
+		<p>opmask 寄存器 k1 从源操作数中选择活动元素（如果少于 16 个活动元素，则为部分向量，可能非连续），以压缩为连续向量。该连续向量从目的操作数的低位元素开始写入目的地。</p>
+		<p>内存目的版本：只有连续的向量被写入目的内存位置。EVEX.z 必须为零。</p>
+		<p>寄存器目的版本：如果连续向量的向量长度小于源操作数中输入向量的向量长度，且未设置 EVEX.z，则目的寄存器的高位不会被修改，否则高位清零。</p>
+		<p>注意：EVEX.vvvv 是保留的，必须为 1111b，否则指令会导致 #UD。</p>
+		<p>注意，压缩位移假设对应的预缩放比例（N）为单个元素的大小，而不是整个向量的大小。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vpcompressd--evex-encoded-versions--store-form">VPCOMPRESSD (EVEX 编码版本) 存储形式<a class="anchor" href="#vpcompressd--evex-encoded-versions--store-form">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+SIZE := 32
+k := 0
+FOR j := 0 TO KL-1
+    i := j * 32
+    IF k1[j] OR *no controlmask*
+        THEN
+            DEST[k+SIZE-1:k] := SRC[i+31:i]
+            k := k + SIZE
+    FI;
+ENDFOR;
+</pre>
+		<h3 id="vpcompressd--evex-encoded-versions--reg-reg-form">VPCOMPRESSD (EVEX 编码版本) 寄存器-寄存器形式<a class="anchor" href="#vpcompressd--evex-encoded-versions--reg-reg-form">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+SIZE := 32
+k := 0
+FOR j := 0 TO KL-1
+    i := j * 32
+    IF k1[j] OR *no controlmask*
+        THEN
+                DEST[k+SIZE-1:k] := SRC[i+31:i]
+                k := k + SIZE
+    FI;
+ENDFOR
+IF *merging-masking*
+            THEN *DEST[VL-1:k] remains unchanged*
+            ELSE DEST[VL-1:k] := 0
+FI
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VPCOMPRESSD __m512i _mm512_mask_compress_epi32(__m512i s, __mmask16 c, __m512i a);
+</pre>
+		<pre>VPCOMPRESSD __m512i _mm512_maskz_compress_epi32( __mmask16 c, __m512i a);
+</pre>
+		<pre>VPCOMPRESSD void _mm512_mask_compressstoreu_epi32(void * a, __mmask16 c, __m512i s);
+</pre>
+		<pre>VPCOMPRESSD __m256i _mm256_mask_compress_epi32(__m256i s, __mmask8 c, __m256i a);
+</pre>
+		<pre>VPCOMPRESSD __m256i _mm256_maskz_compress_epi32( __mmask8 c, __m256i a);
+</pre>
+		<pre>VPCOMPRESSD void _mm256_mask_compressstoreu_epi32(void * a, __mmask8 c, __m256i s);
+</pre>
+		<pre>VPCOMPRESSD __m128i _mm_mask_compress_epi32(__m128i s, __mmask8 c, __m128i a);
+</pre>
+		<pre>VPCOMPRESSD __m128i _mm_maskz_compress_epi32( __mmask8 c, __m128i a);
+</pre>
+		<pre>VPCOMPRESSD void _mm_mask_compressstoreu_epi32(void * a, __mmask8 c, __m128i s);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>EVEX 编码指令，请参阅表 2-49，“第 E4 类异常条件”中的异常类型 E4.nb。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

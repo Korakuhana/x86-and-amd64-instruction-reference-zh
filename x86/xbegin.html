@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>XBEGIN — 事务开启</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>XBEGIN — 事务开启</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>C7 F8 XBEGIN rel16</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>RTM</td>
+				<td>指定 RTM 区域的开始。提供 16 位相对偏移量以计算后备指令地址，在 RTM 终止后，执行将在此地址处恢复。</td>
+			</tr>
+			<tr>
+				<td>C7 F8 XBEGIN rel32</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>RTM</td>
+				<td>指定 RTM 区域的开始。提供 32 位相对偏移量以计算后备指令地址，在 RTM 终止后，执行将在此地址处恢复。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Offset</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>XBEGIN 指令指定 RTM 代码区域的开始。如果逻辑处理器尚未处于事务执行中，则 XBEGIN 指令使逻辑处理器过渡到事务执行中。使逻辑处理器过渡到事务执行中的 XBEGIN 指令被称为最外层 XBEGIN 指令。该指令还指定了一个相对偏移量，用于计算事务终止后后备代码路径的地址。（与到相对偏移量的近跳转不同，使用 16 位操作数大小不会导致该地址被截断为 16 位。）</p>
+		<p>在 RTM 终止时，逻辑处理器将丢弃在 RTM 执行期间执行的所有架构寄存器和内存更新，并恢复到与最外层 XBEGIN 指令对应的架构状态。终止后的后备地址是从最外层 XBEGIN 指令计算得出的。</p>
+		<p>在暂停读取地址跟踪区域中执行 XBEGIN 会导致事务终止。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="xbegin">XBEGIN<a class="anchor" href="#xbegin">¶</a></h3>
+		<pre>IF RTM_NEST_COUNT &lt; MAX_RTM_NEST_COUNT AND SUSLDTRK_ACTIVE = 0
+    THEN
+        RTM_NEST_COUNT++
+        IF RTM_NEST_COUNT = 1 THEN
+            IF 64-bit Mode
+                THEN
+                    IF OperandSize = 16
+                        THEN fallbackRIP := RIP + SignExtend64(rel16);
+                        ELSE fallbackRIP := RIP + SignExtend64(rel32);
+                    FI;
+                    IF fallbackRIP is not canonical
+                        THEN #GP(0);
+                    FI;
+                ELSE
+                    IF OperandSize = 16
+                        THEN fallbackEIP := EIP + SignExtend32(rel16);
+                        ELSE fallbackEIP := EIP + rel32;
+                    FI;
+                    IF fallbackEIP outside code segment limit
+                        THEN #GP(0);
+                    FI;
+            FI;
+            RTM_ACTIVE := 1
+            Enter RTM Execution (* 记录寄存器状态，开始跟踪内存状态 *)
+        FI; (* RTM_NEST_COUNT = 1 *)
+    ELSE (* RTM_NEST_COUNT = MAX_RTM_NEST_COUNT OR SUSLDTRK_ACTIVE = 1 *)
+        GOTO RTM_ABORT_PROCESSING
+FI;
+(* 对于在 RTM 执行期间遇到的任何 RTM 终止条件 *)
+RTM_ABORT_PROCESSING:
+    Restore architectural register state
+    Discard memory updates performed in transaction
+    Update EAX with status
+    RTM_NEST_COUNT := 0
+    RTM_ACTIVE := 0
+    SUSLDTRK_ACTIVE := 0
+    IF 64-bit mode
+        THEN
+            RIP := fallbackRIP
+        ELSE
+            EIP := fallbackEIP
+    FI;
+END
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>XBEGIN unsigned int _xbegin( void );
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="protected-mode-exceptions" class="exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 CPUID.(EAX=7, ECX=0):EBX.RTM[bit 11]=0。</td>
+			</tr>
+			<tr>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+			<tr>
+				<td>#GP(0)</td>
+				<td>如果后备地址在 CS 段之外。</td>
+			</tr>
+		</table>
+
+		<h2 id="real-address-mode-exceptions" class="exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP(0)</td>
+				<td>如果后备地址超出 0000H 到 FFFFH 的地址空间。</td>
+			</tr>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 CPUID.(EAX=7, ECX=0):EBX.RTM[bit 11]=0。</td>
+			</tr>
+			<tr>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 id="virtual-8086-mode-exceptions" class="exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP(0)</td>
+				<td>如果后备地址超出 0000H 到 FFFFH 的地址空间。</td>
+			</tr>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 CPUID.(EAX=7, ECX=0):EBX.RTM[bit 11]=0。</td>
+			</tr>
+			<tr>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 id="compatibility-mode-exceptions" class="exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 id="64-bit-mode-exceptions" class="exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 CPUID.(EAX=7, ECX=0):EBX.RTM[bit 11] = 0。</td>
+			</tr>
+			<tr>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+			<tr>
+				<td>#GP(0)</td>
+				<td>如果后备地址为非规范形式。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

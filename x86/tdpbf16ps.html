@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>TDPBF16PS — 将 BF16 矩阵点积累加到打包单精度浮点 Tile</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>TDPBF16PS — 将 BF16 矩阵点积累加到打包单精度浮点 Tile</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>VEX.128.F3.0F38.W0 5C 11:rrr:bbb TDPBF16PS tmm1, tmm2, tmm3</td>
+				<td>A</td>
+				<td>V/N.E.</td>
+				<td>AMX-BF16</td>
+				<td>对 tmm2 和 tmm3 中的 BF16 元素进行矩阵乘法，并将打包的单精度元素累加到 tmm1 中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (r, w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>此指令执行两组两个 BF16 元素的 SIMD 点积，并将结果累加到打包单精度 tile 中。输入 tile tmm2 和 tmm3 中的每个双字（dword）元素均被解释为 BF16 对。对于（tmm2 的行，tmm3 的列）的每种可能组合，该指令在所有对应的 BF16 对上执行一组 SIMD 点积（一对来自 tmm2，另一对来自 tmm3），将这些点积的结果相加，然后将结果累加到 tmm1 的对应行和列中。</p>
+		<p>在进行 FMA 的每次累加时使用“舍入到最接近的偶数 (RNE)”舍入模式。输出非规范化数（denormal）总是被清零（FTZ），输入非规范化数总是被视为零（DAZ）。不咨询也不更新 MXCSR 寄存器。</p>
+		<p>在 TSX 事务中尝试执行 TDPBF16PS 指令都会导致事务中止。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>define make_fp32(x):
+    // The x parameter is bfloat16. Pack it in to upper 16b of a dword.
+    // The bit pattern is a legal fp32 value. Return that bit pattern.
+    dword: = 0
+    dword[31:16] := x
+return dword
+</pre>
+
+		<h3 id="tdpbf16ps-tsrcdest--tsrc1--tsrc2">TDPBF16PS tsrcdest, tsrc1, tsrc2<a class="anchor" href="#tdpbf16ps-tsrcdest--tsrc1--tsrc2">¶</a></h3>
+		<pre>// C = m x n (tsrcdest), A = m x k (tsrc1), B = k x n (tsrc2)
+# src1 and src2 elements are pairs of bfloat16
+elements_src1 := tsrc1.colsb / 4
+elements_src2 := tsrc2.colsb / 4
+elements_dest := tsrcdest.colsb / 4
+elements_temp := tsrcdest.colsb / 2
+for m in 0 ... tsrcdest.rows-1:
+    temp1[ 0 ... elements_temp-1 ] := 0
+    for k in 0 ... elements_src1-1:
+        for n in 0 ... elements_dest-1:
+            // FP32 FMA with DAZ=FTZ=1, RNE rounding.
+            // MXCSR is neither consulted nor updated.
+            // No exceptions raised or denoted.
+            temp1.fp32[2*n+0] += make_fp32(tsrc1.row[m].bfloat16[2*k+0]) * make_fp32(tsrc2.row[k].bfloat16[2*n+0])
+            temp1.fp32[2*n+1] += make_fp32(tsrc1.row[m].bfloat16[2*k+1]) * make_fp32(tsrc2.row[k].bfloat16[2*n+1])
+    for n in 0 ... elements_dest-1:
+        // DAZ=FTZ=1, RNE rounding.
+        // MXCSR is neither consulted nor updated.
+        // No exceptions raised or denoted.
+        tmpf32 := temp1.fp32[2*n] + temp1.fp32[2*n+1]
+        tsrcdest.row[m].fp32[n] := tsrcdest.row[m].fp32[n] + tmpf32
+    write_row_and_zero(tsrcdest, m, tmp, tsrcdest.colsb)
+zero_upper_rows(tsrcdest, tsrcdest.rows)
+zero_tilecfg_start()
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>TDPBF16PS void _tile_dpbf16ps(__tile dst, __tile src1, __tile src2);
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="exceptions">异常<a class="anchor" href="#exceptions">¶</a></h2>
+		<p>AMX-E4；详情请参阅第 2.10 节“Intel® AMX 指令异常类”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

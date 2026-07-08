@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VCVTPH2UQQ — 将打包的 FP16 值转换为无符号四字整数</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VCVTPH2UQQ — 将打包的 FP16 值转换为无符号四字整数</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.MAP5.W0 79 /r VCVTPH2UQQ xmm1{k1}{z}, xmm2/m32/m16bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512-FP16 AVX512VL</td>
+				<td>在写掩码 k1 的控制下，将 xmm2/m32/m16bcst 中的两个打包 FP16 值转换为两个无符号四字整数，并将结果存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.MAP5.W0 79 /r VCVTPH2UQQ ymm1{k1}{z}, xmm2/m64/m16bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512-FP16 AVX512VL</td>
+				<td>在写掩码 k1 的控制下，将 xmm2/m64/m16bcst 中的四个打包 FP16 值转换为四个无符号四字整数，并将结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.MAP5.W0 79 /r VCVTPH2UQQ zmm1{k1}{z}, xmm2/m128/m16bcst {er}</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512-FP16</td>
+				<td>在写掩码 k1 的控制下，将 xmm2/m128/m16bcst 中的八个打包 FP16 值转换为八个无符号四字整数，并将结果存储在 zmm1 中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Quarter</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>此指令将源操作数中的打包 FP16 值转换为目的操作数中的无符号四字整数。</p>
+		<p>当转换不精确时，返回的值根据 MXCSR 寄存器中的舍入控制位或嵌入式舍入控制位进行舍入。如果转换后的结果无法在目的格式中表示，则会引发浮点无效异常；如果该异常被屏蔽，则返回不确定整数值。</p>
+		<p>目的元素根据写掩码进行更新。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vcvtph2uqq-dest--src">VCVTPH2UQQ DEST, SRC<a class="anchor" href="#vcvtph2uqq-dest--src">¶</a></h3>
+		<pre>VL = 128, 256 or 512
+KL := VL / 64
+IF *SRC is a register* and (VL = 512) and (EVEX.b = 1):
+    SET_RM(EVEX.RC)
+ELSE:
+    SET_RM(MXCSR.RC)
+FOR j := 0 TO KL-1:
+    IF k1[j] OR *no writemask*:
+        IF *SRC is memory* and EVEX.b = 1:
+            tsrc := SRC.fp16[0]
+        ELSE
+            tsrc := SRC.fp16[j]
+        DEST.qword[j] := Convert_fp16_to_unsigned_integer64(tsrc)
+    ELSE IF *zeroing*:
+        DEST.qword[j] := 0
+    // else dest.qword[j] remains unchanged
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VCVTPH2UQQ __m512i _mm512_cvt_roundph_epu64 (__m128h a, int rounding);
+</pre>
+		<pre>VCVTPH2UQQ __m512i _mm512_mask_cvt_roundph_epu64 (__m512i src, __mmask8 k, __m128h a, int rounding);
+</pre>
+		<pre>VCVTPH2UQQ __m512i _mm512_maskz_cvt_roundph_epu64 (__mmask8 k, __m128h a, int rounding);
+</pre>
+		<pre>VCVTPH2UQQ __m128i _mm_cvtph_epu64 (__m128h a);
+</pre>
+		<pre>VCVTPH2UQQ __m128i _mm_mask_cvtph_epu64 (__m128i src, __mmask8 k, __m128h a);
+</pre>
+		<pre>VCVTPH2UQQ __m128i _mm_maskz_cvtph_epu64 (__mmask8 k, __m128h a);
+</pre>
+		<pre>VCVTPH2UQQ __m256i _mm256_cvtph_epu64 (__m128h a);
+</pre>
+		<pre>VCVTPH2UQQ __m256i _mm256_mask_cvtph_epu64 (__m256i src, __mmask8 k, __m128h a);
+</pre>
+		<pre>VCVTPH2UQQ __m256i _mm256_maskz_cvtph_epu64 (__mmask8 k, __m128h a);
+</pre>
+		<pre>VCVTPH2UQQ __m512i _mm512_cvtph_epu64 (__m128h a);
+</pre>
+		<pre>VCVTPH2UQQ __m512i _mm512_mask_cvtph_epu64 (__m512i src, __mmask8 k, __m128h a);
+</pre>
+		<pre>VCVTPH2UQQ __m512i _mm512_maskz_cvtph_epu64 (__mmask8 k, __m128h a);
+</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无效、精度。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>EVEX 编码指令，请参阅表 2-46，“第 E2 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

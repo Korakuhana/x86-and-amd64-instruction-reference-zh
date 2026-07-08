@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VPERMPD — 置换双精度浮点元素</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VPERMPD — 置换双精度浮点元素</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op / En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F3A.W1 01 /r ib VPERMPD ymm1, ymm2/m256, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>使用来自 imm8 的索引，置换 ymm2/m256 中的双精度浮点元素，并将结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F3A.W1 01 /r ib VPERMPD ymm1 {k1}{z}, ymm2/m256/m64bcst, imm8</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用来自 imm8 的索引，置换 ymm2/m256/m64bcst 中的双精度浮点元素，并在写掩码 k1 的控制下将结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F3A.W1 01 /r ib VPERMPD zmm1 {k1}{z}, zmm2/m512/m64bcst, imm8</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用来自 imm8 的索引，置换 zmm2/m512/m64bcst 中的双精度浮点元素，并在写掩码 k1 的控制下将结果存储在 zmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W1 16 /r VPERMPD ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用来自 ymm2 的索引，置换 ymm3/m256/m64bcst 中的双精度浮点元素，并在写掩码 k1 的控制下将结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W1 16 /r VPERMPD zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用来自 zmm2 的索引，置换 zmm3/m512/m64bcst 中的双精度浮点元素，并在写掩码 k1 的控制下将结果存储在 zmm1 中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>imm8</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>imm8</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>C</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>imm8 版本：根据立即数操作数（第三操作数）指定的索引，将双精度浮点值的四字元素从源操作数（第二操作数）复制到目的操作数（第一操作数）。立即数字节中的每个两位值选择源操作数中的一个四字元素。</p>
+		<p>VEX 版本：源操作数可以是 YMM 寄存器或内存位置。对应目的寄存器的 bits (MAXVL-1:256) 清零。</p>
+		<p>在 EVEX.512 编码版本中，目的寄存器中的元素使用写掩码 k1 进行更新，并且当控制位来自立即数时，imm8 位被重用作高 256 位部分的控制位。源操作数可以是 ZMM 寄存器、512 位内存位置或从 64 位内存位置广播的 512 位向量。</p>
+		<p>imm8 版本：VEX.vvvv 和 EVEX.vvvv 保留且必须为 1111b，否则指令会导致 #UD。</p>
+		<p>向量控制版本：根据第一源操作数（第二操作数）中的索引，将双精度浮点值的四字元素从第二源操作数（第三操作数）复制到目的操作数（第一操作数）。索引操作数中每个 64 位元素的前 3 位选择要复制第二源操作数中的哪个四字。第一和第二操作数是 ZMM 寄存器，第三操作数可以是 ZMM 寄存器、512 位内存位置或从 64 位内存位置广播的 512 位向量。目的地中的元素使用写掩码 k1 进行更新。</p>
+		<p>注意，此指令允许将源操作数中的四字复制到目的操作数中的多个位置。</p>
+		<p>如果 VPERMPD 被编码为 VEX.L= 0，尝试执行编码为 VEX.L= 0 的指令将导致 #UD 异常。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vpermpd--evex---imm8-control-forms-">VPERMPD (EVEX - imm8 控制形式)<a class="anchor" href="#vpermpd--evex---imm8-control-forms-">¶</a></h3>
+		<pre>(KL, VL) = (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF (EVEX.b = 1) AND (SRC *is memory*)
+        THEN TMP_SRC[i+63:i] := SRC[63:0];
+        ELSE TMP_SRC[i+63:i] := SRC[i+63:i];
+    FI;
+ENDFOR;
+TMP_DEST[63:0] := (TMP_SRC[256:0] &gt;&gt; (IMM8[1:0] * 64))[63:0];
+TMP_DEST[127:64] := (TMP_SRC[256:0] &gt;&gt; (IMM8[3:2] * 64))[63:0];
+TMP_DEST[191:128] := (TMP_SRC[256:0] &gt;&gt; (IMM8[5:4] * 64))[63:0];
+TMP_DEST[255:192] := (TMP_SRC[256:0] &gt;&gt; (IMM8[7:6] * 64))[63:0];
+IF VL &gt;= 512
+    TMP_DEST[319:256] := (TMP_SRC[511:256] &gt;&gt; (IMM8[1:0] * 64))[63:0];
+    TMP_DEST[383:320] := (TMP_SRC[511:256] &gt;&gt; (IMM8[3:2] * 64))[63:0];
+    TMP_DEST[447:384] := (TMP_SRC[511:256] &gt;&gt; (IMM8[5:4] * 64))[63:0];
+    TMP_DEST[511:448] := (TMP_SRC[511:256] &gt;&gt; (IMM8[7:6] * 64))[63:0];
+FI;
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i] := TMP_DEST[i+63:i]
+        ELSE
+            IF *merging-masking*
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE
+                        ; zeroing-masking
+                    DEST[i+63:i] := 0
+                            ;zeroing-masking
+            FI;
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vpermpd--evex---vector-control-forms-">VPERMPD (EVEX - 向量控制形式)<a class="anchor" href="#vpermpd--evex---vector-control-forms-">¶</a></h3>
+		<pre>(KL, VL) = (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF (EVEX.b = 1) AND (SRC2 *is memory*)
+        THEN TMP_SRC2[i+63:i] := SRC2[63:0];
+        ELSE TMP_SRC2[i+63:i] := SRC2[i+63:i];
+    FI;
+ENDFOR;
+IF VL = 256
+    TMP_DEST[63:0] := (TMP_SRC2[255:0] &gt;&gt; (SRC1[1:0] * 64))[63:0];
+    TMP_DEST[127:64] := (TMP_SRC2[255:0] &gt;&gt; (SRC1[65:64] * 64))[63:0];
+    TMP_DEST[191:128] := (TMP_SRC2[255:0] &gt;&gt; (SRC1[129:128] * 64))[63:0];
+    TMP_DEST[255:192] := (TMP_SRC2[255:0] &gt;&gt; (SRC1[193:192] * 64))[63:0];
+FI;
+IF VL = 512
+    TMP_DEST[63:0] := (TMP_SRC2[511:0] &gt;&gt; (SRC1[2:0] * 64))[63:0];
+    TMP_DEST[127:64] := (TMP_SRC2[511:0] &gt;&gt; (SRC1[66:64] * 64))[63:0];
+    TMP_DEST[191:128] := (TMP_SRC2[511:0] &gt;&gt; (SRC1[130:128] * 64))[63:0];
+    TMP_DEST[255:192] := (TMP_SRC2[511:0] &gt;&gt; (SRC1[194:192] * 64))[63:0];
+    TMP_DEST[319:256] := (TMP_SRC2[511:0] &gt;&gt; (SRC1[258:256] * 64))[63:0];
+    TMP_DEST[383:320] := (TMP_SRC2[511:0] &gt;&gt; (SRC1[322:320] * 64))[63:0];
+    TMP_DEST[447:384] := (TMP_SRC2[511:0] &gt;&gt; (SRC1[386:384] * 64))[63:0];
+    TMP_DEST[511:448] := (TMP_SRC2[511:0] &gt;&gt; (SRC1[450:448] * 64))[63:0];
+FI;
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i] := TMP_DEST[i+63:i]
+        ELSE
+            IF *merging-masking*
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE
+                        ; zeroing-masking
+                    DEST[i+63:i] := 0
+                            ;zeroing-masking
+            FI;
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vpermpd--vex-256-encoded-version-">VPERMPD (VEX.256 编码版本)<a class="anchor" href="#vpermpd--vex-256-encoded-version-">¶</a></h3>
+		<pre>DEST[63:0] := (SRC[255:0] &gt;&gt; (IMM8[1:0] * 64))[63:0];
+DEST[127:64] := (SRC[255:0] &gt;&gt; (IMM8[3:2] * 64))[63:0];
+DEST[191:128] := (SRC[255:0] &gt;&gt; (IMM8[5:4] * 64))[63:0];
+DEST[255:192] := (SRC[255:0] &gt;&gt; (IMM8[7:6] * 64))[63:0];
+DEST[MAXVL-1:256] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VPERMPD __m512d _mm512_permutex_pd( __m512d a, int imm);
+</pre>
+		<pre>VPERMPD __m512d _mm512_mask_permutex_pd(__m512d s, __mmask16 k, __m512d a, int imm);
+</pre>
+		<pre>VPERMPD __m512d _mm512_maskz_permutex_pd( __mmask16 k, __m512d a, int imm);
+</pre>
+		<pre>VPERMPD __m512d _mm512_permutexvar_pd( __m512i i, __m512d a);
+</pre>
+		<pre>VPERMPD __m512d _mm512_mask_permutexvar_pd(__m512d s, __mmask16 k, __m512i i, __m512d a);
+</pre>
+		<pre>VPERMPD __m512d _mm512_maskz_permutexvar_pd( __mmask16 k, __m512i i, __m512d a);
+</pre>
+		<pre>VPERMPD __m256d _mm256_permutex_epi64( __m256d a, int imm);
+</pre>
+		<pre>VPERMPD __m256d _mm256_mask_permutex_epi64(__m256i s, __mmask8 k, __m256d a, int imm);
+</pre>
+		<pre>VPERMPD __m256d _mm256_maskz_permutex_epi64( __mmask8 k, __m256d a, int imm);
+</pre>
+		<pre>VPERMPD __m256d _mm256_permutexvar_epi64( __m256i i, __m256d a);
+</pre>
+		<pre>VPERMPD __m256d _mm256_mask_permutexvar_epi64(__m256i s, __mmask8 k, __m256i i, __m256d a);
+</pre>
+		<pre>VPERMPD __m256d _mm256_maskz_permutexvar_epi64( __mmask8 k, __m256i i, __m256d a);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>非 EVEX 编码指令，请参阅表 2-21，“第 4 类异常条件”；此外：</p>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 VEX.L = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 VEX.vvvv != 1111B。</td>
+			</tr>
+		</table>
+		<p>EVEX 编码指令，请参阅表 2-50，“第 E4NF 类异常条件”；此外：</p>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果使用 EVEX.128 编码。</td>
+			</tr>
+			<tr>
+				<td>如果 EVEX.vvvv != 1111B 且带 imm8。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

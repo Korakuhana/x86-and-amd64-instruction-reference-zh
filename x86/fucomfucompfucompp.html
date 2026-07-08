@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>FUCOM/FUCOMP/FUCOMPP — 浮点数无序比较</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>FUCOM/FUCOMP/FUCOMPP — 浮点数无序比较</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>DD E0+i</td>
+			<td>FUCOM ST(i)</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>比较 ST(0) 与 ST(i)。</td>
+		</tr>
+		<tr>
+			<td>DD E1</td>
+			<td>FUCOM</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>比较 ST(0) 与 ST(1)。</td>
+		</tr>
+		<tr>
+			<td>DD E8+i</td>
+			<td>FUCOMP ST(i)</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>比较 ST(0) 与 ST(i) 并弹出寄存器栈。</td>
+		</tr>
+		<tr>
+			<td>DD E9</td>
+			<td>FUCOMP</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>比较 ST(0) 与 ST(1) 并弹出寄存器栈。</td>
+		</tr>
+		<tr>
+			<td>DA E9</td>
+			<td>FUCOMPP</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>比较 ST(0) 与 ST(1) 并双重弹出寄存器栈。</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>对寄存器 ST(0) 和 ST(i) 的内容进行无序比较，并根据结果设置 FPU 状态字中的条件码标志 C0、C2 和 C3（见下表）。如果未指定操作数，则比较寄存器 ST(0) 和 ST(1) 的内容。零的符号被忽略，因此 –0.0 等于 +0.0。</p>
+
+	<figure id="tbl-3-41">
+		<table>
+			<tr>
+				<th>比较结果*</th>
+				<th>C3</th>
+				<th>C2</th>
+				<th>C0</th>
+			</tr>
+			<tr>
+				<td>ST0 &gt; ST(i)</td>
+				<td>0</td>
+				<td>0</td>
+				<td>0</td>
+			</tr>
+			<tr>
+				<td>ST0 &lt; ST(i)</td>
+				<td>0</td>
+				<td>0</td>
+				<td>1</td>
+			</tr>
+			<tr>
+				<td>ST0 = ST(i)</td>
+				<td>1</td>
+				<td>0</td>
+				<td>0</td>
+			</tr>
+			<tr>
+				<td>无序</td>
+				<td>1</td>
+				<td>1</td>
+				<td>1</td>
+			</tr>
+		</table>
+		<figcaption><a href='fucomfucompfucompp.html#tbl-3-41'>表 3-41</a>. FUCOM/FUCOMP/FUCOMPP 结果</figcaption>
+	</figure>
+	<blockquote>
+		<p>* 如果产生未屏蔽的无效算术操作数 (#IA) 异常，则不设置标志位。</p>
+	</blockquote>
+
+	<p>无序比较会检查要比较的数字的类别（参阅本章中的“FXAM — 检查浮点”）。FUCOM/FUCOMP/FUCOMPP 指令执行与 FCOM/FCOMP/FCOMPP 指令相同的操作。唯一的区别是，FUCOM/FUCOMP/FUCOMPP 指令仅在其中一个或两个操作数为 SNaN 或处于不受支持的格式时才引发无效算术操作数异常 (#IA)；QNaN 会使条件码标志设置为无序，但不会导致产生异常。当其中一个或两个操作数是任何类型的 NaN 值或处于不受支持的格式时，FCOM/FCOMP/FCOMPP 指令会引发无效操作异常。</p>
+	<p>与 FCOM/FCOMP/FCOMPP 指令一样，如果操作导致引发无效算术操作数异常，则仅在屏蔽了该异常时才设置条件码标志。</p>
+	<p>FUCOMP 指令在比较操作之后弹出寄存器栈，而 FUCOMPP 指令在比较操作之后弹出寄存器栈两次。为了弹出寄存器栈，处理器将 ST(0) 寄存器标记为空，并将栈指针 (TOP) 递增 1。</p>
+	<p>此指令的操作在非 64 位模式和 64 位模式下相同。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>CASE (relation of operands) OF
+    ST &gt; SRC:
+                        C3, C2, C0 := 000;
+    ST &lt; SRC:
+                        C3, C2, C0 := 001;
+    ST = SRC:
+                        C3, C2, C0 := 100;
+ESAC;
+IF ST(0) or SRC = QNaN, but not SNaN or unsupported format
+    THEN
+        C3, C2, C0 := 111;
+    ELSE (* ST(0) or SRC is SNaN or unsupported format *)
+            #IA;
+        IF FPUControlWord.IM = 1
+                THEN
+                    C3, C2, C0 := 111;
+        FI;
+FI;
+IF Instruction = FUCOMP
+    THEN
+        PopRegisterStack;
+FI;
+IF Instruction = FUCOMPP
+    THEN
+        PopRegisterStack;
+FI;
+</pre>
+
+	<h2 id="fpu-flags-affected">受影响的 FPU 标志位<a class="anchor" href="#fpu-flags-affected">¶</a></h2>
+	<table>
+		<tr>
+			<td>C1</td>
+			<td>如果发生栈下溢，则设置为 0。</td>
+		</tr>
+		<tr>
+			<td>C0, C2, C3</td>
+			<td>参见表 3-41。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="floating-point-exceptions">浮点异常<a class="anchor" href="#floating-point-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#IS</td>
+			<td>发生栈下溢。</td>
+		</tr>
+		<tr>
+			<td>#IA</td>
+			<td>一个或两个操作数是 SNaN 值或具有不受支持的格式。检测 QNaN 值本身不会引发无效操作数异常。</td>
+		</tr>
+		<tr>
+			<td>#D</td>
+			<td>一个或两个操作数是非正规化值。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#NM</td>
+			<td>CR0.EM[bit 2] 或 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>#MF</td>
+			<td>如果存在待处理的 x87 FPU 异常。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

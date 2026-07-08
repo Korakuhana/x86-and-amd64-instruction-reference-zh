@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>PHMINPOSUW — 打包水平字最小值</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>PHMINPOSUW — 打包水平字最小值</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>66 0F 38 41 /r PHMINPOSUW xmm1, xmm2/m128</td>
+				<td>RM</td>
+				<td>V/V</td>
+				<td>SSE4_1</td>
+				<td>在 xmm2/m128 中查找最小的无符号字，并将其值放入 xmm1 的低字中，将其索引放入 xmm1 的次低字中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.WIG 41 /r VPHMINPOSUW xmm1, xmm2/m128</td>
+				<td>RM</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>在 xmm2/m128 中查找最小的无符号字，并将其值放入 xmm1 的低字中，将其索引放入 xmm1 的次低字中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>RM</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>确定源操作数（第二个操作数）中的最小无符号字值，并将该无符号字放入目的操作数（第一个操作数）的低字（位 0-15）中。最小值所在字的索引存储在目的操作数的位 16-18 中。目的操作数剩余的高位被置零。</p>
+		<p>128位传统 SSE 版本：对应 XMM 目的寄存器的位（MAXVL-1:128）保持不变。</p>
+		<p>VEX.128 编码版本：目的 XMM 寄存器的位（MAXVL-1:128）清零。VEX.vvvv 是保留的且必须为 1111b，VEX.L 必须为 0，否则指令将导致 #UD。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="phminposuw--128-bit-legacy-sse-version-">PHMINPOSUW（128位传统 SSE 版本）<a class="anchor" href="#phminposuw--128-bit-legacy-sse-version-">¶</a></h3>
+		<pre>INDEX := 0;
+MIN := SRC[15:0]
+IF (SRC[31:16] &lt; MIN)
+    THEN INDEX := 1; MIN := SRC[31:16]; FI;
+IF (SRC[47:32] &lt; MIN)
+    THEN INDEX := 2; MIN := SRC[47:32]; FI;
+* Repeat operation for words 3 through 6
+IF (SRC[127:112] &lt; MIN)
+    THEN INDEX := 7; MIN := SRC[127:112]; FI;
+DEST[15:0] := MIN;
+DEST[18:16] := INDEX;
+DEST[127:19] := 0000000000000000000000000000H;
+</pre>
+		<h3 id="vphminposuw--vex-128-encoded-version-">VPHMINPOSUW（VEX.128 编码版本）<a class="anchor" href="#vphminposuw--vex-128-encoded-version-">¶</a></h3>
+		<pre>INDEX := 0
+MIN := SRC[15:0]
+IF (SRC[31:16] &lt; MIN) THEN INDEX := 1; MIN := SRC[31:16]
+IF (SRC[47:32] &lt; MIN) THEN INDEX := 2; MIN := SRC[47:32]
+* Repeat operation for words 3 through 6
+IF (SRC[127:112] &lt; MIN) THEN INDEX := 7; MIN := SRC[127:112]
+DEST[15:0] := MIN
+DEST[18:16] := INDEX
+DEST[127:19] := 0000000000000000000000000000H
+DEST[MAXVL-1:128] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>PHMINPOSUW __m128i _mm_minpos_epu16( __m128i packed_words);</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-21，“第 4 类异常条件”，此外：</p>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 VEX.L = 1。</td>
+			</tr>
+			<tr>
+				<td>如果 VEX.vvvv ≠ 1111B。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

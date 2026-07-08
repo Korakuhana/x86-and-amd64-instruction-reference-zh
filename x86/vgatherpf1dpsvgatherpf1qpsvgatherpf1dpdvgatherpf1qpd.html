@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VGATHERPF1DPS/VGATHERPF1QPS/VGATHERPF1DPD/VGATHERPF1QPD — 使用 T1 暗示以及有符号 Dword、有符号 Qword 索引稀疏预取打包的 SP/DP 数据值</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VGATHERPF1DPS/VGATHERPF1QPS/VGATHERPF1DPD/VGATHERPF1QPD — 使用 T1 暗示以及有符号 Dword、有符号 Qword 索引稀疏预取打包的 SP/DP 数据值</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W0 C6 /2 /vsib VGATHERPF1DPS vm32z {k1}</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512PF</td>
+				<td>使用有符号 dword 索引，结合操作掩码 k1 和 T1 暗示，预取包含单精度数据的稀疏字节内存位置。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W0 C7 /2 /vsib VGATHERPF1QPS vm64z {k1}</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512PF</td>
+				<td>使用有符号 qword 索引，结合操作掩码 k1 和 T1 暗示，预取包含单精度数据的稀疏字节内存位置。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W1 C6 /2 /vsib VGATHERPF1DPD vm32y {k1}</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512PF</td>
+				<td>使用有符号 dword 索引，结合操作掩码 k1 和 T1 暗示，预取包含双精度数据的稀疏字节内存位置。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W1 C7 /2 /vsib VGATHERPF1QPD vm64z {k1}</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512PF</td>
+				<td>使用有符号 qword 索引，结合操作掩码 k1 和 T1 暗示，预取包含双精度数据的稀疏字节内存位置。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Tuple1 Scalar</td>
+				<td>BaseReg (R): VSIB:base, VectorReg(R): VSIB:index</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>该指令有条件地预取最多十六个 32 位或八个 64 位整型字节数据元素。这些元素是通过 VSIB 指定的（即索引寄存器是一个包含打包索引的 zmm 寄存器）。只有当元素的相应掩码位为 1 时，才会预取该元素。</p>
+		<p>预取的缓存行被加载到由局部性暗示 (T1) 指定的缓存层次结构中的位置：</p>
+		<ul>
+			<li>T1（时间数据）——将数据预取到二级缓存中。</li>
+		</ul>
+		<p>[PS 数据] 对于 dword 索引，指令将预取十六个内存位置。对于 qword 索引，指令将预取八个值。</p>
+		<p>[PD 数据] 对于 dword 和 qword 索引，指令将预取八个内存位置。</p>
+		<p>请注意：</p>
+		<p>(1) 预取可以按任何顺序发生（或者根本不发生）。该指令是一个暗示。</p>
+		<p>(2) 掩码保持不变。</p>
+		<p>(3) 对于 16 位有效地址无效。将导致 #UD 故障。</p>
+		<p>(4) 此指令不会产生任何浮点或内存故障。</p>
+		<p>(5) 预取不处理缓存行跨越（splits）。</p>
+		<p>(6) 如果内存操作数的编码中没有 SIB 字节，将发出 #UD 信号。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>BASE_ADDR stands for the memory operand base address (a GPR); may not exist.
+VINDEX stands for the memory operand vector of indices (a vector register).
+SCALE stands for the memory operand scalar (1, 2, 4 or 8).
+DISP is the optional 1, 2 or 4 byte displacement.
+PREFETCH(mem, Level, State) Prefetches a byte memory location pointed by ‘mem’ into the cache level specified by ‘Level’; a request
+for exclusive/ownership is done if ‘State’ is 1. Note that the memory location ignore cache line splits. This operation is considered a
+hint for the processor and may be skipped depending on implementation.
+</pre>
+		<h3 id="vgatherpf1dps--evex-encoded-version-">VGATHERPF1DPS (EVEX 编码版本)<a class="anchor" href="#vgatherpf1dps--evex-encoded-version-">¶</a></h3>
+		<pre>(KL, VL) = (16, 512)
+FOR j := 0 TO KL-1
+    i := j * 32
+    IF k1[j]
+        Prefetch( [BASE_ADDR + SignExtend(VINDEX[i+31:i]) * SCALE + DISP], Level=1, RFO = 0)
+    FI;
+ENDFOR
+</pre>
+		<h3 id="vgatherpf1dpd--evex-encoded-version-">VGATHERPF1DPD (EVEX 编码版本)<a class="anchor" href="#vgatherpf1dpd--evex-encoded-version-">¶</a></h3>
+		<pre>(KL, VL) = (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 64
+    k := j * 32
+    IF k1[j]
+        Prefetch( [BASE_ADDR + SignExtend(VINDEX[k+31:k]) * SCALE + DISP], Level=1, RFO = 0)
+    FI;
+ENDFOR
+</pre>
+		<h3 id="vgatherpf1qps--evex-encoded-version-">VGATHERPF1QPS (EVEX 编码版本)<a class="anchor" href="#vgatherpf1qps--evex-encoded-version-">¶</a></h3>
+		<pre>(KL, VL) = (8, 256)
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k1[j]
+        Prefetch( [BASE_ADDR + SignExtend(VINDEX[i+63:i]) * SCALE + DISP], Level=1, RFO = 0)
+    FI;
+ENDFOR
+</pre>
+		<h3 id="vgatherpf1qpd--evex-encoded-version-">VGATHERPF1QPD (EVEX 编码版本)<a class="anchor" href="#vgatherpf1qpd--evex-encoded-version-">¶</a></h3>
+		<pre>(KL, VL) = (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 64
+    k := j * 64
+    IF k1[j]
+        Prefetch( [BASE_ADDR + SignExtend(VINDEX[k+63:k]) * SCALE + DISP], Level=1, RFO = 0)
+    FI;
+ENDFOR
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VGATHERPF1DPD void _mm512_mask_prefetch_i32gather_pd(__m256i vdx, __mmask8 m, void * base, int scale, int hint);
+</pre>
+		<pre>VGATHERPF1DPS void _mm512_mask_prefetch_i32gather_ps(__m512i vdx, __mmask16 m, void * base, int scale, int hint);
+</pre>
+		<pre>VGATHERPF1QPD void _mm512_mask_prefetch_i64gather_pd(__m512i vdx, __mmask8 m, void * base, int scale, int hint);
+</pre>
+		<pre>VGATHERPF1QPS void _mm512_mask_prefetch_i64gather_ps(__m512i vdx, __mmask8 m, void * base, int scale, int hint);
+</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-62，“第 E12NP 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

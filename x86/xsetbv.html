@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>XSETBV — 设置扩展控制寄存器</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>XSETBV — 设置扩展控制寄存器</h1>
+
+		<table>
+			<tr>
+				<th>操作码</th>
+				<th>指令</th>
+				<th>Op/En</th>
+				<th>64位模式</th>
+				<th>兼容/传统模式</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F 01 D1</td>
+				<td>XSETBV</td>
+				<td>ZO</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>将 EDX:EAX 中的值写入由 ECX 指定的 XCR。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>ZO</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将寄存器 EDX:EAX 的内容写入到由 ECX 寄存器指定的 64 位扩展控制寄存器 (XCR) 中。（在支持 Intel 64 架构的处理器上，RCX 的高 32 位被忽略。）EDX 寄存器的内容被复制到所选 XCR 的高 32 位，EAX 寄存器的内容被复制到该 XCR 的低 32 位。（在支持 Intel 64 架构的处理器上，RAX 和 RDX 各自的高 32 位被忽略。）XCR 中未定义或保留的位应该设置为以前读取的值。</p>
+		<p>此指令必须在特权级别 0 或在实地址模式下执行；否则会触发通用保护异常 #GP(0)。在 ECX 中指定保留或未实现的 XCR 也会导致通用保护异常。如果软件尝试向 XCR 中的保留位写入数据，处理器也会触发通用保护异常。</p>
+		<p>目前仅支持 XCR0。因此，ECX 的所有其他值均被保留，并将导致 #GP(0)。请注意，XCR0 的第 0 位（对应于 x87 状态）必须设置为 1；如果尝试清除此位，该指令将导致 #GP(0)。此外，如果尝试在清除 XCR0[1]（SSE 状态）的同时设置 XCR0[2]（AVX 状态），则该指令会导致 #GP(0)；要使用 AVX 指令，必须同时设置这两个位；请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》卷 1 第 13.3 节“启用 XSAVE 功能集和启用 XSAVE 的功能”。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>XCR[ECX] := EDX:EAX;
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>XSETBV void _xsetbv( unsigned int index, unsigned __int64 val);
+</pre>
+
+		<h2 id="protected-mode-exceptions" class="exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="5">#GP(0)</td>
+				<td>如果当前特权级别不为 0。</td>
+			</tr>
+			<tr>
+				<td>如果 ECX 中指定了无效的 XCR。</td>
+			</tr>
+			<tr>
+				<td>如果 EDX:EAX 中的值设置了在由 ECX 指定的 XCR 中保留的位。</td>
+			</tr>
+			<tr>
+				<td>如果尝试清除 XCR0 的第 0 位。</td>
+			</tr>
+			<tr>
+				<td>如果尝试将 XCR0[2:1] 设置为 10b。</td>
+			</tr>
+			<tr>
+				<td rowspan="3">#UD</td>
+				<td>如果 CPUID.01H:ECX.XSAVE[bit 26] = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 CR4.OSXSAVE[bit 18] = 0。</td>
+			</tr>
+			<tr>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 id="real-address-mode-exceptions" class="exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="4">#GP</td>
+				<td>如果 ECX 中指定了无效的 XCR。</td>
+			</tr>
+			<tr>
+				<td>如果 EDX:EAX 中的值设置了在由 ECX 指定的 XCR 中保留的位。</td>
+			</tr>
+			<tr>
+				<td>如果尝试清除 XCR0 的第 0 位。</td>
+			</tr>
+			<tr>
+				<td>如果尝试将 XCR0[2:1] 设置为 10b。</td>
+			</tr>
+			<tr>
+				<td rowspan="3">#UD</td>
+				<td>如果 CPUID.01H:ECX.XSAVE[bit 26] = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 CR4.OSXSAVE[bit 18] = 0。</td>
+			</tr>
+			<tr>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 id="virtual-8086-mode-exceptions" class="exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP(0)</td>
+				<td>XSETBV 指令在虚拟-8086 模式下不被识别。</td>
+			</tr>
+		</table>
+
+		<h2 id="compatibility-mode-exceptions" class="exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 id="64-bit-mode-exceptions" class="exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

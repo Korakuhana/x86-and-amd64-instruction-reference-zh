@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VRSQRTPH — 计算打包 FP16 值平方根的倒数</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VRSQRTPH — 计算打包 FP16 值平方根的倒数</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.MAP6.W0 4E /r VRSQRTPH xmm1{k1}{z}, xmm2/m128/m16bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512-FP16 AVX512VL</td>
+				<td>在写掩码 k1 控制下，计算 xmm2/m128/m16bcst 中打包 FP16 值平方根的近似倒数，并将结果存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.MAP6.W0 4E /r VRSQRTPH ymm1{k1}{z}, ymm2/m256/m16bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512-FP16 AVX512VL</td>
+				<td>在写掩码 k1 控制下，将 ymm2/m256/m16bcst 中的打包 FP16 值平方根的近似倒数，并将结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.MAP6.W0 4E /r VRSQRTPH zmm1{k1}{z}, zmm2/m512/m16bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512-FP16</td>
+				<td>在写掩码 k1 控制下，将 zmm2/m512/m16bcst 中的打包 FP16 值平方根的近似倒数，并将结果存储在 zmm1 中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>此指令对源操作数（第二操作数）中的 8/16/32 个打包 FP16 浮点值进行平方根近似倒数的 SIMD 计算，并将打包 FP16 浮点结果存储在目的操作数中。</p>
+		<p>该近似的最大相对误差小于 2<sup>−11</sup> + 2<sup>−14</sup>。特殊情况请参阅表 5-38。</p>
+		<p>目的操作数元素在写掩码控制下有条件地更新。</p>
+
+		<figure id="tbl-5-38">
+			<table>
+				<tr>
+					<th>输入值</th>
+					<th>结果值</th>
+					<th>说明</th>
+				</tr>
+				<tr>
+					<td>任何渐近下溢数</td>
+					<td>正常值</td>
+					<td>无法产生溢出</td>
+				</tr>
+				<tr>
+					<td>X = 2<em><sup>−2n</sup></em></td>
+					<td><sub>2</sub><em><sup>n</sup></em></td>
+					<td></td>
+				</tr>
+				<tr>
+					<td>X&lt;0</td>
+					<td>QNaN_Indefinite</td>
+					<td>包括 −∞</td>
+				</tr>
+				<tr>
+					<td>X = −0</td>
+					<td>−∞</td>
+					<td></td>
+				</tr>
+				<tr>
+					<td>X = +0</td>
+					<td>+∞</td>
+					<td></td>
+				</tr>
+				<tr>
+					<td>X = +∞</td>
+					<td>+0</td>
+					<td></td>
+				</tr>
+			</table>
+			<figcaption>表 5-38. VRSQRTPH/VRSQRTSH 特殊情况</figcaption>
+		</figure>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vrsqrtph-dest-k1---src">VRSQRTPH dest{k1}, src<a class="anchor" href="#vrsqrtph-dest-k1---src">¶</a></h3>
+		<pre>VL = 128, 256 or 512
+KL := VL/16
+FOR i := 0 to KL-1:
+    IF k1[i] or *no writemask*:
+        IF SRC is memory and (EVEX.b = 1):
+            tsrc := src.fp16[0]
+        ELSE:
+            tsrc := src.fp16[i]
+        DEST.fp16[i] := APPROXIMATE(1.0 / SQRT(tsrc) )
+    ELSE IF *zeroing*:
+        DEST.fp16[i] := 0
+    //else DEST.fp16[i] remains unchanged
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VRSQRTPH __m128h _mm_mask_rsqrt_ph (__m128h src, __mmask8 k, __m128h a);
+</pre>
+		<pre>VRSQRTPH __m128h _mm_maskz_rsqrt_ph (__mmask8 k, __m128h a);
+</pre>
+		<pre>VRSQRTPH __m128h _mm_rsqrt_ph (__m128h a);
+</pre>
+		<pre>VRSQRTPH __m256h _mm256_mask_rsqrt_ph (__m256h src, __mmask16 k, __m256h a);
+</pre>
+		<pre>VRSQRTPH __m256h _mm256_maskz_rsqrt_ph (__mmask16 k, __m256h a);
+</pre>
+		<pre>VRSQRTPH __m256h _mm256_rsqrt_ph (__m256h a);
+</pre>
+		<pre>VRSQRTPH __m512h _mm512_mask_rsqrt_ph (__m512h src, __mmask32 k, __m512h a);
+</pre>
+		<pre>VRSQRTPH __m512h _mm512_maskz_rsqrt_ph (__mmask32 k, __m512h a);
+</pre>
+		<pre>VRSQRTPH __m512h _mm512_rsqrt_ph (__m512h a);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>EVEX 编码指令，请参阅表 2-49，“第 E4 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

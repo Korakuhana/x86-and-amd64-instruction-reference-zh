@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VGETMANTSD — 从 Float64 标量提取 Float64 规范化尾数</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VGETMANTSD — 从 Float64 标量提取 Float64 规范化尾数</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.LLIG.66.0F3A.W1 27 /r ib VGETMANTSD xmm1 {k1}{z}, xmm2, xmm3/m64{sae}, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用 imm8 进行符号控制和尾数区间规范化，提取 xmm3/m64 中低位 float64 元素的规范化尾数。在写掩码 k1 下将尾数存储到 xmm1 中，并与 xmm2 的其他元素合并。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Tuple1 Scalar</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>imm8</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将第二源操作数（第三操作数）低位四字元素中的双精度浮点值转换为具有由 imm8 字节指定的尾数规范化和符号控制的双精度浮点值，参见图 5-15。转换后的结果使用写掩码 k1 写入目的操作数（第一操作数）的低位四字元素。目的 XMM 寄存器的第 (127:64) 位复制自第一源操作数中的对应位。规范化尾数由 interv（imm8[1:0]）指定，符号控制（sc）由立即数字节的第 3:2 位指定。</p>
+		<p>转换操作为：</p>
+		<p>GetMant(x) = ±2<sup>k</sup>|x.significand|</p>
+		<p>其中：</p>
+		<p>1 &lt;= |x.significand| &lt; 2</p>
+		<p>无偏指数 k 可以是 0 或 -1，具体取决于由 interv 定义的区间范围、尾数（有效数字）的范围以及源的指数是偶数还是奇数。最终结果的符号由 sc 和源符号决定。imm8[1:0] 的编码值和符号控制如图 5-15 所示。</p>
+		<p>转换后的双精度浮点结果根据符号控制、无偏指数 k（加上偏置）和规范化到由 interv 指定范围的尾数进行编码。</p>
+		<p>在处理浮点特殊数值时，GetMant() 函数遵循表 5-18。</p>
+		<p>如果使用写掩码，目的操作数低位的四字元素将根据写掩码寄存器 k1 的值有条件地更新。如果不使用写掩码，目的操作数的低位四字元素将被无条件更新。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>// getmant_fp64(src, sign_control, normalization_interval) is defined in the operation section of VGETMANTPD
+</pre>
+		<h3 id="vgetmantsd--evex-encoded-version-">VGETMANTSD (EVEX 编码版本)<a class="anchor" href="#vgetmantsd--evex-encoded-version-">¶</a></h3>
+		<pre>SignCtrl[1:0] := IMM8[3:2];
+Interv[1:0] := IMM8[1:0];
+IF k1[0] OR *no writemask*
+    THEN DEST[63:0] :=
+            getmant_fp64(src, sign_control, normalization_interval)
+    ELSE
+        IF *merging-masking* ; merging-masking
+            THEN *DEST[63:0] remains unchanged*
+            ELSE ; zeroing-masking
+                DEST[63:0] := 0
+        FI
+FI;
+DEST[127:64] := SRC1[127:64]
+DEST[MAXVL-1:128] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VGETMANTSD __m128d _mm_getexp_sd( __m128d a, __m128 b, enum intv, enum sgn);
+</pre>
+		<pre>VGETMANTSD __m128d _mm_mask_getexp_sd(__m128d s, __mmask8 k, __m128d a, __m128d b, enum intv, enum sgn);
+</pre>
+		<pre>VGETMANTSD __m128d _mm_maskz_getexp_sd( __mmask8 k, __m128 a, __m128d b, enum intv, enum sgn);
+</pre>
+		<pre>VGETMANTSD __m128d _mm_getexp_round_sd( __m128d a, __m128 b, enum intv, enum sgn, int r);
+</pre>
+		<pre>VGETMANTSD __m128d _mm_mask_getexp_round_sd(__m128d s, __mmask8 k, __m128d a, __m128d b, enum intv, enum sgn, int r);
+</pre>
+		<pre>VGETMANTSD __m128d _mm_maskz_getexp_round_sd( __mmask8 k, __m128d a, __m128d b, enum intv, enum sgn, int r);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>非规范化, 无效</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-47，“第 E3 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

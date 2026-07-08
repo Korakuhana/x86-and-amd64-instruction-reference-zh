@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>MOVMSKPS — 提取打包单精度浮点符号掩码</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>MOVMSKPS — 提取打包单精度浮点符号掩码</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64/32位模式</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>NP 0F 50 /r MOVMSKPS reg, xmm</td>
+			<td>RM</td>
+			<td>有效/有效</td>
+			<td>SSE</td>
+			<td>从 xmm 中提取 4 位符号掩码并存储在 reg 中。r32 或 r64 的高位填充为零。</td>
+		</tr>
+		<tr>
+			<td>VEX.128.0F.WIG 50 /r VMOVMSKPS reg, xmm2</td>
+			<td>RM</td>
+			<td>有效/有效</td>
+			<td>AVX</td>
+			<td>从 xmm2 中提取 4 位符号掩码并存储在 reg 中。r32 或 r64 的高位被清零。</td>
+		</tr>
+		<tr>
+			<td>VEX.256.0F.WIG 50 /r VMOVMSKPS reg, ymm2</td>
+			<td>RM</td>
+			<td>有效/有效</td>
+			<td>AVX</td>
+			<td>从 ymm2 中提取 8 位符号掩码并存储在 reg 中。r32 或 r64 的高位被清零。</td>
+		</tr>
+	</table>
+	<blockquote>
+		<p>1. 需要 ModRM.MOD = 011B。</p>
+	</blockquote>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>RM</td>
+			<td>ModRM:reg (w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>从源操作数（第二个操作数）中的打包单精度浮点值中提取符号位，将其格式化为 4 位或 8 位掩码，并将该掩码存储在目的操作数（第一个操作数）中。源操作数是 XMM 或 YMM 寄存器，目的操作数是通用寄存器。该掩码存储在目的操作数的低 4 位或 8 位中。目的操作数掩码之外的高位填充为零。</p>
+	<p>在 64 位模式下，当与 REX.R 前缀一起使用时，该指令可以访问其他寄存器 (XMM8-XMM15, R8-R15)。在 64 位模式下，默认操作数大小为 64 位。</p>
+	<p>128 位版本：源操作数是 YMM（注：此处原文应为 XMM 寄存器，但遵循原文） 寄存器。目的操作数是通用寄存器。</p>
+	<p>VEX.256 编码版本：源操作数是 YMM 寄存器。目的操作数是通用寄存器。</p>
+	<p>注意：在 VEX 编码版本中，VEX.vvvv 是保留的，必须为 1111b，否则指令将产生 #UD 异常。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>DEST[0] := SRC[31];
+DEST[1] := SRC[63];
+DEST[2] := SRC[95];
+DEST[3] := SRC[127];
+IF DEST = r32
+    THEN DEST[31:4] := ZeroExtend;
+    ELSE DEST[63:4] := ZeroExtend;
+FI;
+</pre>
+
+	<h3 id="-v-movmskps--128-bit-version-">(V)MOVMSKPS (128-bit version)<a class="anchor" href="#-v-movmskps--128-bit-version-">¶</a></h3>
+	<pre>DEST[0] := SRC[31]
+DEST[1] := SRC[63]
+DEST[2] := SRC[95]
+DEST[3] := SRC[127]
+IF DEST = r32
+    THEN DEST[31:4] := 0;
+    ELSE DEST[63:4] := 0;
+FI
+</pre>
+
+	<h3 id="vmovmskps--vex-256-encoded-version-">VMOVMSKPS (VEX.256 encoded version)<a class="anchor" href="#vmovmskps--vex-256-encoded-version-">¶</a></h3>
+	<pre>DEST[0] := SRC[31]
+DEST[1] := SRC[63]
+DEST[2] := SRC[95]
+DEST[3] := SRC[127]
+DEST[4] := SRC[159]
+DEST[5] := SRC[191]
+DEST[6] := SRC[223]
+DEST[7] := SRC[255]
+IF DEST = r32
+    THEN DEST[31:8] := 0;
+    ELSE DEST[63:8] := 0;
+FI
+</pre>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>int _mm_movemask_ps(__m128 a)
+</pre>
+	<pre>int _mm256_movemask_ps(__m256 a)
+</pre>
+
+	<h2 id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+	<p>参见表 2-24，“Type 7 类异常条件”，此外：</p>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果 VEX.vvvv != 1111B。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

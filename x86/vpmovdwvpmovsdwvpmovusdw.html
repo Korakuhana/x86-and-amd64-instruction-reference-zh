@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VPMOVDW/VPMOVSDW/VPMOVUSDW — 双字向下转换为字</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VPMOVDW/VPMOVSDW/VPMOVUSDW — 双字向下转换为字</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op / En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.128.F3.0F38.W0 33 /r VPMOVDW xmm1/m64 {k1}{z}, xmm2</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 的控制下，截断地将 xmm2 中的 4 个打包双字整数转换为 xmm1/m64 中的 4 个打包字整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.F3.0F38.W0 23 /r VPMOVSDW xmm1/m64 {k1}{z}, xmm2</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 的控制下，使用有符号饱和度将 xmm2 中的 4 个打包有符号双字整数转换为 ymm1/m64 中的 4 个打包有符号字整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.F3.0F38.W0 13 /r VPMOVUSDW xmm1/m64 {k1}{z}, xmm2</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 的控制下，使用无符号饱和度将 xmm2 中的 4 个打包无符号双字整数转换为 xmm1/m64 中的 4 个打包无符号字整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.F3.0F38.W0 33 /r VPMOVDW xmm1/m128 {k1}{z}, ymm2</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 的控制下，截断地将 ymm2 中的 8 个打包双字整数转换为 xmm1/m128 中的 8 个打包字整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.F3.0F38.W0 23 /r VPMOVSDW xmm1/m128 {k1}{z}, ymm2</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 的控制下，使用有符号饱和度将 ymm2 中的 8 个打包有符号双字整数转换为 xmm1/m128 中的 8 个打包有符号字整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.F3.0F38.W0 13 /r VPMOVUSDW xmm1/m128 {k1}{z}, ymm2</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 的控制下，使用无符号饱和度将 ymm2 中的 8 个打包无符号双字整数转换为 xmm1/m128 中的 8 个打包无符号字整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.F3.0F38.W0 33 /r VPMOVDW ymm1/m256 {k1}{z}, zmm2</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>在写掩码 k1 的控制下，截断地将 zmm2 中的 16 个打包双字整数转换为 ymm1/m256 中的 16 个打包字整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.F3.0F38.W0 23 /r VPMOVSDW ymm1/m256 {k1}{z}, zmm2</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>在写掩码 k1 的控制下，使用有符号饱和度将 zmm2 中的 16 个打包有符号双字整数转换为 ymm1/m256 中的 16 个打包有符号字整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.F3.0F38.W0 13 /r VPMOVUSDW ymm1/m256 {k1}{z}, zmm2</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>在写掩码 k1 的控制下，使用无符号饱和度将 zmm2 中的 16 个打包无符号双字整数转换为 ymm1/m256 中的 16 个打包无符号字整数。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Half Mem</td>
+				<td>ModRM:r/m (w)</td>
+				<td>ModRM:reg (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>VPMOVDW 使用截断将源操作数（第二操作数）中的 32 位整数元素向下转换为打包字。VPMOVSDW 使用有符号饱和度将有符号 32 位整数转换为打包的有符号字。VPMOVUSDW 使用无符号饱和度将无符号双字值转换为无符号字值。</p>
+		<p>源操作数是 ZMM/YMM/XMM 寄存器。目的操作数是 YMM/XMM/XMM 寄存器或 256/128/64 位内存位置。</p>
+		<p>向下转换的字元素从最低有效字写入目的操作数（第一操作数）。目的操作数的字元素根据写掩码进行更新。寄存器目的地的 bits (MAXVL-1:256/128/64) 清零。</p>
+		<p>EVEX.vvvv 保留且必须为 1111b，否则指令将导致 #UD。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vpmovdw-instruction--evex-encoded-versions--when-dest-is-a-register">当目的地是寄存器时 VPMOVDW 指令 (EVEX 编码版本)<a class="anchor" href="#vpmovdw-instruction--evex-encoded-versions--when-dest-is-a-register">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j := 0 TO KL-1
+    i := j * 16
+    m := j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i] := TruncateDoubleWordToWord (SRC[m+31:m])
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE *zeroing-masking*
+                        ; zeroing-masking
+                    DEST[i+15:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL/2] := 0;
+</pre>
+		<h3 id="vpmovdw-instruction--evex-encoded-versions--when-dest-is-memory">当目的地是内存时 VPMOVDW 指令 (EVEX 编码版本)<a class="anchor" href="#vpmovdw-instruction--evex-encoded-versions--when-dest-is-memory">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j := 0 TO KL-1
+    i := j * 16
+    m := j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i] := TruncateDoubleWordToWord (SRC[m+31:m])
+        ELSE
+            *DEST[i+15:i] remains unchanged* ; merging-masking
+    FI;
+ENDFOR
+</pre>
+		<h3 id="vpmovsdw-instruction--evex-encoded-versions--when-dest-is-a-register">当目的地是寄存器时 VPMOVSDW 指令 (EVEX 编码版本)<a class="anchor" href="#vpmovsdw-instruction--evex-encoded-versions--when-dest-is-a-register">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j := 0 TO KL-1
+    i := j * 16
+    m := j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i] := SaturateSignedDoubleWordToWord (SRC[m+31:m])
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE *zeroing-masking*
+                        ; zeroing-masking
+                    DEST[i+15:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL/2] := 0;
+</pre>
+		<h3 id="vpmovsdw-instruction--evex-encoded-versions--when-dest-is-memory">当目的地是内存时 VPMOVSDW 指令 (EVEX 编码版本)<a class="anchor" href="#vpmovsdw-instruction--evex-encoded-versions--when-dest-is-memory">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j := 0 TO KL-1
+    i := j * 16
+    m := j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i] := SaturateSignedDoubleWordToWord (SRC[m+31:m])
+        ELSE
+            *DEST[i+15:i] remains unchanged* ; merging-masking
+    FI;
+ENDFOR
+</pre>
+		<h3 id="vpmovusdw-instruction--evex-encoded-versions--when-dest-is-a-register">当目的地是寄存器时 VPMOVUSDW 指令 (EVEX 编码版本)<a class="anchor" href="#vpmovusdw-instruction--evex-encoded-versions--when-dest-is-a-register">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j := 0 TO KL-1
+    i := j * 16
+    m := j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i] := SaturateUnsignedDoubleWordToWord (SRC[m+31:m])
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE *zeroing-masking*
+                        ; zeroing-masking
+                    DEST[i+15:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL/2] := 0;
+</pre>
+		<h3 id="vpmovusdw-instruction--evex-encoded-versions--when-dest-is-memory">当目的地是内存时 VPMOVUSDW 指令 (EVEX 编码版本)<a class="anchor" href="#vpmovusdw-instruction--evex-encoded-versions--when-dest-is-memory">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j := 0 TO KL-1
+    i := j * 16
+    m := j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i] := SaturateUnsignedDoubleWordToWord (SRC[m+31:m])
+        ELSE
+            *DEST[i+15:i] remains unchanged*
+                ; merging-masking
+    FI;
+ENDFOR
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalents">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalents">¶</a></h2>
+		<pre>VPMOVDW __m256i _mm512_cvtepi32_epi16( __m512i a);
+</pre>
+		<pre>VPMOVDW __m256i _mm512_mask_cvtepi32_epi16(__m256i s, __mmask16 k, __m512i a);
+</pre>
+		<pre>VPMOVDW __m256i _mm512_maskz_cvtepi32_epi16( __mmask16 k, __m512i a);
+</pre>
+		<pre>VPMOVDW void _mm512_mask_cvtepi32_storeu_epi16(void * d, __mmask16 k, __m512i a);
+</pre>
+		<pre>VPMOVSDW __m256i _mm512_cvtsepi32_epi16( __m512i a);
+</pre>
+		<pre>VPMOVSDW __m256i _mm512_mask_cvtsepi32_epi16(__m256i s, __mmask16 k, __m512i a);
+</pre>
+		<pre>VPMOVSDW __m256i _mm512_maskz_cvtsepi32_epi16( __mmask16 k, __m512i a);
+</pre>
+		<pre>VPMOVSDW void _mm512_mask_cvtsepi32_storeu_epi16(void * d, __mmask16 k, __m512i a);
+</pre>
+		<pre>VPMOVUSDW __m256i _mm512_cvtusepi32_epi16(__m512i a);
+</pre>
+		<pre>VPMOVUSDW __m256i _mm512_mask_cvtusepi32_epi16(__m256i s, __mmask16 k, __m512i a);
+</pre>
+		<pre>VPMOVUSDW __m256i _mm512_maskz_cvtusepi32_epi16( __mmask16 k, __m512i a);
+</pre>
+		<pre>VPMOVUSDW void _mm512_mask_cvtusepi32_storeu_epi16(void * d, __mmask16 k, __m512i a);
+</pre>
+		<pre>VPMOVUSDW __m128i _mm256_cvtusepi32_epi16(__m256i a);
+</pre>
+		<pre>VPMOVUSDW __m128i _mm256_mask_cvtusepi32_epi16(__m128i a, __mmask8 k, __m256i b);
+</pre>
+		<pre>VPMOVUSDW __m128i _mm256_maskz_cvtusepi32_epi16( __mmask8 k, __m256i b);
+</pre>
+		<pre>VPMOVUSDW void _mm256_mask_cvtusepi32_storeu_epi16(void * , __mmask8 k, __m256i b);
+</pre>
+		<pre>VPMOVUSDW __m128i _mm_cvtusepi32_epi16(__m128i a);
+</pre>
+		<pre>VPMOVUSDW __m128i _mm_mask_cvtusepi32_epi16(__m128i a, __mmask8 k, __m128i b);
+</pre>
+		<pre>VPMOVUSDW __m128i _mm_maskz_cvtusepi32_epi16( __mmask8 k, __m128i b);
+</pre>
+		<pre>VPMOVUSDW void _mm_mask_cvtusepi32_storeu_epi16(void * , __mmask8 k, __m128i b);
+</pre>
+		<pre>VPMOVSDW __m128i _mm256_cvtsepi32_epi16(__m256i a);
+</pre>
+		<pre>VPMOVSDW __m128i _mm256_mask_cvtsepi32_epi16(__m128i a, __mmask8 k, __m256i b);
+</pre>
+		<pre>VPMOVSDW __m128i _mm256_maskz_cvtsepi32_epi16( __mmask8 k, __m256i b);
+</pre>
+		<pre>VPMOVSDW void _mm256_mask_cvtsepi32_storeu_epi16(void * , __mmask8 k, __m256i b);
+</pre>
+		<pre>VPMOVSDW __m128i _mm_cvtsepi32_epi16(__m128i a);
+</pre>
+		<pre>VPMOVSDW __m128i _mm_mask_cvtsepi32_epi16(__m128i a, __mmask8 k, __m128i b);
+</pre>
+		<pre>VPMOVSDW __m128i _mm_maskz_cvtsepi32_epi16( __mmask8 k, __m128i b);
+</pre>
+		<pre>VPMOVSDW void _mm_mask_cvtsepi32_storeu_epi16(void * , __mmask8 k, __m128i b);
+</pre>
+		<pre>VPMOVDW __m128i _mm256_cvtepi32_epi16(__m256i a);
+</pre>
+		<pre>VPMOVDW __m128i _mm256_mask_cvtepi32_epi16(__m128i a, __mmask8 k, __m256i b);
+</pre>
+		<pre>VPMOVDW __m128i _mm256_maskz_cvtepi32_epi16( __mmask8 k, __m256i b);
+</pre>
+		<pre>VPMOVDW void _mm256_mask_cvtepi32_storeu_epi16(void * , __mmask8 k, __m256i b);
+</pre>
+		<pre>VPMOVDW __m128i _mm_cvtepi32_epi16(__m128i a);
+</pre>
+		<pre>VPMOVDW __m128i _mm_mask_cvtepi32_epi16(__m128i a, __mmask8 k, __m128i b);
+</pre>
+		<pre>VPMOVDW __m128i _mm_maskz_cvtepi32_epi16( __mmask8 k, __m128i b);
+</pre>
+		<pre>VPMOVDW void _mm_mask_cvtepi32_storeu_epi16(void * , __mmask8 k, __m128i b);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-53，“第 E6 类异常条件”。</p>
+		<p>此外：</p>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果 EVEX.vvvv != 1111B。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

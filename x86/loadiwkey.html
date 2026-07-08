@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>LOADIWKEY — 使用 Key Locker 加载内部包装密钥</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>LOADIWKEY — 使用 Key Locker 加载内部包装密钥</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64/32位模式</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>F3 0F 38 DC 11:rrr:bbb LOADIWKEY xmm1, xmm2, &lt;EAX&gt;, &lt;XMM0&gt;</td>
+			<td>A</td>
+			<td>有效/有效</td>
+			<td>KL</td>
+			<td>从 xmm1、xmm2 和 XMM0 加载内部包装密钥。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>元组</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>A</td>
+			<td>N/A</td>
+			<td>ModRM:reg (r)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>隐式 EAX (r)</td>
+			<td>隐式 XMM0 (r)</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>LOADIWKEY<sup>1</sup> 指令写入 Key Locker 内部包装密钥，该密钥称为 IWKey。该 IWKey 被 ENCODEKEY* 指令用于将密钥包装到句柄中。相反，AESENC/DEC*KL 指令使用 IWKey 从句柄中解包这些密钥并帮助验证句柄的完整性。出于安全原因，没有设计任何指令允许软件直接读取 IWKey 值。</p>
+	<p>IWKey 包括两个加密密钥以及元数据。这两个加密密钥是从寄存器源加载的，因此可以在密钥从未存在于内存中的情况下执行 LOADIWKEY。</p>
+	<p>密钥输入操作数为：</p>
+	<ul>
+		<li>256 位加密密钥从两个显式操作数加载。</li>
+		<li>128 位完整性密钥从隐式操作数 XMM0 加载。</li>
+	</ul>
+	<p>隐式操作数 EAX 指定 KeySource 以及是否允许备份密钥：</p>
+	<ul>
+		<li>EAX[0] – 设置时，不允许将正在初始化的包装密钥备份到平台范围的存储中。</li>
+		<li>EAX[4:1] – 这指定了 KeySource，即密钥的类型。目前仅支持两种编码。KeySource 为 0 表示上述密钥输入操作数应直接存储为内部包装密钥。KeySource 为 1 的 LOADIWKEY 将使来自片上随机数发生器的随机数与源寄存器（包括 XMM0）进行异或，以便执行 LOADIWKEY 的软件不知道实际的 IWKey 加密和完整性密钥。软件可以选择将额外的随机数据放入源寄存器中，以便将其他随机数据源与硬件随机数发生器提供的值相结合。在使用 KeySource 为 1 执行 LOADIWKEY 后，软件应始终检查 ZF，因为该操作可能会因为无法从片上随机数发生器获取充足的满熵数据而失败。KeySource 为 0 和 1 都指定 IWKey 与 AES-GCM-SIV 算法一起使用。CPUID.19H.ECX[1] 列举了对 KeySource 1 的支持。所有其他 KeySource 编码均保留。</li>
+		<li>EAX[31:5] – 保留。</li>
+	</ul>
+	<p>1. 关于 Key Locker 和该指令使用的进一步细节可以在这里找到：</p>
+	<h3 id="https---software-intel-com-content-www-us-en-develop-download-intel-key-locker-specification-html-">https://software.intel.com/content/www/us/en/develop/download/intel-key-locker-specification.html.<a class="anchor" href="#https---software-intel-com-content-www-us-en-develop-download-intel-key-locker-specification-html-">¶</a></h3>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF CPL &gt; 0
+                    // LOADKWKEY only allowed at ring 0 (supervisor mode)
+    THEN #GP (0); FI;
+IF EAX[4:1] &gt; 1
+                    // Reserved KeySource encoding used
+    THEN #GP (0); FI;
+IF EAX[31:5] != 0
+                    // Reserved bit in EAX is set
+    THEN #GP (0); FI;
+IF EAX[0] AND (CPUID.19H.ECX[0] == 0)
+                        // NoBackup is not supported on this part
+    THEN #GP (0); FI;
+IF (EAX[4:1] == 1) AND (CPUID.19H.ECX[1] == 0)
+                        // KeySource of 1 is not supported on this part
+    THEN #GP (0); FI;
+IF (EAX[4:1] == 0) // KeySource of 0
+    THEN
+        IWKey.Encryption Key[127:0] := SRC2[127:0]:
+        IWKey.Encryption Key[255:128] := SRC1[127:0];
+        IWKey.IntegrityKey[127:0] := XMM0[127:0];
+        IWKey.NoBackup = EAX [0];
+        IWKey.KeySource = EAX [4:1];
+        RFLAGS.ZF := 0;
+    ELSE // KeySource of 1. See RDSEED definition for details of randomness
+        IF HW_NRND_GEN.ready == 1 // Full-entropy random data from RDSEED hardware block was received
+            THEN
+                IWKey.Encryption Key[127:0] := SRC2[127:0] XOR HW_NRND_GEN.data[127:0];
+                IWKey.Encryption Key[255:128] := SRC1[127:0] XOR HW_NRND_GEN.data[255:128];
+                IWKey.IntegrityKey[127:0] := XMM0[127:0] XOR HW_NRND_GEN.data[383:256];
+                IWKey.NoBackup = EAX [0];
+                IWKey.KeySource = EAX [4:1];
+                RFLAGS.ZF := 0;
+            ELSE // Random data was not returned from RDSEED hardware block. IWKey was not loaded
+                RFLAGS.ZF := 1;
+        FI;
+FI;
+RFLAGS.OF, SF, AF, PF, CF := 0;
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>如果操作成功，ZF 设置为 0；如果由于未从 RDSEED 接收到满熵随机数据导致操作失败，则 ZF 设置为 1。其他算术标志位（OF、SF、AF、PF、CF）清除为 0。</p>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>LOADIWKEY void _mm_loadiwkey(unsigned int ctl, __m128i intkey, __m128i enkey_lo, __m128i enkey_hi);
+</pre>
+
+	<h2 id="exceptions--all-operating-modes-">异常（所有工作模式）<a class="anchor" href="#exceptions--all-operating-modes-">¶</a></h2>
+	<p>#GP 如果 CPL &gt; 0。（不适用于实地址模式。）</p>
+	<p>如果 EAX[4:1] &gt; 1。</p>
+	<p>如果 EAX[31:5] != 0。</p>
+	<p>如果 (EAX[0] == 1) 且 (CPUID.19H.ECX[0] == 0)。</p>
+	<p>如果 (EAX[4:1] == 1) 且 (CPUID.19H.ECX[1] == 0)。</p>
+	<p>#UD 如果使用了 LOCK 前缀。</p>
+	<p>如果 CPUID.07H:ECX.KL[bit 23] = 0。</p>
+	<p>如果 CR4.KL = 0。</p>
+	<p>如果 CR0.EM = 1。</p>
+	<p>如果 CR4.OSFXSR = 0。</p>
+	<p>#NM 如果 CR0.TS = 1。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

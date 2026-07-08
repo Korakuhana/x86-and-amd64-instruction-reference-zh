@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>FXRSTOR — 恢复 x87 FPU、MMX、XMM 和 MXCSR 状态</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>FXRSTOR — 恢复 x87 FPU、MMX、XMM 和 MXCSR 状态</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>NP 0F AE /1 FXRSTOR m512byte</td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>Valid</td>
+			<td>从 m512byte 恢复 x87 FPU、MMX、XMM 和 MXCSR 寄存器状态。</td>
+		</tr>
+		<tr>
+			<td>NP REX.W + 0F AE /1 FXRSTOR64 m512byte</td>
+			<td>M</td>
+			<td>Valid</td>
+			<td>N.E.</td>
+			<td>从 m512byte 恢复 x87 FPU、MMX、XMM 和 MXCSR 寄存器状态。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>M</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>从源操作数中指定的 512 字节内存映像中重新加载 x87 FPU、MMX 技术、XMM 和 MXCSR 寄存器。该数据之前应该已经使用 FXSAVE 指令写入内存，并且格式与运行模式要求的格式相同。数据的第一个字节应该位于 16 字节边界上。FXSAVE 状态图有三种不同的布局：一种用于传统和兼容模式，第二种格式用于具有 REX.W=0 的 64 位模式 FXSAVE/FXRSTOR，第三种格式用于具有 FXSAVE64/FXRSTOR64 的 64 位模式。表 3-43 显示了内存中传统/兼容模式状态信息的布局，并描述了 FXRSTOR 和 FXSAVE 指令的内存映像中的字段。表 3-46 显示了设置 REX.W 时（FXSAVE64/FXRSTOR64）64 位模式状态信息的布局。表 3-47 显示了清除 REX.W 时（FXSAVE/FXRSTOR）64 位模式状态信息的布局。</p>
+	<p>用 FXRSTOR 指令引用的状态映像必须已使用 FXSAVE 指令保存，或具有与表 3-43、表 3-46 或表 3-47 所要求的相同格式。引用使用 FSAVE、FNSAVE 指令保存的状态映像或不兼容的字段布局将导致错误的状态恢复。</p>
+	<p>FXRSTOR 指令不会刷新待处理的 x87 FPU 异常。要在使用 FXRSTOR 指令加载 x87 FPU 状态信息时检查并引发异常，请在 FXRSTOR 指令之后使用 FWAIT 指令。</p>
+	<p>如果未设置控制寄存器 CR4 中的 OSFXSR 位，则 FXRSTOR 指令可能不会恢复 XMM 和 MXCSR 寄存器的状态。此行为取决于具体实现。</p>
+	<p>如果 MXCSR 状态包含未屏蔽的异常，且相应的状态标志也已设置，则使用 FXRSTOR 指令加载该寄存器不会导致产生 SIMD 浮点错误条件。只有下一次发生该未屏蔽异常时才会导致产生异常。</p>
+	<p>MXCSR 寄存器的第 16 到 32 位定义为保留位，且应设置为 0。尝试从保存的状态映像中向这些位中的任何一位写入 1 将导致产生一般保护异常 (#GP)。</p>
+	<p>FXSAVE 映像的 464:511 字节可供软件使用。FXRSTOR 会忽略 FXSAVE 状态映像中 464:511 字节的内容。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF 64-Bit Mode
+    THEN
+        (x87 FPU, MMX, XMM15-XMM0, MXCSR)
+                Load(SRC);
+    ELSE
+            (x87 FPU, MMX, XMM7-XMM0, MXCSR) := Load(SRC);
+FI;
+</pre>
+
+	<h2 class="exceptions" id="x87-fpu-and-simd-floating-point-exceptions">x87 FPU 和 SIMD 浮点异常<a class="anchor" href="#x87-fpu-and-simd-floating-point-exceptions">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="3">#GP(0)</td>
+			<td>如果 CS、DS、ES、FS 或 GS 段中的内存操作数有效地址非法。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数未对齐在 16 字节边界上，无论段如何。（请参阅下文的对齐检查异常 [#AC]。）</td>
+		</tr>
+		<tr>
+			<td>对于尝试在 MXCSR 中设置保留位的行为。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果 SS 段中的地址非法。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#NM</td>
+			<td>如果 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>如果 CR0.EM[bit 2] = 1。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CPUID.01H:EDX.FXSR[bit 24] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果指令前有 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>#AC</td>
+			<td>如果禁用此异常，且内存操作数未对齐在 16 字节边界上，则如上所述发出一般保护异常 (#GP) 信号。如果启用了对齐检查异常 (#AC)（且 CPL 为 3），则不保证发出 #AC 信号，并且可能因实现而异，如下所示。在不发出 #AC 信号的所有实现中，将发出一般保护异常信号来代替。此外，对齐检查的宽度也可能因实现而异。例如，对于给定的实现，可能会对 2 字节未对齐发出对齐检查异常信号，而对所有其他未对齐（4、8 或 16 字节未对齐）可能会发出一般保护异常信号。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="3">#GP</td>
+			<td>如果内存操作数未对齐在 16 字节边界上，无论段如何。</td>
+		</tr>
+		<tr>
+			<td>如果操作数的任何部分位于从 0 到 FFFFH 的有效地址空间之外。</td>
+		</tr>
+		<tr>
+			<td>对于尝试在 MXCSR 中设置保留位的行为。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#NM</td>
+			<td>如果 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>如果 CR0.EM[bit 2] = 1。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CPUID.01H:EDX.FXSR[bit 24] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<p>与实地址模式下的异常相同。</p>
+	<table>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC</td>
+			<td>如果内存引用未对齐。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果引用 SS 段的内存地址为非规范（non-canonical）形式。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#GP(0)</td>
+			<td>如果内存地址为非规范（non-canonical）形式。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数未对齐在 16 字节边界上，无论段如何。</td>
+		</tr>
+		<tr>
+			<td>对于尝试在 MXCSR 中设置保留位的行为。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#NM</td>
+			<td>如果 CR0.TS[bit 3] = 1。</td>
+		</tr>
+		<tr>
+			<td>如果 CR0.EM[bit 2] = 1。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CPUID.01H:EDX.FXSR[bit 24] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果指令前有 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>#AC</td>
+			<td>如果禁用此异常，且内存操作数未对齐在 16 字节边界上，则如上所述发出一般保护异常 (#GP) 信号。如果启用了对齐检查异常 (#AC)（且 CPL 为 3），则不保证发出 #AC 信号，并且可能因实现而异，如下所示。在不发出 #AC 信号的所有实现中，将发出一般保护异常信号来代替。此外，对齐检查的宽度也可能因实现而异。例如，对于给定的实现，可能会对 2 字节未对齐发出对齐检查异常信号，而对所有其他未对齐（4、8 或 16 字节未对齐）可能会发出一般保护异常信号。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

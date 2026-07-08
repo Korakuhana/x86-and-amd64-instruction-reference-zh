@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VPERMT2W/VPERMT2D/VPERMT2Q/VPERMT2PS/VPERMT2PD — 从两个表中全置换并覆盖表</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VPERMT2W/VPERMT2D/VPERMT2Q/VPERMT2PS/VPERMT2PD — 从两个表中全置换并覆盖表</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W1 7D /r VPERMT2W xmm1 {k1}{z}, xmm2, xmm3/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>使用 xmm2 中的索引置换 xmm3/m128 和 xmm1 中的两个表中的字整数，并在写掩码 k1 的控制下将结果存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W1 7D /r VPERMT2W ymm1 {k1}{z}, ymm2, ymm3/m256</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>使用 ymm2 中的索引置换 ymm3/m256 和 ymm1 中的两个表中的字整数，并在写掩码 k1 的控制下将结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W1 7D /r VPERMT2W zmm1 {k1}{z}, zmm2, zmm3/m512</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512BW</td>
+				<td>使用 zmm2 中的索引置换 zmm3/m512 和 zmm1 中的两个表中的字整数，并在写掩码 k1 的控制下将结果存储在 zmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W0 7E /r VPERMT2D xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用 xmm2 中的索引置换 xmm3/m128/m32bcst 和 xmm1 中的两个表中的双字，并在写掩码 k1 的控制下将结果存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W0 7E /r VPERMT2D ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用 ymm2 中的索引置换 ymm3/m256/m32bcst 和 ymm1 中的两个表中的双字，并在写掩码 k1 的控制下将结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W0 7E /r VPERMT2D zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用 zmm2 中的索引置换 zmm3/m512/m32bcst 和 zmm1 中的两个表中的双字，并在写掩码 k1 的控制下将结果存储在 zmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W1 7E /r VPERMT2Q xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用 xmm2 中的索引置换 xmm3/m128/m64bcst 和 xmm1 中的两个表中的四字，并在写掩码 k1 的控制下将结果存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W1 7E /r VPERMT2Q ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用 ymm2 中的索引置换 ymm3/m256/m64bcst 和 ymm1 中的两个表中的四字，并在写掩码 k1 的控制下将结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W1 7E /r VPERMT2Q zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用 zmm2 中的索引置换 zmm3/m512/m64bcst 和 zmm1 中的两个表中的四字，并在写掩码 k1 的控制下将结果存储在 zmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W0 7F /r VPERMT2PS xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用 xmm2 中的索引置换 xmm3/m128/m32bcst 和 xmm1 中的两个表中的单精度浮点值，并在写掩码 k1 的控制下将结果存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W0 7F /r VPERMT2PS ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用 ymm2 中的索引置换 ymm3/m256/m32bcst 和 ymm1 中的两个表中的单精度浮点值，并在写掩码 k1 的控制下将结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W0 7F /r VPERMT2PS zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用 zmm2 中的索引置换 zmm3/m512/m32bcst 和 zmm1 中的两个表中的单精度浮点值，并在写掩码 k1 的控制下将结果存储在 zmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W1 7F /r VPERMT2PD xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用 xmm2 中的索引置换 xmm3/m128/m64bcst 和 xmm1 中的两个表中的双精度浮点值，并在写掩码 k1 的控制下将结果存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W1 7F /r VPERMT2PD ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用 ymm2 中的索引置换 ymm3/m256/m64bcst 和 ymm1 中的两个表中的双精度浮点值，并在写掩码 k1 的控制下将结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W1 7F /r VPERMT2PD zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用 zmm2 中的索引置换 zmm3/m512/m64bcst 和 zmm1 中的两个表中的双精度浮点值，并在写掩码 k1 的控制下将结果存储在 zmm1 中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Full Mem</td>
+				<td>ModRM:reg (r,w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>Full</td>
+				<td>ModRM:reg (r, w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>使用第二操作数（第一源操作数）中的索引置换第一操作数和第三操作数（第二源操作数）中的 16 位/32 位/64 位值，以从第一和第三操作数中选择元素。选定的元素根据写掩码 k1 写入目的操作数（第一操作数）。</p>
+		<p>第一和第二操作数是 ZMM/YMM/XMM 寄存器。第二操作数包含输入索引，以从第一和第三操作数中的两个输入表中选择元素。第一操作数也是结果目的地。</p>
+		<p>D/Q/PS/PD 元素版本：第二源操作数可以是 ZMM/YMM/XMM 寄存器、512/256/128 位内存位置，或从 32/64 位内存位置广播的 512/256/128 位向量。如果设置了 EVEX.b 且表格选择的 id 位被置位（选择 table_2），则执行从低位 32/64 位内存位置进行的广播。</p>
+		<p>双字/PS 版本：用于选择表格的 id 位是第 4/3/2 位，取决于 VL=512, 256, 128。输入索引向量中每个元素的 bits [3:0]/[2:0]/[1:0] 在两个源操作数中选择一个元素，如果 id 位为 0，则选择 table_1（第一源）；否则选择第二源操作数。</p>
+		<p>四字/PD 版本：表格选择 the 的 id 位是第 3/2/1 位，且 bits [2:0]/[1:0] /第 0 位选择每个输入表中的元素。</p>
+		<p>字元素版本：第二源操作数可以是 ZMM/YMM/XMM 寄存器，或者 512/256/128 位内存位置。表格选择的 id 位为第 5/4/3 位，且 bits [4:0]/[3:0]/[2:0] 选择每个输入表中的元素。</p>
+		<p>注意，这些指令允许将源操作数中的 16 位/32 位/64 位值复制到目的操作数中的多个位置。还需注意，在这种情况下，相同的索引可以重新用于例如第二次迭代，而被置换的表元素会被覆盖。</p>
+		<p>对于 VL=256,128，目的寄存器的高 bits (MAXVL-1:256/128) 清零。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vpermt2w--evex-encoded-versions-">VPERMT2W (EVEX 编码版本)<a class="anchor" href="#vpermt2w--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (8, 128), (16, 256), (32, 512)
+IF VL = 128
+    id := 2
+FI;
+IF VL = 256
+    id := 3
+FI;
+IF VL = 512
+    id := 4
+FI;
+TMP_DEST := DEST
+FOR j := 0 TO KL-1
+    i := j * 16
+    off := 16*SRC1[i+id:i]
+    IF k1[j] OR *no writemask*
+        THEN
+            DEST[i+15:i]=SRC1[i+id+1] ? SRC2[off+15:off]
+                    : TMP_DEST[off+15:off]
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE ; zeroing-masking
+                        DEST[i+15:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vpermt2d-vpermt2ps--evex-encoded-versions-">VPERMT2D/VPERMT2PS (EVEX 编码版本)<a class="anchor" href="#vpermt2d-vpermt2ps--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+IF VL = 128
+    id := 1
+FI;
+IF VL = 256
+    id := 2
+FI;
+IF VL = 512
+    id := 3
+FI;
+TMP_DEST := DEST
+FOR j := 0 TO KL-1
+    i := j * 32
+    off := 32*SRC1[i+id:i]
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN
+                        DEST[i+31:i] := SRC1[i+id+1] ? SRC2[31:0]
+                    : TMP_DEST[off+31:off]
+            ELSE
+                DEST[i+31:i] := SRC1[i+id+1] ? SRC2[off+31:off]
+                    : TMP_DEST[off+31:off]
+            FI
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing-masking
+                        DEST[i+31:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vpermt2q-vpermt2pd--evex-encoded-versions-">VPERMT2Q/VPERMT2PD (EVEX 编码版本)<a class="anchor" href="#vpermt2q-vpermt2pd--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8 512)
+IF VL = 128
+    id := 0
+FI;
+IF VL = 256
+    id := 1
+FI;
+IF VL = 512
+    id := 2
+FI;
+TMP_DEST:= DEST
+FOR j := 0 TO KL-1
+    i := j * 64
+    off := 64*SRC1[i+id:i]
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN
+                        DEST[i+63:i] := SRC1[i+id+1] ? SRC2[63:0]
+                    : TMP_DEST[off+63:off]
+            ELSE
+                DEST[i+63:i] := SRC1[i+id+1] ? SRC2[off+63:off]
+                    : TMP_DEST[off+63:off]
+            FI
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE ; zeroing-masking
+                        DEST[i+63:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VPERMT2D __m512i _mm512_permutex2var_epi32(__m512i a, __m512i idx, __m512i b);
+</pre>
+		<pre>VPERMT2D __m512i _mm512_mask_permutex2var_epi32(__m512i a, __mmask16 k, __m512i idx, __m512i b);
+</pre>
+		<pre>VPERMT2D __m512i _mm512_mask2_permutex2var_epi32(__m512i a, __m512i idx, __mmask16 k, __m512i b);
+</pre>
+		<pre>VPERMT2D __m512i _mm512_maskz_permutex2var_epi32(__mmask16 k, __m512i a, __m512i idx, __m512i b);
+</pre>
+		<pre>VPERMT2D __m256i _mm256_permutex2var_epi32(__m256i a, __m256i idx, __m256i b);
+</pre>
+		<pre>VPERMT2D __m256i _mm256_mask_permutex2var_epi32(__m256i a, __mmask8 k, __m256i idx, __m256i b);
+</pre>
+		<pre>VPERMT2D __m256i _mm256_mask2_permutex2var_epi32(__m256i a, __m256i idx, __mmask8 k, __m256i b);
+</pre>
+		<pre>VPERMT2D __m256i _mm256_maskz_permutex2var_epi32(__mmask8 k, __m256i a, __m256i idx, __m256i b);
+</pre>
+		<pre>VPERMT2D __m128i _mm_permutex2var_epi32(__m128i a, __m128i idx, __m128i b);
+</pre>
+		<pre>VPERMT2D __m128i _mm_mask_permutex2var_epi32(__m128i a, __mmask8 k, __m128i idx, __m128i b);
+</pre>
+		<pre>VPERMT2D __m128i _mm_mask2_permutex2var_epi32(__m128i a, __m128i idx, __mmask8 k, __m128i b);
+</pre>
+		<pre>VPERMT2D __m128i _mm_maskz_permutex2var_epi32(__mmask8 k, __m128i a, __m128i idx, __m128i b);
+</pre>
+		<pre>VPERMT2PD __m512d _mm512_permutex2var_pd(__m512d a, __m512i idx, __m512d b);
+</pre>
+		<pre>VPERMT2PD __m512d _mm512_mask_permutex2var_pd(__m512d a, __mmask8 k, __m512i idx, __m512d b);
+</pre>
+		<pre>VPERMT2PD __m512d _mm512_mask2_permutex2var_pd(__m512d a, __m512i idx, __mmask8 k, __m512d b);
+</pre>
+		<pre>VPERMT2PD __m512d _mm512_maskz_permutex2var_pd(__mmask8 k, __m512d a, __m512i idx, __m512d b);
+</pre>
+		<pre>VPERMT2PD __m256d _mm256_permutex2var_pd(__m256d a, __m256i idx, __m256d b);
+</pre>
+		<pre>VPERMT2PD __m256d _mm256_mask_permutex2var_pd(__m256d a, __mmask8 k, __m256i idx, __m256d b);
+</pre>
+		<pre>VPERMT2PD __m256d _mm256_mask2_permutex2var_pd(__m256d a, __m256i idx, __mmask8 k, __m256d b);
+</pre>
+		<pre>VPERMT2PD __m256d _mm256_maskz_permutex2var_pd(__mmask8 k, __m256d a, __m256i idx, __m256d b);
+</pre>
+		<pre>VPERMT2PD __m128d _mm_permutex2var_pd(__m128d a, __m128i idx, __m128d b);
+</pre>
+		<pre>VPERMT2PD __m128d _mm_mask_permutex2var_pd(__m128d a, __mmask8 k, __m128i idx, __m128d b);
+</pre>
+		<pre>VPERMT2PD __m128d _mm_mask2_permutex2var_pd(__m128d a, __m128i idx, __mmask8 k, __m128d b);
+</pre>
+		<pre>VPERMT2PD __m128d _mm_maskz_permutex2var_pd(__mmask8 k, __m128d a, __m128i idx, __m128d b);
+</pre>
+		<pre>VPERMT2PS __m512 _mm512_permutex2var_ps(__m512 a, __m512i idx, __m512 b);
+</pre>
+		<pre>VPERMT2PS __m512 _mm512_mask_permutex2var_ps(__m512 a, __mmask16 k, __m512i idx, __m512 b);
+</pre>
+		<pre>VPERMT2PS __m512 _mm512_mask2_permutex2var_ps(__m512 a, __m512i idx, __mmask16 k, __m512 b);
+</pre>
+		<pre>VPERMT2PS __m512 _mm512_maskz_permutex2var_ps(__mmask16 k, __m512 a, __m512i idx, __m512 b);
+</pre>
+		<pre>VPERMT2PS __m256 _mm256_permutex2var_ps(__m256 a, __m256i idx, __m256 b);
+</pre>
+		<pre>VPERMT2PS __m256 _mm256_mask_permutex2var_ps(__m256 a, __mmask8 k, __m256i idx, __m256 b);
+</pre>
+		<pre>VPERMT2PS __m256 _mm256_mask2_permutex2var_ps(__m256 a, __m256i idx, __mmask8 k, __m256 b);
+</pre>
+		<pre>VPERMT2PS __m256 _mm256_maskz_permutex2var_ps(__mmask8 k, __m256 a, __m256i idx, __m256 b);
+</pre>
+		<pre>VPERMT2PS __m128 _mm_permutex2var_ps(__m128 a, __m128i idx, __m128 b);
+</pre>
+		<pre>VPERMT2PS __m128 _mm_mask_permutex2var_ps(__m128 a, __mmask8 k, __m128i idx, __m128 b);
+</pre>
+		<pre>VPERMT2PS __m128 _mm_mask2_permutex2var_ps(__m128 a, __m128i idx, __mmask8 k, __m128 b);
+</pre>
+		<pre>VPERMT2PS __m128 _mm_maskz_permutex2var_ps(__mmask8 k, __m128 a, __m128i idx, __m128 b);
+</pre>
+		<pre>VPERMT2Q __m512i _mm512_permutex2var_epi64(__m512i a, __m512i idx, __m512i b);
+</pre>
+		<pre>VPERMT2Q __m512i _mm512_mask_permutex2var_epi64(__m512i a, __mmask8 k, __m512i idx, __m512i b);
+</pre>
+		<pre>VPERMT2Q __m512i _mm512_mask2_permutex2var_epi64(__m512i a, __m512i idx, __mmask8 k, __m512i b);
+</pre>
+		<pre>VPERMT2Q __m512i _mm512_maskz_permutex2var_epi64(__mmask8 k, __m512i a, __m512i idx, __m512i b);
+</pre>
+		<pre>VPERMT2Q __m256i _mm256_permutex2var_epi64(__m256i a, __m256i idx, __m256i b);
+</pre>
+		<pre>VPERMT2Q __m256i _mm256_mask_permutex2var_epi64(__m256i a, __mmask8 k, __m256i idx, __m256i b);
+</pre>
+		<pre>VPERMT2Q __m256i _mm256_mask2_permutex2var_epi64(__m256i a, __m256i idx, __mmask8 k, __m256i b);
+</pre>
+		<pre>VPERMT2Q __m256i _mm256_maskz_permutex2var_epi64(__mmask8 k, __m256i a, __m256i idx, __m256i b);
+</pre>
+		<pre>VPERMT2Q __m128i _mm_permutex2var_epi64(__m128i a, __m128i idx, __m128i b);
+</pre>
+		<pre>VPERMT2Q __m128i _mm_mask_permutex2var_epi64(__m128i a, __mmask8 k, __m128i idx, __m128i b);
+</pre>
+		<pre>VPERMT2Q __m128i _mm_mask2_permutex2var_epi64(__m128i a, __m128i idx, __mmask8 k, __m128i b);
+</pre>
+		<pre>VPERMT2Q __m128i _mm_maskz_permutex2var_epi64(__mmask8 k, __m128i a, __m128i idx, __m128i b);
+</pre>
+		<pre>VPERMT2W __m512i _mm512_permutex2var_epi16(__m512i a, __m512i idx, __m512i b);
+</pre>
+		<pre>VPERMT2W __m512i _mm512_mask_permutex2var_epi16(__m512i a, __mmask32 k, __m512i idx, __m512i b);
+</pre>
+		<pre>VPERMT2W __m512i _mm512_mask2_permutex2var_epi16(__m512i a, __m512i idx, __mmask32 k, __m512i b);
+</pre>
+		<pre>VPERMT2W __m512i _mm512_maskz_permutex2var_epi16(__mmask32 k, __m512i a, __m512i idx, __m512i b);
+</pre>
+		<pre>VPERMT2W __m256i _mm256_permutex2var_epi16(__m256i a, __m256i idx, __m256i b);
+</pre>
+		<pre>VPERMT2W __m256i _mm256_mask_permutex2var_epi16(__m256i a, __mmask16 k, __m256i idx, __m256i b);
+</pre>
+		<pre>VPERMT2W __m256i _mm256_mask2_permutex2var_epi16(__m256i a, __m256i idx, __mmask16 k, __m256i b);
+</pre>
+		<pre>VPERMT2W __m256i _mm256_maskz_permutex2var_epi16(__mmask16 k, __m256i a, __m256i idx, __m256i b);
+</pre>
+		<pre>VPERMT2W __m128i _mm_permutex2var_epi16(__m128i a, __m128i idx, __m128i b);
+</pre>
+		<pre>VPERMT2W __m128i _mm_mask_permutex2var_epi16(__m128i a, __mmask8 k, __m128i idx, __m128i b);
+</pre>
+		<pre>VPERMT2W __m128i _mm_mask2_permutex2var_epi16(__m128i a, __m128i idx, __mmask8 k, __m128i b);
+</pre>
+		<pre>VPERMT2W __m128i _mm_maskz_permutex2var_epi16(__mmask8 k, __m128i a, __m128i idx, __m128i b);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>VPERMT2D/Q/PS/PD：请参阅表 2-50，“第 E4NF 类异常条件”。</p>
+		<p>VPERMT2W：请参阅表 2-50，“第 E4NF 类异常条件”中的异常类型 E4NF.nb。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>PINSRB/PINSRD/PINSRQ — 插入字节/双字/四字</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>PINSRB/PINSRD/PINSRQ — 插入字节/双字/四字</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>66 0F 3A 20 /r ib PINSRB xmm1, r32/m8, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE4_1</td>
+				<td>根据 imm8 指定的 XMM 寄存器目的元素，将 r32/m8 中的字节整数值插入 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>66 0F 3A 22 /r ib PINSRD xmm1, r/m32, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE4_1</td>
+				<td>根据 imm8 指定的目的元素，将 r/m32 中的双字整数值插入 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>66 REX.W 0F 3A 22 /r ib PINSRQ xmm1, r/m64, imm8</td>
+				<td>A</td>
+				<td>V/N. E.</td>
+				<td>SSE4_1</td>
+				<td>根据 imm8 指定的目的元素，将 r/m64 中的四字整数值插入 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F3A.W0 20 /r ib VPINSRB xmm1, xmm2, r32/m8, imm8</td>
+				<td>B</td>
+				<td>V<sup>1</sup>/V</td>
+				<td>AVX</td>
+				<td>在 imm8 指定的字节偏移量处，将 r32/m8 中的字节整数值与 xmm2 中的剩余部分合并到 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F3A.W0 22 /r ib VPINSRD xmm1, xmm2, r/m32, imm8</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>在 imm8 指定的双字偏移量处，将 r32/m32 中的双字整数值与 xmm2 中的剩余部分合并到 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F3A.W1 22 /r ib VPINSRQ xmm1, xmm2, r/m64, imm8</td>
+				<td>B</td>
+				<td>V/I<sup>2</sup></td>
+				<td>AVX</td>
+				<td>在 imm8 指定的四字偏移量处，将 r64/m64 中的四字整数值与 xmm2 中的剩余部分合并到 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F3A.WIG 20 /r ib VPINSRB xmm1, xmm2, r32/m8, imm8</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512BW</td>
+				<td>在 imm8 指定的字节偏移量处，将 r32/m8 中的字节整数值与 xmm2 中的剩余部分合并到 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F3A.W0 22 /r ib VPINSRD xmm1, xmm2, r32/m32, imm8</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512DQ</td>
+				<td>在 imm8 指定的双字偏移量处，将 r32/m32 中的双字整数值与 xmm2 中的剩余部分合并到 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F3A.W1 22 /r ib VPINSRQ xmm1, xmm2, r64/m64, imm8</td>
+				<td>C</td>
+				<td>V/N.E.<sup>2</sup></td>
+				<td>AVX512DQ</td>
+				<td>在 imm8 指定的四字偏移量处，将 r64/m64 中的四字整数值与 xmm2 中的剩余部分合并到 xmm1 中。</td>
+			</tr>
+		</table>
+		<blockquote>
+			<p>1. 在 64 位模式下，VPINSRB 忽略 VEX.W1（类似于 PINSRB 中的传统 REX.W=1 前缀）。</p>
+			<p>2. 在非 64 位模式下，VEX.W/EVEX.W 被忽略；指令的行为如同使用 W0 版本。</p>
+		</blockquote>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>imm8</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>imm8</td>
+			</tr>
+			<tr>
+				<td>C</td>
+				<td>Tuple1 Scalar</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>imm8</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>从源操作数（第二个操作数）复制一个字节/双字/四字，并将其插入目的操作数（第一个操作数）中由计数操作数（第三个操作数）指定的位置。（目的寄存器中的其他元素保持不变。）源操作数可以是通用寄存器或内存位置。（当源操作数是通用寄存器时，PINSRB 复制寄存器的低字节。）目的操作数是 XMM 寄存器。计数操作数是一个 8 位立即数。当指定 XMM 寄存器中的四字[双字，字节]位置时，计数操作数的最低[2, 4]位指定该位置。</p>
+		<p>在 64 位模式下且不使用 VEX/EVEX 编码时，使用 REX.R 形式的 REX 前缀允许此指令访问其他寄存器（XMM8-XMM15，R8-15）。使用 REX.W 允许使用 64 位通用寄存器。</p>
+		<p>128位传统 SSE 版本：对应 YMM 目的寄存器的位（MAXVL-1:128）保持不变。</p>
+		<p>VEX.128 编码版本：目的寄存器的位（MAXVL-1:128）清零。VEX.L 必须为 0，否则指令将导致 #UD。尝试在非 64 位模式下执行 VPINSRQ 将导致 #UD。</p>
+		<p>EVEX.128 编码版本：目的寄存器的位（MAXVL-1:128）清零。EVEX.L'L 必须为 0，否则指令将导致 #UD。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>CASE OF
+    PINSRB: SEL:=COUNT[3:0];
+            MASK := (0FFH &lt;&lt; (SEL * 8));
+            TEMP := (((SRC[7:0] &lt;&lt; (SEL *8)) AND MASK);
+    PINSRD: SEL := COUNT[1:0];
+            MASK := (0FFFFFFFFH &lt;&lt; (SEL * 32));
+            TEMP := (((SRC &lt;&lt; (SEL *32)) AND MASK) ;
+    PINSRQ: SEL:=COUNT[0]
+            MASK := (0FFFFFFFFFFFFFFFFH &lt;&lt; (SEL * 64));
+            TEMP := (((SRC &lt;&lt; (SEL *64)) AND MASK) ;
+ESAC;
+        DEST := ((DEST AND NOT MASK) OR TEMP);
+</pre>
+		<h3 id="vpinsrb--vex-evex-encoded-version-">VPINSRB（VEX/EVEX 编码版本）<a class="anchor" href="#vpinsrb--vex-evex-encoded-version-">¶</a></h3>
+		<pre>SEL := imm8[3:0]
+DEST[127:0] := write_b_element(SEL, SRC2, SRC1)
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vpinsrd--vex-evex-encoded-version-">VPINSRD（VEX/EVEX 编码版本）<a class="anchor" href="#vpinsrd--vex-evex-encoded-version-">¶</a></h3>
+		<pre>SEL := imm8[1:0]
+DEST[127:0] := write_d_element(SEL, SRC2, SRC1)
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vpinsrq--vex-evex-encoded-version-">VPINSRQ（VEX/EVEX 编码版本）<a class="anchor" href="#vpinsrq--vex-evex-encoded-version-">¶</a></h3>
+		<pre>SEL := imm8[0]
+DEST[127:0] := write_q_element(SEL, SRC2, SRC1)
+DEST[MAXVL-1:128] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>PINSRB __m128i _mm_insert_epi8 (__m128i s1, int s2, const int ndx);</pre>
+		<pre>PINSRD __m128i _mm_insert_epi32 (__m128i s2, int s, const int ndx);</pre>
+		<pre>PINSRQ __m128i _mm_insert_epi64(__m128i s2, __int64 s, const int ndx);</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>EVEX 编码指令，请参阅表 2-22，“第 5 类异常条件”。</p>
+		<p>EVEX 编码指令，请参阅表 2-57，“第 E9NF 类异常条件”。</p>
+		<p>此外：</p>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果 VEX.L = 1 或 EVEX.L'L &gt; 0。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>INVVPID — 基于 VPID 使转换失效</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>INVVPID — 基于 VPID 使转换失效</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>66 0F 38 81 INVVPID r64, m128</td>
+			<td>RM</td>
+			<td>在 64 位模式下，基于 VPID 使 TLB 和分页结构缓存中的条目失效。</td>
+		</tr>
+		<tr>
+			<td>66 0F 38 81 INVVPID r32, m128</td>
+			<td>RM</td>
+			<td>在 64 位模式之外，基于 VPID 使 TLB 和分页结构缓存中的条目失效。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>RM</td>
+			<td>ModRM:reg (r)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>NA</td>
+			<td>NA</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>基于虚拟处理器标识符 (VPID) 使翻译后备缓冲区 (TLB) 和分页结构缓存中的映射失效。（参见第 29 章，“地址转换的 VMX 支持”。）失效操作基于寄存器操作数中指定的 INVVPID 类型和内存操作数中指定的 INVVPID 描述符。</p>
+	<p>在 IA-32e 模式之外，寄存器操作数始终为 32 位，无论 CS.D 的值如何；在 64 位模式下，寄存器操作数为 64 位（该指令不能在兼容模式下执行）。</p>
+	<p>逻辑处理器支持的 INVVPID 类型在 IA32_VMX_EPT_VPID_CAP MSR 中报告（参见附录 A，“VMX 能力报告机制”）。当前定义了四种 INVVPID 类型：</p>
+	<ul>
+		<li>单条地址失效：如果 INVVPID 类型为 0，则逻辑处理器使 INVVPID 描述符中指定的线性地址和 VPID 的映射失效。在某些情况下，它也可能使其他线性地址（或其他 VPID）的映射失效。</li>
+		<li>单上下文失效：如果 INVVPID 类型为 1，则逻辑处理器使标记有 INVVPID 描述符中指定的 VPID 的所有映射失效。在某些情况下，它也可能使其他 VPID 的映射失效。</li>
+		<li>全上下文失效：如果 INVVPID 类型为 2，则逻辑处理器使标记有除 VPID 0000H 之外的所有 VPID 的所有映射失效。在某些情况下，它也可能使带有 VPID 0000H 的翻译失效。</li>
+		<li>单上下文失效（保留全局翻译）：如果 INVVPID 类型为 3，则逻辑处理器使标记有 INVVPID 描述符中指定的 VPID 的所有映射失效（全局翻译除外）。在某些情况下，它也可能使全局翻译（以及带有其他 VPID 的映射）失效。有关全局翻译的信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》卷 3A 第 4 章中的“缓存翻译信息”部分。</li>
+	</ul>
+	<p>如果指定了不支持的 INVVPID 类型，则指令失败。</p>
+	<p>INVVPID 使指示的 VPID 的所有指定映射失效，无论这些映射可能与之关联的 EPTP 和 PCID 值如何。</p>
+	<p>INVVPID 描述符由 128 位组成，并由 VPID 和线性地址组成，如图 31-2 所示。</p>
+
+	<figure id="fig-31-2">
+		<svg style="width: 455.616pt; height: 91.07999999999997pt" viewbox="109.10000000000001 0.0 384.68 80.89999999999998">
+		<g xmlns="http://www.w3.org/2000/svg" style="stroke: none; fill: none">
+		<rect height="74.88" style="fill: rgb(0%, 0%, 0%)" width="0.48" x="111.60000000000001" y="0.539999999999992"></rect>
+		<rect height="74.88" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="490.8" y="0.539999999999992"></rect>
+		<rect height="0.48" style="fill: rgb(0%, 0%, 0%)" width="379.68" x="111.60000000000001" y="0.0"></rect>
+		<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="379.68" x="111.60000000000001" y="75.42001999999998"></rect>
+		<rect height="1.02" style="fill: rgb(0%, 0%, 0%)" width="306.54" x="153.12" y="28.799999999999955"></rect>
+		<rect height="18.54" style="fill: rgb(0%, 0%, 0%)" width="1.02" x="458.64" y="29.279999999999973"></rect>
+		<rect height="1.02" style="fill: rgb(0%, 0%, 0%)" width="306.48" x="152.64000000000001" y="46.799999999999955"></rect>
+		<rect height="18.48" style="fill: rgb(0%, 0%, 0%)" width="1.02" x="152.64000000000001" y="28.799999999999983"></rect>
+		<rect height="18.0" style="fill: rgb(70%, 70%, 70%)" width="114.78" x="306.12" y="29.279999999999973"></rect>
+		<rect height="1.02" style="fill: rgb(0%, 0%, 0%)" width="115.32000000000001" x="306.12" y="28.799999999999955"></rect>
+		<rect height="18.54" style="fill: rgb(0%, 0%, 0%)" width="1.02" x="420.42" y="29.279999999999973"></rect>
+		<rect height="1.02" style="fill: rgb(0%, 0%, 0%)" width="115.26" x="305.64" y="46.799999999999955"></rect>
+		<rect height="18.48" style="fill: rgb(0%, 0%, 0%)" width="1.02" x="305.64" y="28.799999999999983"></rect>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.107835200000011pt; fill: #000" textlength="14.993288879999994" x="149.52" y="27.591069199999964">127</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.107835200000011pt; fill: #000" textlength="21.53168155999998" x="294.96" y="27.591069199999964">6463</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.107835200000011pt; fill: #000" textlength="50.990224559999945" x="409.5607516" y="27.591069199999964">1615 0</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.107835200000011pt; fill: #000" textlength="50.0" x="204.9" y="42.89139715999997">线性地址</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.107835200000011pt; fill: #000" textlength="115.0" x="310.9" y="42.89139715999997">保留（必须为零）</text>
+		<text lengthadjust="spacingAndGlyphs" style="font-size: 10.107835200000011pt; fill: #000" textlength="21.059801439999944" x="429.11434068000005" y="42.89139715999997">VPID</text>
+		</g>
+		</svg>
+		<figcaption><a href='invvpid.html#fig-31-2'>图 31-2</a>. INVVPID 描述符</figcaption>
+	</figure>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF (not in VMX operation) or (CR0.PE = 0) or (RFLAGS.VM = 1) or (IA32_EFER.LMA = 1 and CS.L = 0)
+    THEN #UD;
+ELSIF in VMX non-root operation
+    THEN VM exit;
+ELSIF CPL &gt; 0
+    THEN #GP(0);
+    ELSE
+        INVVPID_TYPE := value of register operand;
+        IF IA32_VMX_EPT_VPID_CAP MSR indicates that processor does not support
+        INVVPID_TYPE
+            THEN VMfail(Invalid operand to INVEPT/INVVPID);
+            ELSE // INVVPID_TYPE must be in the range 0–3
+                INVVPID_DESC := value of memory operand;
+                IF INVVPID_DESC[63:16] ≠ 0
+                    THEN VMfail(Invalid operand to INVEPT/INVVPID);
+                    ELSE
+                        CASE INVVPID_TYPE OF
+                            0:
+                                            // individual-address invalidation
+                                VPID := INVVPID_DESC[15:0];
+                                IF VPID = 0
+                                    THEN VMfail(Invalid operand to INVEPT/INVVPID);
+                                    ELSE
+                                        GL_ADDR := INVVPID_DESC[127:64];
+                                        IF (GL_ADDR is not in a canonical form)
+                                            THEN
+                                                VMfail(Invalid operand to INVEPT/INVVPID);
+                                            ELSE
+                                                Invalidate mappings for GL_ADDR tagged with VPID;
+                                                VMsucceed;
+                                        FI;
+                                FI;
+                                BREAK;
+                            1:
+                                            // single-context invalidation
+                                VPID := INVVPID_DESC[15:0];
+                                IF VPID = 0
+                                    THEN VMfail(Invalid operand to INVEPT/INVVPID);
+                                    ELSE
+                                        Invalidate all mappings tagged with VPID;
+                                        VMsucceed;
+                                FI;
+                                BREAK;
+                            2:
+                                            // all-context invalidation
+                                Invalidate all mappings tagged with all non-zero VPIDs;
+                                VMsucceed;
+                                BREAK;
+                            3:
+                                            // single-context invalidation retaining globals
+                                VPID := INVVPID_DESC[15:0];
+                                IF VPID = 0
+                                    THEN VMfail(Invalid operand to INVEPT/INVVPID);
+                                    ELSE
+                                        Invalidate all mappings tagged with VPID except global translations;
+                                        VMsucceed;
+                                FI;
+                                BREAK;
+                        ESAC;
+                FI;
+        FI;
+FI;
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>参见操作部分和第 31.2 节。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="4">#GP(0)</td>
+			<td>如果当前特权级不为 0。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数有效地址超出了 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>如果 DS、ES、FS 或 GS 寄存器包含不可用的段。</td>
+		</tr>
+		<tr>
+			<td>如果源操作数位于仅执行的代码段中。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果访问内存操作数时发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#SS(0)</td>
+			<td>如果内存操作数有效地址超出了 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>如果 SS 寄存器包含不可用的段。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#UD</td>
+			<td>如果不在 VMX 操作中。</td>
+		</tr>
+		<tr>
+			<td>如果逻辑处理器不支持 VPID (IA32_VMX_PROCBASED_CTLS2[37]=0)。</td>
+		</tr>
+		<tr>
+			<td>如果逻辑处理器支持 VPID (IA32_VMX_PROCBASED_CTLS2[37]=1) 但不支持 INVVPID 指令 (IA32_VMX_EPT_VPID_CAP[32]=0)。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>INVVPID 指令在实地址模式下无法识别。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>INVVPID 指令在虚拟-8086 模式下无法识别。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>INVVPID 指令在兼容模式下无法识别。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果当前特权级不为 0。</td>
+		</tr>
+		<tr>
+			<td>如果内存操作数位于 CS、DS、ES、FS 或 GS 段中，且内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果访问内存操作数时发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存目的操作数位于 SS 段中，且内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td rowspan="3">#UD</td>
+			<td>如果不在 VMX 操作中。</td>
+		</tr>
+		<tr>
+			<td>如果逻辑处理器不支持 VPID (IA32_VMX_PROCBASED_CTLS2[37]=0)。</td>
+		</tr>
+		<tr>
+			<td>如果逻辑处理器支持 VPID (IA32_VMX_PROCBASED_CTLS2[37]=1) 但不支持 INVVPID 指令 (IA32_VMX_EPT_VPID_CAP[32]=0)。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>MOVHLPS — 高位到低位移动打包单精度浮点值</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>MOVHLPS — 高位到低位移动打包单精度浮点值</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op / En</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>NP 0F 12 /r MOVHLPS xmm1, xmm2</td>
+			<td>RM</td>
+			<td>有效/有效</td>
+			<td>SSE</td>
+			<td>将两个打包单精度浮点值从 xmm2 的高四字移动到 xmm1 的低四字。</td>
+		</tr>
+		<tr>
+			<td>VEX.128.0F.WIG 12 /r VMOVHLPS xmm1, xmm2, xmm3</td>
+			<td>RVM</td>
+			<td>有效/有效</td>
+			<td>AVX</td>
+			<td>合并来自 xmm3 的高四字和 xmm2 的低四字的两个打包单精度浮点值。</td>
+		</tr>
+		<tr>
+			<td>EVEX.128.0F.W0 12 /r VMOVHLPS xmm1, xmm2, xmm3</td>
+			<td>RVM</td>
+			<td>有效/有效</td>
+			<td>AVX512F</td>
+			<td>合并来自 xmm3 的高四字和 xmm2 的低四字的两个打包单精度浮点值。</td>
+		</tr>
+	</table>
+	<blockquote>
+		<p>1. 需要 ModRM.MOD = 011B。</p>
+	</blockquote>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>RM</td>
+			<td>ModRM:reg (w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>RVM</td>
+			<td>ModRM:reg (w)</td>
+			<td>VEX.vvvv (r) / EVEX.vvvv (r)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>该指令不能用于内存到寄存器的移动。</p>
+	<p>128 位双参数形式：</p>
+	<p>将两个打包单精度浮点值从第二个 XMM 参数（第二个操作数）的高四字移动到第一个 XMM 寄存器（第一个操作数）的低四字。目的操作数 127:64 位处的四字保持不变。对应目的寄存器的位 (MAXVL-1:128) 保持不变。</p>
+	<p>128 位及 EVEX 三参数形式：</p>
+	<p>将两个打包单精度浮点值从第三个 XMM 参数（第三个操作数）的高四字移动到目的地（第一个操作数）的低四字。将第二个 XMM 参数（第二个操作数）的高四字复制到目的地（第一个操作数）的高四字。对应目的寄存器的位 (MAXVL-1:128) 被清零。</p>
+	<p>如果 VMOVHLPS 用 VEX.L 或 EVEX.L'L= 1 编码，尝试执行用 VEX.L 或 EVEX.L'L= 1 编码的指令将导致 #UD 异常。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<h3 id="movhlps--128-bit-two-argument-form-">MOVHLPS (128-bit Two-Argument Form)<a class="anchor" href="#movhlps--128-bit-two-argument-form-">¶</a></h3>
+	<pre>DEST[63:0] := SRC[127:64]
+DEST[MAXVL-1:64] (Unmodified)
+</pre>
+
+	<h3 id="vmovhlps--128-bit-three-argument-form---vex---evex-">VMOVHLPS (128-bit Three-Argument Form - VEX &amp; EVEX)<a class="anchor" href="#vmovhlps--128-bit-three-argument-form---vex---evex-">¶</a></h3>
+	<pre>DEST[63:0] := SRC2[127:64]
+DEST[127:64] := SRC1[127:64]
+DEST[MAXVL-1:128] := 0
+</pre>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>MOVHLPS __m128 _mm_movehl_ps(__m128 a, __m128 b)
+</pre>
+
+	<h2 id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+	<p>非 EVEX 编码指令，参见表 2-24，“Type 7 类异常条件”，此外：</p>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>如果 VEX.L = 1。</td>
+		</tr>
+	</table>
+	<p>EVEX 编码指令，参见表 2-55，“Type E7NM 类异常条件” 中的 Exceptions Type E7NM.128。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>XRESLDTRK — 恢复跟踪加载地址</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>XRESLDTRK — 恢复跟踪加载地址</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>F2 0F 01 E9 XRESLDTRK</td>
+				<td>ZO</td>
+				<td>V/V</td>
+				<td>TSXLDTRK</td>
+				<td>指定 Intel TSX 暂停读取地址跟踪区域的结束。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>ZO</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>该指令标记 Intel TSX (RTM) 暂停加载地址跟踪区域的结束。如果该指令在暂停加载地址跟踪区域内部使用，它将结束暂停区域，并且随后的所有加载地址都将被添加到事务读取集中。如果该指令在活动事务内部但不在暂停区域内使用，它将导致事务终止。</p>
+		<p>如果该指令在事务区域之外使用，其行为类似于 NOP。</p>
+		<p>《Intel® 64 和 IA-32 架构软件开发人员手册》卷 1 第 16 章“使用 Intel® 事务同步扩展进行编程”提供了关于 Intel® TSX 暂停加载地址跟踪的更多信息。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="xresldtrk">XRESLDTRK<a class="anchor" href="#xresldtrk">¶</a></h3>
+		<pre>IF RTM_ACTIVE = 1:
+    IF SUSLDTRK_ACTIVE = 1:
+        SUSLDTRK_ACTIVE := 0
+    ELSE:
+        RTM_ABORT
+*ELSE:
+    NOP
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>XRESLDTRK void _xresldtrk(void);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 CPUID.(EAX=7, ECX=0):EDX.TSXLDTRK[bit 16] = 0。</td>
+			</tr>
+			<tr>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

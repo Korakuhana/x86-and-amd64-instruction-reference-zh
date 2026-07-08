@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>MINSS — 返回标量单精度浮点值最小值</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>MINSS — 返回标量单精度浮点值最小值</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>F3 0F 5D /r MINSS xmm1,xmm2/m32</td>
+			<td>A</td>
+			<td>有效/有效</td>
+			<td>SSE</td>
+			<td>返回 xmm2/m32 和 xmm1 之间最小标量单精度浮点值。</td>
+		</tr>
+		<tr>
+			<td>VEX.LIG.F3.0F.WIG 5D /r VMINSS xmm1,xmm2, xmm3/m32</td>
+			<td>B</td>
+			<td>有效/有效</td>
+			<td>AVX</td>
+			<td>返回 xmm3/m32 和 xmm2 之间最小标量单精度浮点值。</td>
+		</tr>
+		<tr>
+			<td>EVEX.LLIG.F3.0F.W0 5D /r VMINSS xmm1 {k1}{z}, xmm2, xmm3/m32{sae}</td>
+			<td>C</td>
+			<td>有效/有效</td>
+			<td>AVX512F</td>
+			<td>返回 xmm3/m32 和 xmm2 之间最小标量单精度浮点值。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>元组类型</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>A</td>
+			<td>N/A</td>
+			<td>ModRM:reg (r, w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>B</td>
+			<td>N/A</td>
+			<td>ModRM:reg (w)</td>
+			<td>VEX.vvvv (r)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>C</td>
+			<td>Tuple1 Scalar</td>
+			<td>ModRM:reg (w)</td>
+			<td>EVEX.vvvv (r)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>比较第一个源操作数和第二个源操作数中的低单精度浮点值，并将最小值返回到目的操作数的低双字中。</p>
+	<p>如果被比较的值都是 0.0（无论符号如何），则返回第二个源操作数中的值。如果第二个操作数中的值是 SNaN，则将该 SNaN 原样返回到目的地（即不返回 SNaN 的 QNaN 版本）。</p>
+	<p>如果对于此指令只有一个值是 NaN（SNaN 或 QNaN），则将第二个源操作数，无论是 NaN 还是有效的浮点值，写入结果中。如果需要返回两个源操作数中任意一个的 NaN，可以通过指令序列来模拟 MINSS 的操作，例如先进行比较，然后进行 AND、ANDN 和 OR。</p>
+	<p>第二个源操作数可以是 XMM 寄存器或 32 位内存位置。第一个源和目的操作数是 XMM 寄存器。</p>
+	<p>128 位传统 SSE 版本：目的操作数与第一个源操作数相同。对应目的寄存器的高位 (MAXVL:32) 保持不变。</p>
+	<p>VEX.128 和 EVEX 编码版本：第一个源操作数是 (E)VEX.vvvv 编码的 XMM 寄存器。XMM 目的寄存器的位 (127:32) 从第一个源操作数的相应位复制。目的寄存器的高位 (MAXVL-1:128) 被清零。</p>
+	<p>EVEX 编码版本：目的操作数的低双字元素根据写掩码进行更新。</p>
+	<p>软件应确保 VMINSS 编码为 VEX.L=0。将 VMINSS 编码为 VEX.L=1 可能会在不同的处理器世代中遇到不可预测的行为。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>MIN(SRC1, SRC2)
+{
+    IF ((SRC1 = 0.0) and (SRC2 = 0.0)) THEN DEST := SRC2;
+        ELSE IF (SRC1 = NaN) THEN DEST := SRC2; FI;
+        ELSE IF (SRC2 = NaN) THEN DEST := SRC2; FI;
+        ELSE IF (SRC1 &lt; SRC2) THEN DEST := SRC1;
+        ELSE DEST := SRC2;
+    FI;
+}
+</pre>
+
+	<h3 id="minss--evex-encoded-version-">MINSS (EVEX Encoded Version)<a class="anchor" href="#minss--evex-encoded-version-">¶</a></h3>
+	<pre>IF k1[0] or *no writemask*
+    THEN DEST[31:0] := MIN(SRC1[31:0], SRC2[31:0])
+    ELSE
+        IF *merging-masking* ; merging-masking
+            THEN *DEST[31:0] remains unchanged*
+            ELSE ; zeroing-masking
+                THEN DEST[31:0] := 0
+        FI;
+FI;
+DEST[127:32] := SRC1[127:32]
+DEST[MAXVL-1:128] := 0
+</pre>
+
+	<h3 id="vminss--vex-128-encoded-version-">VMINSS (VEX.128 Encoded Version)<a class="anchor" href="#vminss--vex-128-encoded-version-">¶</a></h3>
+	<pre>DEST[31:0] := MIN(SRC1[31:0], SRC2[31:0])
+DEST[127:32] := SRC1[127:32]
+DEST[MAXVL-1:128] := 0
+</pre>
+
+	<h3 id="minss--128-bit-legacy-sse-version-">MINSS (128-bit Legacy SSE Version)<a class="anchor" href="#minss--128-bit-legacy-sse-version-">¶</a></h3>
+	<pre>DEST[31:0] := MIN(SRC1[31:0], SRC2[31:0])
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>VMINSS __m128 _mm_min_round_ss( __m128 a, __m128 b, int);
+</pre>
+	<pre>VMINSS __m128 _mm_mask_min_round_ss(__m128 s, __mmask8 k, __m128 a, __m128 b, int);
+</pre>
+	<pre>VMINSS __m128 _mm_maskz_min_round_ss( __mmask8 k, __m128 a, __m128 b, int);
+</pre>
+	<pre>MINSS __m128 _mm_min_ss(__m128 a, __m128 b)
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+	<p>无效值（包括 QNaN 源操作数）、非规范化数。</p>
+
+	<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+	<p>非 EVEX 编码指令，参见表 2-20，“Type 3 类异常条件”。</p>
+	<p>EVEX 编码指令，参见表 2-46，“Type E2 类异常条件”。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

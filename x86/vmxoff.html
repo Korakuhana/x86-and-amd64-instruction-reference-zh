@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VMXOFF — 退出 VMX 操作</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VMXOFF — 退出 VMX 操作</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>0F 01 C4 VMXOFF</td>
+				<td>ZO</td>
+				<td>退出 VMX 操作。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>ZO</td>
+				<td>NA</td>
+				<td>NA</td>
+				<td>NA</td>
+				<td>NA</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>使逻辑处理器退出 VMX 操作，解除对 INIT 信号的阻塞，有条件地重新启用 A20M，并清除任何地址范围监控。<sup>1</sup></p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>IF (not in VMX operation) or (CR0.PE = 0) or (RFLAGS.VM = 1) or (IA32_EFER.LMA = 1 and CS.L = 0)
+    THEN #UD;
+ELSIF in VMX non-root operation
+    THEN VMexit;
+ELSIF CPL &gt; 0
+    THEN #GP(0);
+ELSIF dual-monitor treatment of SMIs and SMM is active
+    THEN VMfail(VMXOFF under dual-monitor treatment of SMIs and SMM);
+ELSE
+    leave VMX operation;
+    unblock INIT;
+    IF IA32_SMM_MONITOR_CTL[2] = 0<sup>2</sup>
+        THEN unblock SMIs;
+    IF outside SMX operation<sup>3</sup>
+        THEN unblock and enable A20M;
+    FI;
+    clear address-range monitoring;
+    VMsucceed;
+FI;
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>请参阅操作部分和第 31.2 节。</p>
+
+		<h2 id="protected-mode-exceptions" class="exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP(0)</td>
+				<td>如果以 CPL &gt; 0 在 VMX 根操作中执行。</td>
+			</tr>
+		</table>
+		<blockquote>
+			<p>1. 参见 Intel® 64 和 IA-32 架构软件开发人员手册卷 3A 第 9 章，“多处理器管理”中关于 MONITOR/MWAIT 的信息。</p>
+			<p>2. 将 IA32_SMM_MONITOR_CTL[bit 2] 设置为 1 会阻止 VMXOFF 解除对 SMI 的阻塞，无论该寄存器的值位（位 0）如何。并不是所有的处理器都允许将该位置为 1。软件应该咨询 VMX 能力 MSR IA32_VMX_MISC（参见附录 A.6）以确定是否允许这样做。</p>
+			<p>3. 如果尚未执行 GETSEC[SENTER]，或者在最后一次执行 GETSEC[SENTER] 之后执行了 GETSEC[SEXIT]，则逻辑处理器处于 SMX 操作外部。参见第 6 章，“更安全模式扩展参考”。</p>
+		</blockquote>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果是在 VMX 操作外部执行。</td>
+			</tr>
+		</table>
+
+		<h2 id="real-address-mode-exceptions" class="exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>在实地址模式下无法识别 VMXOFF 指令。</td>
+			</tr>
+		</table>
+
+		<h2 id="virtual-8086-mode-exceptions" class="exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>在虚拟-8086 模式下无法识别 VMXOFF 指令。</td>
+			</tr>
+		</table>
+
+		<h2 id="compatibility-mode-exceptions" class="exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>在兼容模式下无法识别 VMXOFF 指令。</td>
+			</tr>
+		</table>
+
+		<h2 id="64-bit-mode-exceptions" class="exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP(0)</td>
+				<td>如果以 CPL &gt; 0 在 VMX 根操作中执行。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果是在 VMX 操作外部执行。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

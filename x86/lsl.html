@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>LSL — 加载段界限</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>LSL — 加载段界限</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>0F 03 /r</td>
+			<td>LSL r16, r16/m16</td>
+			<td>RM</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>加载：r16 := 段界限，选择子为 r16/m16。</td>
+		</tr>
+		<tr>
+			<td>0F 03 /r</td>
+			<td>LSL r32, r32/m16<sup>1</sup></td>
+			<td>RM</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>加载：r32 := 段界限，选择子为 r32/m16。</td>
+		</tr>
+		<tr>
+			<td>REX.W + 0F 03 /r</td>
+			<td>LSL r64, r32/m16<sup>1</sup></td>
+			<td>RM</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>加载：r64 := 段界限，选择子为 r32/m16。</td>
+		</tr>
+	</table>
+	<blockquote>
+		<p>1. 对于所有加载（无论目的操作数的大小如何），仅使用位 16-0。其他位被忽略。</p>
+	</blockquote>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>RM</td>
+			<td>ModRM:reg (w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将第二个操作数（源操作数）指定的段描述符中重组的段界限加载到第一个操作数（目的操作数）中，并设置 EFLAGS 寄存器中的 ZF 标志。源操作数（可以是寄存器或内存位置）包含要访问的段描述符的段选择子。目的操作数是通用寄存器。</p>
+	<p>作为加载过程的一部分，处理器执行访问检查。一旦加载到目的寄存器中，软件就可以将段界限与指针的偏移量进行比较。</p>
+	<p>段界限是一个 20 位的值，包含在段描述符的字节 0 和 1 以及字节 6 的前 4 位中。如果描述符具有字节精细度段界限（粒度标志设为 0），则目的操作数将被加载字节精细度值（字节界限）。如果描述符具有页精细度段界限（粒度标志设为 1），则 LSL 指令在将页精细度界限（页界限）加载到目的操作数之前，会将其转换为字节界限。该转换是通过将 20 位“原始”界限左移 12 位，并将低 12 位填充为 1 来完成的。</p>
+	<p>当操作数大小为 32 位时，32 位字节界限将存储在目的操作数中。当操作数大小为 16 位时，会计算出一个有效的 32 位界限；但高 16 位被截断，只有低 16 位被加载到目的操作数中。</p>
+	<p>此指令在将段界限加载到目的寄存器之前执行以下检查：</p>
+	<ul>
+		<li>检查段选择子是否不为 NULL。</li>
+		<li>检查段选择子是否指向在要访问的 GDT 或 LDT 限制内的描述符。</li>
+		<li>检查该描述符类型对于此指令是否有效。所有代码和数据段描述符对于 LSL 指令均有效（可使用 LSL 指令访问）。合法的特殊段和门描述符类型在下表中给出。</li>
+		<li>如果段不是一致代码段，该指令会检查指定的段描述符在 CPL 处是否可见（即，如果段选择子的 CPL 和 RPL 小于或等于段选择子的 DPL）。</li>
+	</ul>
+	<p>如果段描述符无法访问或对于该指令是无效类型，则清除 ZF 标志，且目的操作数中不会加载任何值。</p>
+
+	<figure id="tbl-3-56">
+		<table>
+			<tr>
+				<th rowspan="2">类型</th>
+				<th colspan="2">保护模式</th>
+				<th colspan="2">IA-32e 模式</th>
+			</tr>
+			<tr>
+				<th>名称</th>
+				<th>有效</th>
+				<th>名称</th>
+				<th>有效</th>
+			</tr>
+			<tr>
+				<td>0 1 2 3 4 5 6 7 8 9 A B C D E F</td>
+				<td>保留 可用 16位 TSS LDT 忙的 16位 TSS 16位调用门 16位/32位任务门 16位中断门 16位陷阱门 保留 可用 32位 TSS 保留 忙的 32位 TSS 32位调用门 保留 32位中断门 32位陷阱门</td>
+				<td>否 是 是 是 否 否 否 否 否 是 否 是 否 否 否 否</td>
+				<td>保留 保留 LDT<sup>1</sup> 保留 保留 保留 保留 保留 保留 64位 TSS<sup>1</sup> 保留 忙的 64位 TSS<sup>1</sup> 64位调用门 保留 64位中断门 64位陷阱门</td>
+				<td>否 否 是 否 否 否 否 否 否 是 否 是 否 否 否 否</td>
+			</tr>
+		</table>
+		<figcaption><a href='lsl.html#tbl-3-56'>表 3-56</a>. 段和门描述符类型</figcaption>
+	</figure>
+	<blockquote>
+		<p>1. 在这种情况下，描述符由 16 字节组成；高 4 字节的第 12:8 位必须为 0。</p>
+	</blockquote>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF SRC(Offset) &gt; descriptor table limit
+    THEN ZF := 0; FI;
+Read segment descriptor;
+IF SegmentDescriptor(Type) ≠ conforming code segment
+and (CPL &gt; DPL) OR (RPL &gt; DPL)
+or Segment type is not valid for instruction
+        THEN
+            ZF := 0;
+        ELSE
+            temp := SegmentLimit([SRC]);
+            IF (SegmentDescriptor(G) = 1)
+                THEN temp := (temp &lt;&lt; 12) OR 00000FFFH;
+            ELSE IF OperandSize = 32
+                THEN DEST := temp; FI;
+            ELSE IF OperandSize = 64 (* REX.W used *)
+                THEN DEST := temp(* Zero-extended *); FI;
+            ELSE (* OperandSize = 16 *)
+                DEST := temp AND FFFFH;
+            FI;
+FI;
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>如果成功加载段界限，则将 ZF 标志设置为 1；否则，将其设置为 0。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果内存操作数有效地址超出了 CS、DS、ES、FS 或 GS 段限制。</td>
+		</tr>
+		<tr>
+			<td>如果使用 DS、ES、FS 或 GS 寄存器访问内存且它包含一个 NULL 段选择子。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果内存操作数有效地址超出了 SS 段限制。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级为 3 时内存操作数有效地址未对齐。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>LSL 指令在实地址模式下无法执行。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>LSL 指令在虚拟-8086 模式下无法执行。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果指向 SS 段的内存操作数有效地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存操作数有效地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC(0)</td>
+			<td>如果启用了对齐检查，并且在当前特权级为 3 时内存操作数有效地址未对齐。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

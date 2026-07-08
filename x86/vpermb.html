@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VPERMB — 置换打包字节元素</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VPERMB — 置换打包字节元素</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W0 8D /r VPERMB xmm1 {k1}{z}, xmm2, xmm3/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512_VBMI</td>
+				<td>使用 xmm2 中的字节索引置换 xmm3/m128 中的字节，在写掩码 k1 下将结果存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W0 8D /r VPERMB ymm1 {k1}{z}, ymm2, ymm3/m256</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512_VBMI</td>
+				<td>使用 ymm2 中的字节索引置换 ymm3/m256 中的字节，在写掩码 k1 下将结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W0 8D /r VPERMB zmm1 {k1}{z}, zmm2, zmm3/m512</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512_VBMI</td>
+				<td>使用 zmm2 中的字节索引置换 zmm3/m512 中的字节，在写掩码 k1 下将结果存储在 zmm1 中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Full Mem</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>根据第一源操作数（第二操作数）中的字节索引，将字节从第二源操作数（第三操作数）复制到目的操作数（第一操作数）。注意，此指令允许将源操作数中的某个字节复制到目的操作数中的多个位置。</p>
+		<p>仅使用每个字节索引的低 6(EVEX.512)/5(EVEX.256)/4(EVEX.128) 位来从第二源操作数中选择源字节的位置。</p>
+		<p>第一源操作数是 ZMM/YMM/XMM 寄存器。第二源操作数可以是 ZMM/YMM/XMM 寄存器或 512/256/128 位内存位置。目的操作数是 ZMM/YMM/XMM 寄存器，在写掩码 k1 下以字节粒度更新。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vpermb--evex-encoded-versions-">VPERMB (EVEX 编码版本)<a class="anchor" href="#vpermb--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (16, 128), (32, 256), (64, 512)
+IF VL = 128:
+    n := 3;
+ELSE IF VL = 256:
+    n := 4;
+ELSE IF VL = 512:
+    n := 5;
+FI;
+FOR j := 0 TO KL-1:
+    id := SRC1[j*8 + n : j*8] ; // location of the source byte
+    IF k1[j] OR *no writemask* THEN
+        DEST[j*8 + 7: j*8] := SRC2[id*8 +7: id*8];
+    ELSE IF zeroing-masking THEN
+        DEST[j*8 + 7: j*8] := 0;
+    *ELSE
+        DEST[j*8 + 7: j*8] remains unchanged*
+    FI
+ENDFOR
+DEST[MAX_VL-1:VL] := 0;
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VPERMB __m512i _mm512_permutexvar_epi8( __m512i idx, __m512i a);
+</pre>
+		<pre>VPERMB __m512i _mm512_mask_permutexvar_epi8(__m512i s, __mmask64 k, __m512i idx, __m512i a);
+</pre>
+		<pre>VPERMB __m512i _mm512_maskz_permutexvar_epi8( __mmask64 k, __m512i idx, __m512i a);
+</pre>
+		<pre>VPERMB __m256i _mm256_permutexvar_epi8( __m256i idx, __m256i a);
+</pre>
+		<pre>VPERMB __m256i _mm256_mask_permutexvar_epi8(__m256i s, __mmask32 k, __m256i idx, __m256i a);
+</pre>
+		<pre>VPERMB __m256i _mm256_maskz_permutexvar_epi8( __mmask32 k, __m256i idx, __m256i a);
+</pre>
+		<pre>VPERMB __m128i _mm_permutexvar_epi8( __m128i idx, __m128i a);
+</pre>
+		<pre>VPERMB __m128i _mm_mask_permutexvar_epi8(__m128i s, __mmask16 k, __m128i idx, __m128i a);
+</pre>
+		<pre>VPERMB __m128i _mm_maskz_permutexvar_epi8( __mmask16 k, __m128i idx, __m128i a);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-50，“第 E4NF 类异常条件”中的异常类型 E4NF.nb。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

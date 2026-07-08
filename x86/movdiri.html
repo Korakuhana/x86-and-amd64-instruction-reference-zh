@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>MOVDIRI — 以直接存储方式移动双字</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>MOVDIRI — 以直接存储方式移动双字</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>NP 0F 38 F9 /r MOVDIRI m32, r32</td>
+			<td>A</td>
+			<td>有效/有效</td>
+			<td>MOVDIRI</td>
+			<td>使用直接存储将双字从 r32 移动到 m32。</td>
+		</tr>
+		<tr>
+			<td>NP REX.W + 0F 38 F9 /r MOVDIRI m64, r64</td>
+			<td>A</td>
+			<td>有效/非有效</td>
+			<td>MOVDIRI</td>
+			<td>使用直接存储将四字从 r64 移动到 m64。</td>
+		</tr>
+	</table>
+	<blockquote>
+		<p>1. ModR/M 字节的 Mod 字段值不能为 11B。</p>
+	</blockquote>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>元组</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>A</td>
+			<td>N/A</td>
+			<td>ModRM:r/m (w)</td>
+			<td>ModRM:reg (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>使用直接存储操作将源操作数（第二个操作数）中的双字整数移动到目的操作数（第一个操作数）中。源操作数是通用寄存器。目的操作数是 32 位内存位置。在 64 位模式下，该指令的默认操作大小为 32 位。使用 REX.R 前缀允许访问其他寄存器 (R8-R15)。使用 REX.W 前缀可将操作提升为 64 位。有关编码数据和限制，请参阅本节开头的汇总图表。</p>
+	<p>直接存储是通过使用写合并 (WC) 内存类型协议来写入数据来实现的。使用该协议，处理器不会将数据写入缓存层次结构，也不会从内存中将相应的缓存行提取到缓存层次结构中。如果目的地址被缓存，则在直接存储之前，该行会被写回（如果被修改）并从缓存中失效。与允许目的地的无缓存 (UC) 和写保护 (WP) 内存类型覆盖非临时提示的带非临时提示的存储不同，直接存储总是遵循 WC 内存类型协议，而不考虑目的地址内存类型（包括 UC 和 WP 类型）。</p>
+	<p>与 WC 存储和带非临时提示的存储不同，直接存储有资格从写合并缓冲区中立即驱逐，因此不会与对相同地址的更晚存储（包括直接存储）进行合并。写合并缓冲区中保存的更早的 WC 和非临时存储可能会与相同地址的更晚直接存储进行合并。相对于其他存储，直接存储是弱有序的。需要更强顺序的软件应在直接存储之前或之后使用屏障指令（MFENCE 或 SFENCE）来强制执行所需的顺序。</p>
+	<p>由 MOVDIRI 发送到对齐到 4 字节边界（如果与 REX.W 前缀一起使用，则为 8 字节边界）的目的地的直接存储保证了 4 字节（使用 REX.W 前缀时为 8 字节）的写完成原子性。这意味着数据在单个未被分割的 4 字节（或 8 字节）写入事务中到达目的地。如果目的地没有针对写入大小对齐，则由 MOVDIRI 发出的直接存储将被拆分并分两部分到达目的地。这种拆分直接存储的每个部分都不会与更晚的存储合并，但可以以任意顺序到达目的地。MOVDIRI 指令的可用性由 CPUID 特征标志 MOVDIRI 指示（叶 07H 中 ECX 寄存器的第 27 位，参见《Intel® 64 和 IA-32 架构软件开发人员手册》第 2A 卷中的“CPUID — CPU 识别”）。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>DEST := SRC;
+</pre>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>MOVDIRI void _directstoreu_u32(void *dst, uint32_t val)
+</pre>
+	<pre>MOVDIRI void _directstoreu_u64(void *dst, uint64_t val)
+</pre>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果 CS、DS、ES、FS 或 GS 段中存在非法的内存操作数有效地址。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果 SS 段中的地址非法。</td>
+		</tr>
+		<tr>
+			<td>#PF</td>
+			<td>(错误码) 如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CPUID.07H.0H:ECX.MOVDIRI[位 27] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀或操作数大小 (66H) 前缀。</td>
+		</tr>
+		<tr>
+			<td>#AC</td>
+			<td>如果启用了对齐检查，并且在当前特权级为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>如果操作数的任何部分超出了从 0 到 FFFFH 的有效地址空间。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CPUID.07H.0H:ECX.MOVDIRI[位 27] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀或操作数大小 (66H) 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<p>与实地址模式下的异常相同。</p>
+	<table>
+		<tr>
+			<td>#PF</td>
+			<td>(错误码) 如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td>#AC</td>
+			<td>如果启用了对齐检查，并且在当前特权级为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果指向 SS 段的内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#GP(0)</td>
+			<td>如果内存地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#PF</td>
+			<td>(错误码) 如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CPUID.07H.0H:ECX.MOVDIRI[位 27] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果使用了 LOCK 前缀或操作数大小 (66H) 前缀。</td>
+		</tr>
+		<tr>
+			<td>#AC</td>
+			<td>如果启用了对齐检查，并且在当前特权级为 3 时进行了未对齐的内存引用。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

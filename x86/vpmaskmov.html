@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VPMASKMOV — 条件 SIMD 打包整数加载和存储</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VPMASKMOV — 条件 SIMD 打包整数加载和存储</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.W0 8C /r VPMASKMOVD xmm1, xmm2, m128</td>
+				<td>RVM</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>使用 xmm2 中的掩码，有条件地从 m128 加载双字值并存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.W0 8C /r VPMASKMOVD ymm1, ymm2, m256</td>
+				<td>RVM</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>使用 ymm2 中的掩码，有条件地从 m256 加载双字值并存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.W1 8C /r VPMASKMOVQ xmm1, xmm2, m128</td>
+				<td>RVM</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>使用 xmm2 中的掩码，有条件地从 m128 加载四字值并存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.W1 8C /r VPMASKMOVQ ymm1, ymm2, m256</td>
+				<td>RVM</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>使用 ymm2 中的掩码，有条件地从 m256 加载四字值并存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.W0 8E /r VPMASKMOVD m128, xmm1, xmm2</td>
+				<td>MVR</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>使用 xmm1 中的掩码，有条件地将双字值从 xmm2 存储到内存。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.W0 8E /r VPMASKMOVD m256, ymm1, ymm2</td>
+				<td>MVR</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>使用 ymm1 中的掩码，有条件地将双字值从 ymm2 存储到内存。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.W1 8E /r VPMASKMOVQ m128, xmm1, xmm2</td>
+				<td>MVR</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>使用 xmm1 中的掩码，有条件地将四字值从 xmm2 存储到内存。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.W1 8E /r VPMASKMOVQ m256, ymm1, ymm2</td>
+				<td>MVR</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>使用 ymm1 中的掩码，有条件地将四字值从 ymm2 存储到内存。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>RVM</td>
+				<td>ModRM:reg (w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>MVR</td>
+				<td>ModRM:r/m (w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:reg (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>根据与每个数据元素关联的掩码位，有条件地将打包数据元素从第二源操作数移动到目的操作数的相应数据元素中。掩码位在第一源操作数中指定。</p>
+		<p>每个数据元素的掩码位是第一源操作数中该元素的最显著位。如果掩码位为 1，则将对应的数据元素从第二源操作数复制到目的操作数。如果掩码位为 0，则在这些指令的加载形式中，对应的数据元素被清零，而在存储形式中保持未修改。</p>
+		<p>对于这些指令的加载形式，第二源操作数是内存地址。对于这些指令的存储形式，目的操作数是内存地址。其他操作数要么是 XMM 寄存器（对于 VEX.128 版本），要么是 YMM 寄存器（对于 VEX.256 版本）。</p>
+		<p>故障仅由于触发该故障的掩码位所需的内存访问而发生。如果内存位置对应的掩码位为 0，则不会因为引用该内存位置而发生故障。例如，如果掩码位全部为零，则不会检测到任何故障。</p>
+		<p>与以前的 MASKMOV 指令（MASKMOVQ 和 MASKMOVDQU）不同，这些指令不应用非临时提示。</p>
+		<p>在掩码位不全为 1 的情况下，对齐检查报告的指令行为与掩码位全部为 1 的情况下相同。</p>
+		<p>VMASKMOV 不应该用于访问内存映射 I/O，因为它所执行的单个加载或存储的排序是特定于实现的。</p>
+		<p>在掩码位指示不应加载或存储数据的情况下，分页 A 和 D 位将以依赖于实现的方式进行设置。但是，对于实际加载/存储数据的页面，A 和 D 位总是被设置。</p>
+		<p>注意：对于加载形式，第一源（掩码）在 VEX.vvvv 中编码；第二源在 rm_field 中编码，目的寄存器在 reg_field 中编码。</p>
+		<p>注意：对于存储形式，第一源（掩码）在 VEX.vvvv 中编码；第二源寄存器在 reg_field 中编码，目的内存位置在 rm_field 中编码。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vpmaskmovd---256-bit-load">VPMASKMOVD - 256位加载<a class="anchor" href="#vpmaskmovd---256-bit-load">¶</a></h3>
+		<pre>DEST[31:0] := IF (SRC1[31]) Load_32(mem) ELSE 0
+DEST[63:32] := IF (SRC1[63]) Load_32(mem + 4) ELSE 0
+DEST[95:64] := IF (SRC1[95]) Load_32(mem + 8) ELSE 0
+DEST[127:96] := IF (SRC1[127]) Load_32(mem + 12) ELSE 0
+DEST[159:128] := IF (SRC1[159]) Load_32(mem + 16) ELSE 0
+DEST[191:160] := IF (SRC1[191]) Load_32(mem + 20) ELSE 0
+DEST[223:192] := IF (SRC1[223]) Load_32(mem + 24) ELSE 0
+DEST[255:224] := IF (SRC1[255]) Load_32(mem + 28) ELSE 0
+</pre>
+		<h3 id="vpmaskmovd--128-bit-load">VPMASKMOVD - 128位加载<a class="anchor" href="#vpmaskmovd--128-bit-load">¶</a></h3>
+		<pre>DEST[31:0] := IF (SRC1[31]) Load_32(mem) ELSE 0
+DEST[63:32] := IF (SRC1[63]) Load_32(mem + 4) ELSE 0
+DEST[95:64] := IF (SRC1[95]) Load_32(mem + 8) ELSE 0
+DEST[127:97] := IF (SRC1[127]) Load_32(mem + 12) ELSE 0
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vpmaskmovq---256-bit-load">VPMASKMOVQ - 256位加载<a class="anchor" href="#vpmaskmovq---256-bit-load">¶</a></h3>
+		<pre>DEST[63:0] := IF (SRC1[63]) Load_64(mem) ELSE 0
+DEST[127:64] := IF (SRC1[127]) Load_64(mem + 8) ELSE 0
+DEST[195:128] := IF (SRC1[191]) Load_64(mem + 16) ELSE 0
+DEST[255:196] := IF (SRC1[255]) Load_64(mem + 24) ELSE 0
+</pre>
+		<h3 id="vpmaskmovq---128-bit-load">VPMASKMOVQ - 128位加载<a class="anchor" href="#vpmaskmovq---128-bit-load">¶</a></h3>
+		<pre>DEST[63:0] := IF (SRC1[63]) Load_64(mem) ELSE 0
+DEST[127:64] := IF (SRC1[127]) Load_64(mem + 16) ELSE 0
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vpmaskmovd---256-bit-store">VPMASKMOVD - 256位存储<a class="anchor" href="#vpmaskmovd---256-bit-store">¶</a></h3>
+		<pre>IF (SRC1[31]) DEST[31:0] := SRC2[31:0]
+IF (SRC1[63]) DEST[63:32] := SRC2[63:32]
+IF (SRC1[95]) DEST[95:64] := SRC2[95:64]
+IF (SRC1[127]) DEST[127:96] := SRC2[127:96]
+IF (SRC1[159]) DEST[159:128] :=SRC2[159:128]
+IF (SRC1[191]) DEST[191:160] := SRC2[191:160]
+IF (SRC1[223]) DEST[223:192] := SRC2[223:192]
+IF (SRC1[255]) DEST[255:224] := SRC2[255:224]
+</pre>
+		<h3 id="vpmaskmovd---128-bit-store">VPMASKMOVD - 128位存储<a class="anchor" href="#vpmaskmovd---128-bit-store">¶</a></h3>
+		<pre>IF (SRC1[31]) DEST[31:0] := SRC2[31:0]
+IF (SRC1[63]) DEST[63:32] := SRC2[63:32]
+IF (SRC1[95]) DEST[95:64] := SRC2[95:64]
+IF (SRC1[127]) DEST[127:96] := SRC2[127:96]
+</pre>
+		<h3 id="vpmaskmovq---256-bit-store">VPMASKMOVQ - 256位存储<a class="anchor" href="#vpmaskmovq---256-bit-store">¶</a></h3>
+		<pre>IF (SRC1[63]) DEST[63:0] := SRC2[63:0]
+IF (SRC1[127]) DEST[127:64] :=SRC2[127:64]
+IF (SRC1[191]) DEST[191:128] := SRC2[191:128]
+IF (SRC1[255]) DEST[255:192] := SRC2[255:192]
+</pre>
+		<h3 id="vpmaskmovq---128-bit-store">VPMASKMOVQ - 128位存储<a class="anchor" href="#vpmaskmovq---128-bit-store">¶</a></h3>
+		<pre>IF (SRC1[63]) DEST[63:0] := SRC2[63:0]
+IF (SRC1[127]) DEST[127:64] :=SRC2[127:64]
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VPMASKMOVD: __m256i _mm256_maskload_epi32(int const *a, __m256i mask)
+</pre>
+		<pre>VPMASKMOVD: void _mm256_maskstore_epi32(int *a, __m256i mask, __m256i b)
+</pre>
+		<pre>VPMASKMOVQ: __m256i _mm256_maskload_epi64(__int64 const *a, __m256i mask);
+</pre>
+		<pre>VPMASKMOVQ: void _mm256_maskstore_epi64(__int64 *a, __m256i mask, __m256d b);
+</pre>
+		<pre>VPMASKMOVD: __m128i _mm_maskload_epi32(int const *a, __m128i mask)
+</pre>
+		<pre>VPMASKMOVD: void _mm_maskstore_epi32(int *a, __m128i mask, __m128 b)
+</pre>
+		<pre>VPMASKMOVQ: __m128i _mm_maskload_epi64(__int64 const *a, __m128i mask);
+</pre>
+		<pre>VPMASKMOVQ: void _mm_maskstore_epi64(__int64 *a, __m128i mask, __m128i b);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-23，“第 6 类异常条件”（对于任何掩码位组合，均不报告 AC# 故障）。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VPERMD/VPERMW — 置换打包双字/字元素</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VPERMD/VPERMW — 置换打包双字/字元素</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op / En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.W0 36 /r VPERMD ymm1, ymm2, ymm3/m256</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>使用 ymm2 中的索引置换 ymm3/m256 中的双字，并将结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W0 36 /r VPERMD ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用 ymm2 中的索引置换 ymm3/m256/m32bcst 中的双字，在写掩码 k1 下将结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W0 36 /r VPERMD zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用 zmm2 中的索引置换 zmm3/m512/m32bcst 中的双字，在写掩码 k1 下将结果存储在 zmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W1 8D /r VPERMW xmm1 {k1}{z}, xmm2, xmm3/m128</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>使用 xmm2 中的索引置换 xmm3/m128 中的字整数，在写掩码 k1 下将结果存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W1 8D /r VPERMW ymm1 {k1}{z}, ymm2, ymm3/m256</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>使用 ymm2 中的索引置换 ymm3/m256 中的字整数，在写掩码 k1 下将结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W1 8D /r VPERMW zmm1 {k1}{z}, zmm2, zmm3/m512</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512BW</td>
+				<td>使用 zmm2 中的索引置换 zmm3/m512 中的字整数，在写掩码 k1 下将结果存储在 zmm1 中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>C</td>
+				<td>Full Mem</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>根据第一源操作数（第二操作数）中的索引，将双字（或字）从第二源操作数（第三操作数）复制到目的操作数（第一操作数）。注意，此指令允许将源操作数中的某个双字（或字）复制到目的操作数中的多个位置。</p>
+		<p>VEX.256 编码的 VPERMD：第一和第二操作数是 YMM 寄存器，第三操作数可以是 YMM 寄存器或内存位置。对应目的寄存器的 bits (MAXVL-1:256) 清零。</p>
+		<p>EVEX 编码的 VPERMD：第一和第二操作数是 ZMM/YMM 寄存器，第三操作数可以是 ZMM/YMM 寄存器、512/256 位内存位置，或者是从 32 位内存位置广播的 512/256 位向量。目的操作数中的元素在写掩码 k1 下更新。</p>
+		<p>VPERMW：第一和第二操作数是 ZMM/YMM/XMM 寄存器，第三操作数可以是 ZMM/YMM/XMM 寄存器或 512/256/128 位内存位置。目的操作数在写掩码 k1 下更新。</p>
+		<p>EVEX.128 编码版本：对应 ZMM 寄存器的 bits (MAXVL-1:128) 清零。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vpermd--evex-encoded-versions-">VPERMD (EVEX 编码版本)<a class="anchor" href="#vpermd--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (8, 256), (16, 512)
+IF VL = 256 THEN n := 2; FI;
+IF VL = 512 THEN n := 3; FI;
+FOR j := 0 TO KL-1
+    i := j * 32
+    id := 32*SRC1[i+n:i]
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN DEST[i+31:i] := SRC2[31:0];
+                ELSE DEST[i+31:i] := SRC2[id+31:id];
+            FI;
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing-masking
+                    DEST[i+31:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vpermd--vex-256-encoded-version-">VPERMD (VEX.256 编码版本)<a class="anchor" href="#vpermd--vex-256-encoded-version-">¶</a></h3>
+		<pre>DEST[31:0] := (SRC2[255:0] &gt;&gt; (SRC1[2:0] * 32))[31:0];
+DEST[63:32] := (SRC2[255:0] &gt;&gt; (SRC1[34:32] * 32))[31:0];
+DEST[95:64] := (SRC2[255:0] &gt;&gt; (SRC1[66:64] * 32))[31:0];
+DEST[127:96] := (SRC2[255:0] &gt;&gt; (SRC1[98:96] * 32))[31:0];
+DEST[159:128] := (SRC2[255:0] &gt;&gt; (SRC1[130:128] * 32))[31:0];
+DEST[191:160] := (SRC2[255:0] &gt;&gt; (SRC1[162:160] * 32))[31:0];
+DEST[223:192] := (SRC2[255:0] &gt;&gt; (SRC1[194:192] * 32))[31:0];
+DEST[255:224] := (SRC2[255:0] &gt;&gt; (SRC1[226:224] * 32))[31:0];
+DEST[MAXVL-1:256] := 0
+</pre>
+		<h3 id="vpermw--evex-encoded-versions-">VPERMW (EVEX 编码版本)<a class="anchor" href="#vpermw--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (8, 128), (16, 256), (32, 512)
+IF VL = 128 THEN n := 2; FI;
+IF VL = 256 THEN n := 3; FI;
+IF VL = 512 THEN n := 4; FI;
+FOR j := 0 TO KL-1
+    i := j * 16
+    id := 16*SRC1[i+n:i]
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i] := SRC2[id+15:id]
+        ELSE
+            IF *merging-masking*
+                        ; merging-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE
+                        ; zeroing-masking
+                    DEST[i+15:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VPERMD __m512i _mm512_permutexvar_epi32( __m512i idx, __m512i a);
+</pre>
+		<pre>VPERMD __m512i _mm512_mask_permutexvar_epi32(__m512i s, __mmask16 k, __m512i idx, __m512i a);
+</pre>
+		<pre>VPERMD __m512i _mm512_maskz_permutexvar_epi32( __mmask16 k, __m512i idx, __m512i a);
+</pre>
+		<pre>VPERMD __m256i _mm256_permutexvar_epi32( __m256i idx, __m256i a);
+</pre>
+		<pre>VPERMD __m256i _mm256_mask_permutexvar_epi32(__m256i s, __mmask8 k, __m256i idx, __m256i a);
+</pre>
+		<pre>VPERMD __m256i _mm256_maskz_permutexvar_epi32( __mmask8 k, __m256i idx, __m256i a);
+</pre>
+		<pre>VPERMW __m512i _mm512_permutexvar_epi16( __m512i idx, __m512i a);
+</pre>
+		<pre>VPERMW __m512i _mm512_mask_permutexvar_epi16(__m512i s, __mmask32 k, __m512i idx, __m512i a);
+</pre>
+		<pre>VPERMW __m512i _mm512_maskz_permutexvar_epi16( __mmask32 k, __m512i idx, __m512i a);
+</pre>
+		<pre>VPERMW __m256i _mm256_permutexvar_epi16( __m256i idx, __m256i a);
+</pre>
+		<pre>VPERMW __m256i _mm256_mask_permutexvar_epi16(__m256i s, __mmask16 k, __m256i idx, __m256i a);
+</pre>
+		<pre>VPERMW __m256i _mm256_maskz_permutexvar_epi16( __mmask16 k, __m256i idx, __m256i a);
+</pre>
+		<pre>VPERMW __m128i _mm_permutexvar_epi16( __m128i idx, __m128i a);
+</pre>
+		<pre>VPERMW __m128i _mm_mask_permutexvar_epi16(__m128i s, __mmask8 k, __m128i idx, __m128i a);
+</pre>
+		<pre>VPERMW __m128i _mm_maskz_permutexvar_epi16( __mmask8 k, __m128i idx, __m128i a);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>非 EVEX 编码指令，请参阅表 2-21，“第 4 类异常条件”。</p>
+		<p>EVEX 编码的 VPERMD，请参阅表 2-50，“第 E4NF 类异常条件”。</p>
+		<p>EVEX 编码的 VPERMW，请参阅表 2-50，“第 E4NF 类异常条件”中的异常类型 E4NF.nb。</p>
+		<p>此外：</p>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 VEX.L = 0。</td>
+			</tr>
+			<tr>
+				<td>如果对于 VPERMD，EVEX.L'L = 0。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

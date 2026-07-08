@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VPOPCNT — 返回字节/字/双字/四字中设置为 1 的位数</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VPOPCNT — 返回字节/字/双字/四字中设置为 1 的位数</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W0 54 /r VPOPCNTB xmm1{k1}{z}, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512_BITALG AVX512VL</td>
+				<td>计算 xmm2/m128 中置 1 的位数，并将结果存入 xmm1，受写掩码 k1 限制。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W0 54 /r VPOPCNTB ymm1{k1}{z}, ymm2/m256</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512_BITALG AVX512VL</td>
+				<td>计算 ymm2/m256 中置 1 的位数，并将结果存入 ymm1，受写掩码 k1 限制。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W0 54 /r VPOPCNTB zmm1{k1}{z}, zmm2/m512</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512_BITALG</td>
+				<td>计算 zmm2/m512 中置 1 的位数，并将结果存入 zmm1，受写掩码 k1 限制。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W1 54 /r VPOPCNTW xmm1{k1}{z}, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512_BITALG AVX512VL</td>
+				<td>计算 xmm2/m128 中置 1 的位数，并将结果存入 xmm1，受写掩码 k1 限制。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W1 54 /r VPOPCNTW ymm1{k1}{z}, ymm2/m256</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512_BITALG AVX512VL</td>
+				<td>计算 ymm2/m256 中置 1 的位数，并将结果存入 ymm1，受写掩码 k1 限制。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W1 54 /r VPOPCNTW zmm1{k1}{z}, zmm2/m512</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512_BITALG</td>
+				<td>计算 zmm2/m512 中置 1 的位数，并将结果存入 zmm1，受写掩码 k1 限制。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W0 55 /r VPOPCNTD xmm1{k1}{z}, xmm2/m128/m32bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512_VPOPCNTDQ AVX512VL</td>
+				<td>计算 xmm2/m128/m32bcst 中置 1 的位数，并将结果存入 xmm1，受写掩码 k1 限制。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W0 55 /r VPOPCNTD ymm1{k1}{z}, ymm2/m256/m32bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512_VPOPCNTDQ AVX512VL</td>
+				<td>计算 ymm2/m256/m32bcst 中置 1 的位数，并将结果存入 ymm1，受写掩码 k1 限制。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W0 55 /r VPOPCNTD zmm1{k1}{z}, zmm2/m512/m32bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512_VPOPCNTDQ</td>
+				<td>计算 zmm2/m512/m32bcst 中置 1 的位数，并将结果存入 zmm1，受写掩码 k1 限制。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W1 55 /r VPOPCNTQ xmm1{k1}{z}, xmm2/m128/m64bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512_VPOPCNTDQ AVX512VL</td>
+				<td>计算 xmm2/m128/m32bcst [此处原文如此，应为 m64bcst] 中置 1 的位数，并将结果存入 xmm1，受写掩码 k1 限制。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W1 55 /r VPOPCNTQ ymm1{k1}{z}, ymm2/m256/m64bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512_VPOPCNTDQ AVX512VL</td>
+				<td>计算 ymm2/m256/m32bcst [此处原文如此，应为 m64bcst] 中置 1 的位数，并将结果存入 ymm1，受写掩码 k1 限制。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W1 55 /r VPOPCNTQ zmm1{k1}{z}, zmm2/m512/m64bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512_VPOPCNTDQ</td>
+				<td>计算 zmm2/m512/m64bcst 中置 1 的位数，并将结果存入 zmm1，受写掩码 k1 限制。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Full Mem</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>该指令计算其源操作数（例如 zmm2 或内存）中每个字节、字、双字或四字元素置 1 的位数，并将结果放在目的寄存器 (zmm1) 中。该指令支持内存故障抑制。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vpopcntb">VPOPCNTB<a class="anchor" href="#vpopcntb">¶</a></h3>
+		<pre>(KL, VL) = (16, 128), (32, 256), (64, 512)
+FOR j := 0 TO KL-1:
+    IF MaskBit(j) OR *no writemask*:
+        DEST.byte[j] := POPCNT(SRC.byte[j])
+    ELSE IF *merging-masking*:
+        *DEST.byte[j] remains unchanged*
+    ELSE:
+        DEST.byte[j] := 0
+DEST[MAX_VL-1:VL] := 0
+</pre>
+		<h3 id="vpopcntw">VPOPCNTW<a class="anchor" href="#vpopcntw">¶</a></h3>
+		<pre>(KL, VL) = (8, 128), (16, 256), (32, 512)
+FOR j := 0 TO KL-1:
+    IF MaskBit(j) OR *no writemask*:
+        DEST.word[j] := POPCNT(SRC.word[j])
+    ELSE IF *merging-masking*:
+        *DEST.word[j] remains unchanged*
+    ELSE:
+        DEST.word[j] := 0
+DEST[MAX_VL-1:VL] := 0
+</pre>
+		<h3 id="vpopcntd">VPOPCNTD<a class="anchor" href="#vpopcntd">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j := 0 TO KL-1:
+    IF MaskBit(j) OR *no writemask*:
+        IF SRC is broadcast memop:
+            t := SRC.dword[0]
+        ELSE:
+            t := SRC.dword[j]
+        DEST.dword[j] := POPCNT(t)
+    ELSE IF *merging-masking*:
+        *DEST..dword[j] remains unchanged*
+    ELSE:
+        DEST..dword[j] := 0
+DEST[MAX_VL-1:VL] := 0
+</pre>
+		<h3 id="vpopcntq">VPOPCNTQ<a class="anchor" href="#vpopcntq">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j := 0 TO KL-1:
+    IF MaskBit(j) OR *no writemask*:
+        IF SRC is broadcast memop:
+            t := SRC.qword[0]
+        ELSE:
+            t := SRC.qword[j]
+        DEST.qword[j] := POPCNT(t)
+    ELSE IF *merging-masking*:
+        *DEST..qword[j] remains unchanged*
+    ELSE:
+        DEST..qword[j] := 0
+DEST[MAX_VL-1:VL] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VPOPCNTW __m128i _mm_popcnt_epi16(__m128i);
+</pre>
+		<pre>VPOPCNTW __m128i _mm_mask_popcnt_epi16(__m128i, __mmask8, __m128i);
+</pre>
+		<pre>VPOPCNTW __m128i _mm_maskz_popcnt_epi16(__mmask8, __m128i);
+</pre>
+		<pre>VPOPCNTW __m256i _mm256_popcnt_epi16(__m256i);
+</pre>
+		<pre>VPOPCNTW __m256i _mm256_mask_popcnt_epi16(__m256i, __mmask16, __m256i);
+</pre>
+		<pre>VPOPCNTW __m256i _mm256_maskz_popcnt_epi16(__mmask16, __m256i);
+</pre>
+		<pre>VPOPCNTW __m512i _mm512_popcnt_epi16(__m512i);
+</pre>
+		<pre>VPOPCNTW __m512i _mm512_mask_popcnt_epi16(__m512i, __mmask32, __m512i);
+</pre>
+		<pre>VPOPCNTW __m512i _mm512_maskz_popcnt_epi16(__mmask32, __m512i);
+</pre>
+		<pre>VPOPCNTQ __m128i _mm_popcnt_epi64(__m128i);
+</pre>
+		<pre>VPOPCNTQ __m128i _mm_mask_popcnt_epi64(__m128i, __mmask8, __m128i);
+</pre>
+		<pre>VPOPCNTQ __m128i _mm_maskz_popcnt_epi64(__mmask8, __m128i);
+</pre>
+		<pre>VPOPCNTQ __m256i _mm256_popcnt_epi64(__m256i);
+</pre>
+		<pre>VPOPCNTQ __m256i _mm256_mask_popcnt_epi64(__m256i, __mmask8, __m256i);
+</pre>
+		<pre>VPOPCNTQ __m256i _mm256_maskz_popcnt_epi64(__mmask8, __m256i);
+</pre>
+		<pre>VPOPCNTQ __m512i _mm512_popcnt_epi64(__m512i);
+</pre>
+		<pre>VPOPCNTQ __m512i _mm512_mask_popcnt_epi64(__m512i, __mmask8, __m512i);
+</pre>
+		<pre>VPOPCNTQ __m512i _mm512_maskz_popcnt_epi64(__mmask8, __m512i);
+</pre>
+		<pre>VPOPCNTD __m128i _mm_popcnt_epi32(__m128i);
+</pre>
+		<pre>VPOPCNTD __m128i _mm_mask_popcnt_epi32(__m128i, __mmask8, __m128i);
+</pre>
+		<pre>VPOPCNTD __m128i _mm_maskz_popcnt_epi32(__mmask8, __m128i);
+</pre>
+		<pre>VPOPCNTD __m256i _mm256_popcnt_epi32(__m256i);
+</pre>
+		<pre>VPOPCNTD __m256i _mm256_mask_popcnt_epi32(__m256i, __mmask8, __m256i);
+</pre>
+		<pre>VPOPCNTD __m256i _mm256_maskz_popcnt_epi32(__mmask8, __m256i);
+</pre>
+		<pre>VPOPCNTD __m512i _mm512_popcnt_epi32(__m512i);
+</pre>
+		<pre>VPOPCNTD __m512i _mm512_mask_popcnt_epi32(__m512i, __mmask16, __m512i);
+</pre>
+		<pre>VPOPCNTD __m512i _mm512_maskz_popcnt_epi32(__mmask16, __m512i);
+</pre>
+		<pre>VPOPCNTB __m128i _mm_popcnt_epi8(__m128i);
+</pre>
+		<pre>VPOPCNTB __m128i _mm_mask_popcnt_epi8(__m128i, __mmask16, __m128i);
+</pre>
+		<pre>VPOPCNTB __m128i _mm_maskz_popcnt_epi8(__mmask16, __m128i);
+</pre>
+		<pre>VPOPCNTB __m256i _mm256_popcnt_epi8(__m256i);
+</pre>
+		<pre>VPOPCNTB __m256i _mm256_mask_popcnt_epi8(__m256i, __mmask32, __m256i);
+</pre>
+		<pre>VPOPCNTB __m256i _mm256_maskz_popcnt_epi8(__mmask32, __m256i);
+</pre>
+		<pre>VPOPCNTB __m512i _mm512_popcnt_epi8(__m512i);
+</pre>
+		<pre>VPOPCNTB __m512i _mm512_mask_popcnt_epi8(__m512i, __mmask64, __m512i);
+</pre>
+		<pre>VPOPCNTB __m512i _mm512_maskz_popcnt_epi8(__mmask64, __m512i);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-49，“第 E4 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

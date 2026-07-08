@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>SYSENTER — 快速系统调用</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>SYSENTER — 快速系统调用</h1>
+
+		<table>
+			<tr>
+				<th>操作码</th>
+				<th>指令</th>
+				<th>Op/En</th>
+				<th>64位模式</th>
+				<th>兼容/传统模式</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>0F 34</td>
+				<td>SYSENTER</td>
+				<td>ZO</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>快速调用特权级 0 系统程序。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>ZO</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>执行对级别 0 系统程序或例程的快速调用。SYSENTER 是 SYSEXIT 的伴侣指令。该指令经过优化，旨在为从特权级 3 运行的用户代码到特权级 0 运行的操作系统或执行程序的系统调用提供最大性能。</p>
+		<p>在 IA-32e 模式下执行时，SYSENTER 指令将逻辑处理器转换到 64 位模式；否则，逻辑处理器保持在保护模式。</p>
+		<p>在执行 SYSENTER 指令之前，软件必须通过向以下 MSR 写入值来指定特权级 0 代码段和代码入口点，以及特权级 0 栈段和栈指针：</p>
+		<ul>
+			<li><strong>IA32_SYSENTER_CS</strong>（MSR 地址 174H）— 此 MSR 的低 16 位是特权级 0 代码段的段选择子。此值还用于确定特权级 0 栈段的段选择子（见“操作”部分）。此值不能表示空选择子。</li>
+			<li><strong>IA32_SYSENTER_EIP</strong>（MSR 地址 176H）— 此 MSR 的值被加载到 RIP 中（因此，此值引用所选操作程序或例程的第一条指令）。在保护模式下，仅加载 31:0 位。</li>
+			<li><strong>IA32_SYSENTER_ESP</strong>（MSR 地址 175H）— 此 MSR 的值被加载到 RSP 中（因此，此值包含特权级 0 栈的栈指针）。此值不能表示非规范地址。在保护模式下，仅加载 31:0 位。</li>
+		</ul>
+		<p>可以使用 RDMSR/WRMSR 指令读写这些 MSR。WRMSR 指令可确保 IA32_SYSENTER_EIP 和 IA32_SYSENTER_ESP MSR 始终包含规范地址。</p>
+		<p>虽然 SYSENTER 使用从 IA32_SYSENTER_CS MSR 派生的值加载 CS 和 SS 选择子，但 CS 和 SS 描述符缓存<strong>并不</strong>是从这些选择子引用的描述符（在 GDT 或 LDT 中）加载的。相反，描述符缓存被加载为固定值。详情请参阅“操作”部分。操作系统软件有责任确保这些选择子值引用的描述符（在 GDT 或 LDT 中）与加载到描述符缓存中的固定值相对应；SYSENTER 指令不保证这种对应关系。</p>
+		<p>SYSENTER 指令可以从除实地址模式之外的所有运行模式下调用。</p>
+		<p>SYSENTER 和 SYSEXIT 指令是伴侣指令，但它们不构成调用/返回对。当执行 SYSENTER 指令时，处理器不会为用户代码保存状态信息（例如指令指针），且 SYSENTER 和 SYSEXIT 指令均不支持在栈上传递参数。</p>
+		<p>为了将 SYSENTER 和 SYSEXIT 指令作为伴侣指令用于特权级 3 代码与特权级 0 操作系统程序之间的过渡，必须遵守以下约定：</p>
+		<ul>
+			<li>特权级 0 代码段和栈段以及特权级 3 代码段和栈段的段描述符必须在描述符表中连续。这种约定允许处理器从写入 SYSENTER_CS MSR 的值计算出段选择子。</li>
+			<li>由用户代码执行的快速系统调用“存根 (stub)”例程（通常在共享库或 DLL 中）如果需要返回到调用程序，则必须保存所需的返回 IP 和处理器状态信息。同样，使用 SYSENTER 指令调用的操作系统或执行程序在返回到用户代码时，必须能够访问并使用这些保存的返回和状态信息。</li>
+		</ul>
+		<p>SYSENTER 和 SYSEXIT 指令是在 Pentium II 处理器中引入到 IA-32 架构中的。处理器上这些指令的可用性通过 CPUID 指令返回到 EDX 寄存器的 SYSENTER/SYSEXIT 存在 (SEP) 特征标志来指示。验证 SEP 标志的操作系统还必须验证处理器系列和型号，以确保 SYSENTER/SYSEXIT 指令确实存在。例如：</p>
+		<p>IF CPUID SEP bit is set</p>
+		<p>THEN IF (Family = 6) and (Model &lt; 3) and (Stepping &lt; 3)</p>
+		<p>THEN</p>
+		<p>SYSENTER/SYSEXIT_Not_Supported; FI;</p>
+		<p>ELSE</p>
+		<p>SYSENTER/SYSEXIT_Supported; FI;</p>
+		<p>FI;</p>
+		<p>当在 Pentium Pro 处理器（型号 1）上执行 CPUID 指令时，处理器返回的 SEP 标志为已设置，但不支持 SYSENTER/SYSEXIT 指令。</p>
+		<p>当在调用 SYSENTER 指令的特权级别启用影子栈时，SSP 将保存到 IA32_PL3_SSP MSR。如果在特权级 0 启用了影子栈，则将 SSP 加载为 0。有关额外的 CET 详细信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷第 6 章“过程调用、中断和异常”以及第 17 章“控制流执行技术 (CET)”。</p>
+		<p><strong>指令顺序。</strong>紧跟在 SYSENTER 之后的指令可能会在较早的指令完成执行之前从内存中提取，但在 SYSENTER 之前的所有指令完成执行之前，它们不会执行（即使是猜测性执行）（后面的指令可能会在较早指令存储的数据全局可见之前执行）。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>IF CR0.PE = 0 OR IA32_SYSENTER_CS[15:2] = 0 THEN #GP(0); FI;
+RFLAGS.VM := 0;
+                    (* 确保保护模式执行 *)
+RFLAGS.IF := 0;
+                    (* 屏蔽中断 *)
+IF in IA-32e mode
+    THEN
+        RSP := IA32_SYSENTER_ESP;
+        RIP := IA32_SYSENTER_EIP;
+ELSE
+        ESP := IA32_SYSENTER_ESP[31:0];
+        EIP := IA32_SYSENTER_EIP[31:0];
+FI;
+CS.Selector := IA32_SYSENTER_CS[15:0] AND
+                    FFFCH;
+                    (* 操作系统提供 CS；RPL 强制为 0 *)
+(* 将 CS 的其余部分设置为固定值 *)
+CS.Base := 0;
+                    (* 扁平段 *)
+CS.Limit := FFFFFH;
+                    (* 具有 4KB 粒度，意味着 4GB 界限 *)
+CS.Type := 11;
+                    (* 执行/读取代码，已访问 *)
+CS.S := 1;
+CS.DPL := 0;
+CS.P := 1;
+IF in IA-32e mode
+    THEN
+        CS.L := 1;
+                    (* 入口为 64位模式 *)
+        CS.D := 0;
+                    (* 如果 CS.L = 1 则为必需 *)
+    ELSE
+        CS.L := 0;
+        CS.D := 1;
+                    (* 32位代码段 *)
+FI;
+CS.G := 1;
+                    (* 4KB 粒度 *)
+IF ShadowStackEnabled(CPL)
+    THEN
+        IF IA32_EFER.LMA = 0
+            THEN IA32_PL3_SSP := SSP;
+            ELSE (* 进行调整以使位 63:N 获得位 N-1 的值，其中 N 是 CPU 的最大线性地址宽度 *)
+                IA32_PL3_SSP := LA_adjust(SSP);
+        FI;
+FI;
+CPL := 0;
+IF ShadowStackEnabled(CPL)
+    SSP := 0;
+FI;
+IF EndbranchEnabled(CPL)
+    IA32_S_CET.TRACKER = WAIT_FOR_ENDBRANCH
+    IA32_S_CET.SUPPRESS = 0
+FI;
+SS.Selector := CS.Selector + 8;
+                    (* SS 紧随 CS 之后 *)
+(* 将 SS 的其余部分设置为固定值 *)
+SS.Base := 0;
+                    (* 扁平段 *)
+SS.Limit := FFFFFH;
+                    (* 具有 4KB 粒度，意味着 4GB 界限 *)
+SS.Type := 3;
+                    (* 读取/写入数据，已访问 *)
+SS.S := 1;
+SS.DPL := 0;
+SS.P := 1;
+SS.B := 1;
+                    (* 32位栈段 *)
+SS.G := 1;
+                    (* 4KB 粒度 *)
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>VM, IF (请参阅上面的操作)。</p>
+
+		<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP(0)</td>
+				<td>如果 IA32_SYSENTER_CS[15:2] = 0。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP</td>
+				<td>SYSENTER 指令在实地址模式下无法识别。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

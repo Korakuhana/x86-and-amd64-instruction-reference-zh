@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>TILELOADD/TILELOADDT1 — 加载 Tile</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>TILELOADD/TILELOADDT1 — 加载 Tile</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>VEX.128.F2.0F38.W0 4B !(11):rrr:100 TILELOADD tmm1, sibmem</td>
+				<td>A</td>
+				<td>V/N.E.</td>
+				<td>AMX-TILE</td>
+				<td>根据 sibmem 中的信息将数据加载到 tmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.W0 4B !(11):rrr:100 TILELOADDT1 tmm1, sibmem</td>
+				<td>A</td>
+				<td>V/N.E.</td>
+				<td>AMX-TILE</td>
+				<td>根据 sibmem 中的信息将数据加载到 tmm1 中，并带有优化数据缓存的提示。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>此指令要求使用 SIB 寻址。变址寄存器用作步长（stride）指示器。如果 SIB 编码中省略了变址寄存器，则变址寄存器的内容假定为零。</p>
+		<p>此指令根据 tile 配置指定的行和列加载 tile 目的寄存器。“T1”版本向实现提供一个提示，即数据将被重复使用，但不需要保留在最靠近的缓存级别中。</p>
+		<p>TILECFG 数据中的 TILECFG.start_row 应初始化为 '0' 以便加载整个 tile，并在 TILELOADD 指令成功完成时设置为零。TILELOADD 是一个可重启的指令，当在指令执行期间发生可重启事件时，TILECFG.start_row 将为非零值。</p>
+		<p>仅支持内存操作数，并且只能使用 SIB 寻址模式进行访问，类似于 V[P]GATHER*/V[P]SCATTER* 指令。</p>
+		<p>在 Intel TSX 事务中尝试执行 TILELOADD/TILELOADDT1 指令都会导致事务中止。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>TILELOADD[,T1] tdest, tsib
+start := tilecfg.start_row
+zero_upper_rows(tdest,start)
+membegin := tsib.base + displacement
+// 如果 SIB 编码中没有变址寄存器，则使用值零。
+stride := tsib.index &lt;&lt; tsib.scale
+nbytes := tdest.colsb
+while start &lt; tdest.rows:
+    memptr := membegin + start * stride
+    write_row_and_zero(tdest, start, read_memory(memptr, nbytes), nbytes)
+    start := start + 1
+zero_tilecfg_start()
+// 在指令中间发生内存故障的情况下，tilecfg.start_row := start
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>TILELOADD void _tile_loadd(__tile dst, const void *base, int stride);
+</pre>
+		<pre>TILELOADDT1 void _tile_stream_loadd(__tile dst, const void *base, int stride);
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="exceptions">异常<a class="anchor" href="#exceptions">¶</a></h2>
+		<p>AMX-E3；详情请参阅第 2.10 节“Intel® AMX 指令异常类”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

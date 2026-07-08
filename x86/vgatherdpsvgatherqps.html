@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VGATHERDPS/VGATHERQPS — 使用有符号 Dword/Qword 索引汇集打包单精度浮点值</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VGATHERDPS/VGATHERQPS — 使用有符号 Dword/Qword 索引汇集打包单精度浮点值</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.W0 92 /r VGATHERDPS xmm1, vm32x, xmm2</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>使用 vm32x 中指定的 dword 索引，根据 xmm2 中指定的掩码从内存中汇集单精度浮点值。有条件汇集的元素将合并到 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.W0 93 /r VGATHERQPS xmm1, vm64x, xmm2</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>使用 vm64x 中指定的 qword 索引，根据 xmm2 中指定的掩码从内存中汇集单精度浮点值。有条件汇集的元素将合并到 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.W0 92 /r VGATHERDPS ymm1, vm32y, ymm2</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>使用 vm32y 中指定的 dword 索引，根据 ymm2 中指定的掩码从内存中汇集单精度浮点值。有条件汇集的元素将合并到 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.W0 93 /r VGATHERQPS xmm1, vm64y, xmm2</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>使用 vm64y 中指定的 qword 索引，根据 xmm2 中指定的掩码从内存中汇集单精度浮点值。有条件汇集的元素将合并到 xmm1 中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>ModRM:reg (r,w)</td>
+				<td>BaseReg (R): VSIB:base, VectorReg(R): VSIB:index</td>
+				<td>VEX.vvvv (r, w)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>该指令使用 dword 索引，从内存操作数（第二个操作数）指定的内存地址中有条件地加载最多 4 或 8 个单精度浮点值。内存操作数使用 SIB 字节的 VSIB 形式来指定一个通用寄存器操作数作为通用基址、一个向量寄存器作为相对于基址的索引数组，以及一个常数比例因子。</p>
+		<p>掩码操作数（第三个操作数）指定从每个内存地址进行的条件加载操作，以及目的操作数（第一个操作数）的每个数据元素的相应更新。条件性由掩码寄存器中每个数据元素的最高有效位指定。如果某个元素的掩码位未设置，则目的寄存器的相应元素保持不变。目的寄存器和掩码寄存器中的数据元素宽度是相同的。除非指令引发异常，否则该指令将把整个掩码寄存器清零。</p>
+		<p>使用 qword 索引，该指令从 VSIB 寻址内存操作数中有条件地加载最多 2 或 4 个单精度浮点值，并更新目的寄存器的下半部分。在使用 qword 索引时，目的寄存器的上部 128 或 256 位被清零。</p>
+		<p>如果至少有一个元素已经被汇集（即异常是由最右边已设置掩码位之外的元素触发的），则该指令可以因异常而挂起。发生这种情况时，目的寄存器和掩码操作数会被部分更新；那些已被汇集的元素被放入目的寄存器中，并将其掩码位清零。如果已汇集的元素有任何挂起的陷阱或中断，它们将代替异常被传递；在这种情况下，EFLAG.RF 被设置为 1，以便在指令继续执行时不会重新触发指令断点。</p>
+		<p>如果数据大小和索引大小不同，则目的寄存器的一部分和掩码寄存器的一部分不对应于正在汇集的任何元素。该指令将这些部分清零。即使指令触发异常，甚至在汇集任何元素之前指令就已经触发了异常，它也可能会对这两个寄存器中的一个或两个执行此操作。</p>
+		<p>VEX.128 版本：对于 dword 索引，该指令将汇集四个单精度浮点值。对于 qword 索引，该指令将汇集两个值并将目的寄存器的上部 64 位清零。</p>
+		<p>VEX.256 版本：对于 dword 索引，该指令将汇集八个单精度浮点值。对于 qword 索引，该指令将汇集四个值并将目的寄存器的上部 128 位清零。</p>
+		<p>请注意：</p>
+		<ul>
+			<li>如果索引、掩码或目的寄存器中的任何一对相同，此指令会导致 UD 故障。</li>
+			<li>可以按任何顺序从内存中读取这些值。与其他指令的内存排序遵循 Intel-64 内存排序模型。</li>
+			<li>故障按从右到左的方式传递。也就是说，如果某个元素触发了故障并传递，则所有靠近目的寄存器 LSB 的元素都将完成（且无故障）。靠近 MSB 的单个元素可能完成，也可能未完成。如果给定元素触发了多个故障，它们将按常规顺序传递。</li>
+			<li>可以按任何顺序汇集元素，但故障必须按从右到左的顺序传递；因此，在传递故障之前，可能会汇集故障元素左侧的元素。此指令的特定实现是可重复的——在给定相同输入值和架构状态的情况下，将汇集故障元素左侧的同一组元素。</li>
+			<li>此指令不执行 AC 检查，因此永远不会传递 AC 故障。</li>
+			<li>如果地址大小属性为 16 位，此指令将导致 #UD。</li>
+			<li>如果内存操作数的编码中没有 SIB 字节，此指令将导致 #UD。</li>
+			<li>此指令不应用于访问内存映射 I/O，因为它执行的各个加载的顺序是特定于实现的，并且某些实现可能使用大于数据元素大小的加载，或者加载元素的次数不确定。</li>
+			<li>表示比例索引所需的位数可能多于处理器使用的地址位数（例如，在 32 位模式下，如果比例因子大于 1）。在这种情况下，超出地址位数的最高有效位将被忽略。</li>
+		</ul>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>DEST := SRC1;
+BASE_ADDR: base register encoded in VSIB addressing;
+VINDEX: the vector index register encoded by VSIB addressing;
+SCALE: scale factor encoded by SIB:[7:6];
+DISP: optional 1, 4 byte displacement;
+MASK := SRC3;
+</pre>
+		<h3 id="vgatherdps--vex-128-version-">VGATHERDPS (VEX.128 版本)<a class="anchor" href="#vgatherdps--vex-128-version-">¶</a></h3>
+		<pre>MASK[MAXVL-1:128] := 0;
+FOR j := 0 to 3
+    i := j * 32;
+    IF MASK[31+i] THEN
+        MASK[i +31:i] := FFFFFFFFH; // extend from most significant bit
+    ELSE
+        MASK[i +31:i] := 0;
+    FI;
+ENDFOR
+FOR j := 0 to 3
+    i := j * 32;
+    DATA_ADDR := BASE_ADDR + (SignExtend(VINDEX[i+31:i])*SCALE + DISP;
+    IF MASK[31+i] THEN
+        DEST[i +31:i] := FETCH_32BITS(DATA_ADDR); // a fault exits the instruction
+    FI;
+    MASK[i +31:i] := 0;
+ENDFOR
+DEST[MAXVL-1:128] := 0;
+</pre>
+		<h3 id="vgatherqps--vex-128-version-">VGATHERQPS (VEX.128 版本)<a class="anchor" href="#vgatherqps--vex-128-version-">¶</a></h3>
+		<pre>MASK[MAXVL-1:64] := 0;
+FOR j := 0 to 3
+    i := j * 32;
+    IF MASK[31+i] THEN
+        MASK[i +31:i] := FFFFFFFFH; // extend from most significant bit
+    ELSE
+        MASK[i +31:i] := 0;
+    FI;
+ENDFOR
+FOR j := 0 to 1
+    k := j * 64;
+    i := j * 32;
+    DATA_ADDR := BASE_ADDR + (SignExtend(VINDEX1[k+63:k])*SCALE + DISP;
+    IF MASK[31+i] THEN
+        DEST[i +31:i] := FETCH_32BITS(DATA_ADDR); // a fault exits the instruction
+    FI;
+    MASK[i +31:i] := 0;
+ENDFOR
+DEST[MAXVL-1:64] := 0;
+</pre>
+		<h3 id="vgatherdps--vex-256-version-">VGATHERDPS (VEX.256 版本)<a class="anchor" href="#vgatherdps--vex-256-version-">¶</a></h3>
+		<pre>MASK[MAXVL-1:256] := 0;
+FOR j := 0 to 7
+    i := j * 32;
+    IF MASK[31+i] THEN
+        MASK[i +31:i] := FFFFFFFFH; // extend from most significant bit
+    ELSE
+        MASK[i +31:i] := 0;
+    FI;
+ENDFOR
+FOR j := 0 to 7
+    i := j * 32;
+    DATA_ADDR := BASE_ADDR + (SignExtend(VINDEX1[i+31:i])*SCALE + DISP;
+    IF MASK[31+i] THEN
+        DEST[i +31:i] := FETCH_32BITS(DATA_ADDR); // a fault exits the instruction
+    FI;
+    MASK[i +31:i] := 0;
+ENDFOR
+DEST[MAXVL-1:256] := 0;
+</pre>
+		<h3 id="vgatherqps--vex-256-version-">VGATHERQPS (VEX.256 版本)<a class="anchor" href="#vgatherqps--vex-256-version-">¶</a></h3>
+		<pre>MASK[MAXVL-1:128] := 0;
+FOR j := 0 to 7
+    i := j * 32;
+    IF MASK[31+i] THEN
+        MASK[i +31:i] := FFFFFFFFH; // extend from most significant bit
+    ELSE
+        MASK[i +31:i] := 0;
+    FI;
+ENDFOR
+FOR j := 0 to 3
+    k := j * 64;
+    i := j * 32;
+    DATA_ADDR := BASE_ADDR + (SignExtend(VINDEX1[k+63:k])*SCALE + DISP;
+    IF MASK[31+i] THEN
+        DEST[i +31:i] := FETCH_32BITS(DATA_ADDR); // a fault exits the instruction
+    FI;
+    MASK[i +31:i] := 0;
+ENDFOR
+DEST[MAXVL-1:128] := 0;
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VGATHERDPS: __m128 _mm_i32gather_ps (float const * base, __m128i index, const int scale);
+</pre>
+		<pre>VGATHERDPS: __m128 _mm_mask_i32gather_ps (__m128 src, float const * base, __m128i index, __m128 mask, const int scale);
+</pre>
+		<pre>VGATHERDPS: __m256 _mm256_i32gather_ps (float const * base, __m256i index, const int scale);
+</pre>
+		<pre>VGATHERDPS: __m256 _mm256_mask_i32gather_ps (__m256 src, float const * base, __m256i index, __m256 mask, const int scale);
+</pre>
+		<pre>VGATHERQPS: __m128 _mm_i64gather_ps (float const * base, __m128i index, const int scale);
+</pre>
+		<pre>VGATHERQPS: __m128 _mm_mask_i64gather_ps (__m128 src, float const * base, __m128i index, __m128 mask, const int scale);
+</pre>
+		<pre>VGATHERQPS: __m128 _mm256_i64gather_ps (float const * base, __m256i index, const int scale);
+</pre>
+		<pre>VGATHERQPS: __m128 _mm256_mask_i64gather_ps (__m128 src, float const * base, __m256i index, __m128 mask, const int scale);
+</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-27，“第 12 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

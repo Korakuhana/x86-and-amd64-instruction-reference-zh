@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>INCSSPD/INCSSPQ — 增加影子栈指针</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>INCSSPD/INCSSPQ — 增加影子栈指针</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>F3 0F AE /05 INCSSPD r32</td>
+			<td>R</td>
+			<td>V/V</td>
+			<td>CET_SS</td>
+			<td>将 SSP 增加 4 * r32[7:0]。</td>
+		</tr>
+		<tr>
+			<td>F3 REX.W 0F AE /05 INCSSPQ r64</td>
+			<td>R</td>
+			<td>V/N.E.</td>
+			<td>CET_SS</td>
+			<td>将 SSP 增加 8 * r64[7:0]。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>Tuple 类型</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>R</td>
+			<td>N/A</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>此指令可用于将当前影子栈指针 (SSP) 增加该指令的操作数大小乘以源操作数中由位 7:0 指定的无符号 8 位值。该指令在源操作数位 7:0 中的无符号 8 位值指定的范围内，执行对影子栈中第一个和最后一个元素的弹出并丢弃操作。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>IF CPL = 3
+    IF (CR4.CET &amp; IA32_U_CET.SH_STK_EN) = 0
+        THEN #UD; FI;
+ELSE
+    IF (CR4.CET &amp; IA32_S_CET.SH_STK_EN) = 0
+        THEN #UD; FI;
+FI;
+IF (operand size is 64-bit)
+    THEN
+        Range := R64[7:0];
+        shadow_stack_load 8 bytes from SSP;
+        IF Range &gt; 0
+            THEN shadow_stack_load 8 bytes from SSP + 8 * (Range - 1);
+        FI;
+        SSP := SSP + Range * 8;
+    ELSE
+        Range := R32[7:0];
+        shadow_stack_load 4 bytes from SSP;
+        IF Range &gt; 0
+            THEN shadow_stack_load 4 bytes from SSP + 4 * (Range - 1);
+        FI;
+        SSP := SSP + Range * 4;
+FI;
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>INCSSPD void _incsspd(int);
+</pre>
+	<pre>INCSSPQ void _incsspq(int);
+</pre>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="4">#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+		<tr>
+			<td>如果 CR4.CET = 0。</td>
+		</tr>
+		<tr>
+			<td>如果 CPL = 3 且 IA32_U_CET.SH_STK_EN = 0。</td>
+		</tr>
+		<tr>
+			<td>如果 CPL &lt; 3 且 IA32_S_CET.SH_STK_EN = 0。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>INCSSP 指令在实地址模式下无法识别。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>INCSSP 指令在虚拟-8086 模式下无法识别。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VPDPBUSDS — 乘加无符号和有符号字节并饱和</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VPDPBUSDS — 乘加无符号和有符号字节并饱和</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.W0 51 /r VPDPBUSDS xmm1, xmm2, xmm3/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX-VNNI</td>
+				<td>将 xmm3/m128 中的有符号字节（每 4 对为一组）与 xmm2 中相应的无符号字节相乘，对这些乘积求和并加到 xmm1 中的双字结果中，并带有符号饱和。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.W0 51 /r VPDPBUSDS ymm1, ymm2, ymm3/m256</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX-VNNI</td>
+				<td>将 ymm3/m256 中的有符号字节（每 4 对为一组）与 ymm2 中相应的无符号字节相乘，对这些乘积求和并加到 ymm1 中的双字结果中，并带有符号饱和。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W0 51 /r VPDPBUSDS xmm1{k1}{z}, xmm2, xmm3/m128/m32bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512_VNNI AVX512VL</td>
+				<td>在写掩码 k1 下，将 xmm3/m128/m32bcst 中的有符号字节（每 4 对为一组）与 xmm2 中相应的无符号字节相乘，对这些乘积求和并加到 xmm1 中的双字结果中，并带有符号饱和。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W0 51 /r VPDPBUSDS ymm1{k1}{z}, ymm2, ymm3/m256/m32bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512_VNNI AVX512VL</td>
+				<td>在写掩码 k1 下，将 ymm3/m256/m32bcst 中的有符号字节（每 4 对为一组）与 ymm2 中相应的无符号字节相乘，对这些乘积求和并加到 ymm1 中的双字结果中，并带有符号饱和。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W0 51 /r VPDPBUSDS zmm1{k1}{z}, zmm2, zmm3/m512/m32bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512_VNNI</td>
+				<td>在写掩码 k1 下，将 zmm3/m512/m32bcst 中的有符号字节（每 4 对为一组）与 zmm2 中相应的无符号字节相乘，对这些乘积求和并加到 zmm1 中的双字结果中，并带有符号饱和。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (r, w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>Full</td>
+				<td>ModRM:reg (r, w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将第一源操作数中的各个无符号字节与第二源操作数中相应的有符号字节相乘，产生中间有符号字结果。然后将这些字结果求合并累加到目的双字元素大小操作数中。如果中间和溢出 32 位有符号数，则结果饱和为正数的 0x7FFF_FFFF 或负数的 0x8000_0000。</p>
+		<p>此指令支持内存故障抑制。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vpdpbusds-dest--src1--src2--vex-encoded-versions-">VPDPBUSDS dest, src1, src2 (VEX 编码版本)<a class="anchor" href="#vpdpbusds-dest--src1--src2--vex-encoded-versions-">¶</a></h3>
+		<pre>VL=(128, 256)
+KL=VL/32
+ORIGDEST := DEST
+FOR i := 0 TO KL-1:
+    // Extending to 16b
+    // src1extend := ZERO_EXTEND
+    // src2extend := SIGN_EXTEND
+    p1word := src1extend(SRC1.byte[4*i+0]) * src2extend(SRC2.byte[4*i+0])
+    p2word := src1extend(SRC1.byte[4*i+1]) * src2extend(SRC2.byte[4*i+1])
+    p3word := src1extend(SRC1.byte[4*i+2]) * src2extend(SRC2.byte[4*i+2])
+    p4word := src1extend(SRC1.byte[4*i+3]) * src2extend(SRC2.byte[4*i+3])
+    DEST.dword[i] := SIGNED_DWORD_SATURATE(ORIGDEST.dword[i] + p1word + p2word + p3word + p4word)
+DEST[MAX_VL-1:VL] := 0
+</pre>
+		<h3 id="vpdpbusds-dest--src1--src2--evex-encoded-versions-">VPDPBUSDS dest, src1, src2 (EVEX 编码版本)<a class="anchor" href="#vpdpbusds-dest--src1--src2--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL,VL)=(4,128), (8,256), (16,512)
+ORIGDEST := DEST
+FOR i := 0 TO KL-1:
+    IF k1[i] or *no writemask*:
+        // Byte elements of SRC1 are zero-extended to 16b and
+        // byte elements of SRC2 are sign extended to 16b before multiplication.
+        IF SRC2 is memory and EVEX.b == 1:
+            t := SRC2.dword[0]
+        ELSE:
+            t := SRC2.dword[i]
+        p1word := ZERO_EXTEND(SRC1.byte[4*i]) * SIGN_EXTEND(t.byte[0])
+        p2word := ZERO_EXTEND(SRC1.byte[4*i+1]) * SIGN_EXTEND(t.byte[1])
+        p3word := ZERO_EXTEND(SRC1.byte[4*i+2]) * SIGN_EXTEND(t.byte[2])
+        p4word := ZERO_EXTEND(SRC1.byte[4*i+3]) *SIGN_EXTEND(t.byte[3])
+        DEST.dword[i] := SIGNED_DWORD_SATURATE(ORIGDEST.dword[i] + p1word + p2word + p3word + p4word)
+    ELSE IF *zeroing*:
+        DEST.dword[i] := 0
+    ELSE: // Merge masking, dest element unchanged
+        DEST.dword[i] := ORIGDEST.dword[i]
+DEST[MAX_VL-1:VL] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VPDPBUSDS __m128i _mm_dpbusds_avx_epi32(__m128i, __m128i, __m128i);
+</pre>
+		<pre>VPDPBUSDS __m128i _mm_dpbusds_epi32(__m128i, __m128i, __m128i);
+</pre>
+		<pre>VPDPBUSDS __m128i _mm_mask_dpbusds_epi32(__m128i, __mmask8, __m128i, __m128i);
+</pre>
+		<pre>VPDPBUSDS __m128i _mm_maskz_dpbusds_epi32(__mmask8, __m128i, __m128i, __m128i);
+</pre>
+		<pre>VPDPBUSDS __m256i _mm256_dpbusds_avx_epi32(__m256i, __m256i, __m256i);
+</pre>
+		<pre>VPDPBUSDS __m256i _mm256_dpbusds_epi32(__m256i, __m256i, __m256i);
+</pre>
+		<pre>VPDPBUSDS __m256i _mm256_mask_dpbusds_epi32(__m256i, __mmask8, __m256i, __m256i);
+</pre>
+		<pre>VPDPBUSDS __m256i _mm256_maskz_dpbusds_epi32(__mmask8, __m256i, __m256i, __m256i);
+</pre>
+		<pre>VPDPBUSDS __m512i _mm512_dpbusds_epi32(__m512i, __m512i, __m512i);
+</pre>
+		<pre>VPDPBUSDS __m512i _mm512_mask_dpbusds_epi32(__m512i, __mmask16, __m512i, __m512i);
+</pre>
+		<pre>VPDPBUSDS __m512i _mm512_maskz_dpbusds_epi32(__mmask16, __m512i, __m512i, __m512i);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>非 EVEX 编码指令，请参阅表 2-21，“第 4 类异常条件”。</p>
+		<p>EVEX 编码指令，请参阅表 2-49，“第 E4 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

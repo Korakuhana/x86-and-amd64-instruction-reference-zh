@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VMCLEAR — 清除虚拟机控制结构</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VMCLEAR — 清除虚拟机控制结构</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>66 0F C7 /6 VMCLEAR m64</td>
+				<td>M</td>
+				<td>将 VMCS 数据复制到内存中的 VMCS 区域。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>M</td>
+				<td>ModRM:r/m (r)</td>
+				<td>NA</td>
+				<td>NA</td>
+				<td>NA</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>此指令适用于其 VMCS 区域驻留在指令操作数中包含的物理地址处的 VMCS。该指令确保该 VMCS 的 VMCS 数据（其中某些数据当前可能维护在处理器上）复制到内存中的 VMCS 区域。它还初始化 VMCS 区域的一部分（例如，它将该 VMCS 的启动状态设置为 clear）。请参阅第 25 章，“虚拟机控制结构”。</p>
+		<p>此指令的操作数始终为 64 位，且始终在内存中。如果操作数是当前 VMCS 指针，则该指针将失效（设置为 FFFFFFFF_FFFFFFFFH）。</p>
+		<p>请注意，VMCLEAR 指令可能不会显式将任何 VMCS 数据写入内存；在执行 VMCLEAR 之前，数据可能已经驻留在内存中。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>IF (register operand) or (not in VMX operation) or (CR0.PE = 0) or (RFLAGS.VM = 1) or (IA32_EFER.LMA = 1 and CS.L = 0)
+    THEN #UD;
+ELSIF in VMX non-root operation
+    THEN VM exit;
+ELSIF CPL &gt; 0
+    THEN #GP(0);
+    ELSE
+        addr := contents of 64-bit in-memory operand;
+        IF addr is not 4KB-aligned OR
+        addr sets any bits beyond the physical-address width<sup>1</sup>
+            THEN VMfail(VMCLEAR with invalid physical address);
+        ELSIF addr = VMXON pointer
+            THEN VMfail(VMCLEAR with VMXON pointer);
+            ELSE
+                ensure that data for VMCS referenced by the operand is in memory;
+                initialize implementation-specific data in VMCS region;
+                launch state of VMCS referenced by the operand := “clear”
+                IF operand addr = current-VMCS pointer
+                    THEN current-VMCS pointer := FFFFFFFF_FFFFFFFFH;
+                FI;
+                VMsucceed;
+        FI;
+FI;
+</pre>
+		<blockquote>
+			<p>1. 如果 IA32_VMX_BASIC[48] 读取为 1，且 addr 设置了 63:32 范围内的任何位，则会发生 VMfail；参见附录 A.1。</p>
+		</blockquote>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>请参阅操作部分和第 31.2 节。</p>
+
+		<h2 id="protected-mode-exceptions" class="exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="4">#GP(0)</td>
+				<td>如果当前特权级别不为 0。</td>
+			</tr>
+			<tr>
+				<td>如果内存操作数有效地址超出 CS、DS、ES、FS 或 GS 段限制。</td>
+			</tr>
+			<tr>
+				<td>如果 DS、ES、FS 或 GS 寄存器包含不可用的段。</td>
+			</tr>
+			<tr>
+				<td>如果操作数位于仅执行代码段中。</td>
+			</tr>
+			<tr>
+				<td>#PF(错误码)</td>
+				<td>如果访问内存操作数时发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td rowspan="2">#SS(0)</td>
+				<td>如果内存操作数有效地址超出 SS 段限制。</td>
+			</tr>
+			<tr>
+				<td>如果 SS 寄存器包含不可用的段。</td>
+			</tr>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果操作数是寄存器。</td>
+			</tr>
+			<tr>
+				<td>如果不在 VMX 操作中。</td>
+			</tr>
+		</table>
+
+		<h2 id="real-address-mode-exceptions" class="exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>在实地址模式下无法识别 VMCLEAR 指令。</td>
+			</tr>
+		</table>
+
+		<h2 id="virtual-8086-mode-exceptions" class="exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>在虚拟-8086 模式下无法识别 VMCLEAR 指令。</td>
+			</tr>
+		</table>
+
+		<h2 id="compatibility-mode-exceptions" class="exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>在兼容模式下无法识别 VMCLEAR 指令。</td>
+			</tr>
+		</table>
+
+		<h2 id="64-bit-mode-exceptions" class="exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#GP(0)</td>
+				<td>如果当前特权级别不为 0。</td>
+			</tr>
+			<tr>
+				<td>如果源操作数位于 CS、DS、ES、FS 或 GS 段中，且内存地址为非规范形式。</td>
+			</tr>
+			<tr>
+				<td>#PF(错误码)</td>
+				<td>如果访问内存操作数时发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td>#SS(0)</td>
+				<td>如果源操作数位于 SS 段中，且内存地址为非规范形式。</td>
+			</tr>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果操作数是寄存器。</td>
+			</tr>
+			<tr>
+				<td>如果不在 VMX 操作中。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

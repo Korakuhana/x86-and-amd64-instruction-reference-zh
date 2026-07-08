@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>SMSW — 存储机器状态字</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>SMSW — 存储机器状态字</h1>
+
+		<table>
+			<tr>
+				<th>操作码*</th>
+				<th>指令</th>
+				<th>Op/En</th>
+				<th>64位模式</th>
+				<th>兼容/传统模式</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>0F 01 /4</td>
+				<td>SMSW r/m16</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>将机器状态字存储到 r/m16 中。</td>
+			</tr>
+			<tr>
+				<td>0F 01 /4</td>
+				<td>SMSW r32/m16</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>将机器状态字存储在 r32/m16 的低 16 位中；r32 的高 16 位未定义。</td>
+			</tr>
+			<tr>
+				<td>REX.W + 0F 01 /4</td>
+				<td>SMSW r64/m16</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>将机器状态字存储在 r64/m16 的低 16 位中；r32 的高 16 位未定义。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>M</td>
+				<td>ModRM:r/m (w)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将机器状态字（控制寄存器 CR0 的第 0 到 15 位）存储到目的操作数中。目的操作数可以是通用寄存器或内存位置。</p>
+		<p>在非 64 位模式下，当目的操作数是 32 位寄存器时，寄存器 CR0 的低 16 位被复制到寄存器的低 16 位中，而高 16 位未定义。当目的操作数是内存位置时，无论操作数大小如何，寄存器 CR0 的低 16 位都作为一个 16 位量写入内存。</p>
+		<p>在 64 位模式下，SMSW 指令的行为由以下示例定义：</p>
+		<ul>
+			<li>SMSW r16 操作数大小为 16，将 CR0[15:0] 存储在 r16 中</li>
+			<li>SMSW r32 操作数大小为 32，零扩展 CR0[31:0]，并存储在 r32 中</li>
+			<li>SMSW r64 操作数大小为 64，零扩展 CR0[63:0]，并存储在 r64 中</li>
+			<li>SMSW m16 操作数大小为 16，将 CR0[15:0] 存储在 m16 中</li>
+			<li>SMSW m16 操作数大小为 32，将 CR0[15:0] 存储在 m16 中（而不是 m32）</li>
+			<li>SMSW m16 操作数大小为 64，将 CR0[15:0] 存储在 m16 中（而不是 m64）</li>
+		</ul>
+		<p>SMSW 仅在操作系统软件中有用。但是，它不是特权指令，如果在 CR4.UMIP = 0 时，可以在应用程序中使用。提供该指令是为了与 Intel 286 处理器兼容。对于旨在从 Intel386 处理器开始在 IA-32 和 Intel 64 处理器上运行的程序和过程，应该使用 MOV CR 指令来加载机器状态字。</p>
+		<p>有关此指令在 VMX 非根操作中行为的更多信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 3C 卷第 26 章中的“VMX 非根操作中指令行为的变化”。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>DEST := CR0[15:0];
+(* 机器状态字 *)
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="4">#GP(0)</td>
+				<td>如果目标操作数位于不可写的段中。</td>
+			</tr>
+			<tr>
+				<td>如果内存操作数的有效地址超出了 CS、DS、ES、FS 或 GS 段的界限。</td>
+			</tr>
+			<tr>
+				<td>如果使用 DS、ES、FS 或 GS 寄存器访问内存且它包含一个 NULL 段选择子。</td>
+			</tr>
+			<tr>
+				<td>如果 CR4.UMIP = 1 且 CPL &gt; 0。</td>
+			</tr>
+			<tr>
+				<td>#SS(0)</td>
+				<td>如果内存操作数的有效地址超出了 SS 段的界限。</td>
+			</tr>
+			<tr>
+				<td>#PF(错误码)</td>
+				<td>如果发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td>#AC(0)</td>
+				<td>如果启用了对齐检查，并且在 CPL = 3 时进行了未对齐的内存引用。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP</td>
+				<td>如果内存操作数的有效地址超出了 CS、DS、ES、FS 或 GS 段 of 的界限。</td>
+			</tr>
+			<tr>
+				<td>#SS(0)</td>
+				<td>如果内存操作数的有效地址超出了 SS 段的界限。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#GP(0)</td>
+				<td>如果内存操作数的有效地址超出了 CS、DS、ES、FS 或 GS 段的界限。</td>
+			</tr>
+			<tr>
+				<td>如果 CR4.UMIP = 1。</td>
+			</tr>
+			<tr>
+				<td>#SS(0)</td>
+				<td>如果内存操作数的有效地址超出了 SS 段的界限。</td>
+			</tr>
+			<tr>
+				<td>#PF(错误码)</td>
+				<td>如果发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td>#AC(0)</td>
+				<td>如果启用了对齐检查且进行了未对齐的内存引用。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#SS(0)</td>
+				<td>如果引用 SS 段的内存地址为非规范形式。</td>
+			</tr>
+			<tr>
+				<td rowspan="2">#GP(0)</td>
+				<td>如果内存地址为非规范形式。</td>
+			</tr>
+			<tr>
+				<td>如果 CR4.UMIP = 1 且 CPL &gt; 0。</td>
+			</tr>
+			<tr>
+				<td>#PF(错误码)</td>
+				<td>如果发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td>#AC(0)</td>
+				<td>如果启用了对齐检查，并且在 CPL = 3 时进行了未对齐的内存引用。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

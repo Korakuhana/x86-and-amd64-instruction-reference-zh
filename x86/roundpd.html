@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>ROUNDPD — 对打包双精度浮点值进行舍入</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>ROUNDPD — 对打包双精度浮点值进行舍入</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>66 0F 3A 09 /r ib ROUNDPD xmm1, xmm2/m128, imm8</td>
+				<td>RMI</td>
+				<td>V/V</td>
+				<td>SSE4_1</td>
+				<td>对 xmm2/m128 中的打包双精度浮点值进行舍入，并将结果保存在 xmm1 中。舍入模式由 imm8 决定。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F3A.WIG 09 /r ib VROUNDPD xmm1, xmm2/m128, imm8</td>
+				<td>RMI</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>对 xmm2/m128 中的打包双精度浮点值进行舍入，并将结果保存在 xmm1 中。舍入模式由 imm8 决定。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F3A.WIG 09 /r ib VROUNDPD ymm1, ymm2/m256, imm8</td>
+				<td>RMI</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>对 ymm2/m256 中的打包双精度浮点值进行舍入，并将结果保存在 ymm1 中。舍入模式由 imm8 决定。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>RMI</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>imm8</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>对源操作数（第二个操作数）中的 2 个双精度浮点值使用立即数操作数（第三个操作数）中指定的舍入模式进行舍入，并将结果保存在目的操作数（第一个操作数）中。舍入过程将每个输入的浮点值舍入为整数值，并将该整数结果作为双精度浮点值返回。</p>
+		<p>立即数操作数指定舍入操作的控制字段，定义了三个位字段，如图 4-24 所示。立即数字节的第 3 位控制处理器对精度异常的行为，第 2 位选择舍入模式控制的来源。位 1:0 指定非粘性舍入模式值（表 4-18 列出了舍入模式字段的编码值）。</p>
+		<p>根据立即数操作数发出精度浮点异常信号。如果任何源操作数是 SNaN，则它将被转换为 QNaN。如果 DAZ 设置为 '1'，则在舍入前反常数将被转换为零。</p>
+		<p>128位传统 SSE 版本：第二个源可以是 XMM 寄存器或 128 位内存位置。目的寄存器与第一个源 XMM 寄存器不分离，对应 YMM 目的寄存器的位（MAXVL-1:128）保持不变。</p>
+		<p>VEX.128 编码版本：源操作数为第二个源操作数或 128 位内存位置。目的操作数是 XMM 寄存器。对应 YMM 目的寄存器的位（MAXVL-1:128）清零。</p>
+		<p>VEX.256 编码版本：源操作数是 YMM 寄存器或 256 位内存位置。目的操作数是 YMM 寄存器。</p>
+		<p>注意：在 VEX 编码版本中，VEX.vvvv 是保留的，必须为 1111b，否则指令将触发 #UD。</p>
+
+		<figure id="fig-4-24">
+			<table>
+				<tr>
+					<td></td>
+					<td>8</td>
+					<td>3210</td>
+				</tr>
+				<tr>
+					<td></td>
+					<td>保留</td>
+					<td></td>
+				</tr>
+				<tr>
+					<td></td>
+					<td>P — 精度掩码；0：正常，1：不精确</td>
+					<td></td>
+				</tr>
+				<tr>
+					<td></td>
+					<td>RS — 舍入选择；1：MXCSR.RC，0：Imm8.RC</td>
+					<td></td>
+				</tr>
+				<tr>
+					<td></td>
+					<td>RC — 舍入模式</td>
+					<td></td>
+				</tr>
+			</table>
+			<figcaption><a href='roundpd.html#fig-4-24'>图 4-24</a>. ROUNDxx 指令的立即数字节控制字段</figcaption>
+		</figure>
+
+		<figcaption>表 4-18. 舍入模式与舍入控制 (RC) 字段的编码</figcaption>
+		<p><strong>舍入模式 RC 字段说明 设置</strong></p>
+		<p>最近舍入 00B 舍入结果最接近无限精确的结果。如果两个值同样接近，则结果最接近偶数值（即最低有效位为零的整数值）。</p>
+		<p>向下舍入 01B 舍入结果最接近但不大于（向 −∞ 舍入）于无限精确的结果。</p>
+		<p>向上舍入 10B 舍入结果最接近但不少于（向 +∞ 舍入）于无限精确的结果。</p>
+		<p>向零舍入 11B 舍入结果最接近且绝对值不大于无限精确的结果（截断）。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>IF (imm[2] = ‘1)
+    THEN // 舍入模式由 MXCSR.RC 决定
+        DEST[63:0] := ConvertDPFPToInteger_M(SRC[63:0]);
+        DEST[127:64] := ConvertDPFPToInteger_M(SRC[127:64]);
+    ELSE // 舍入模式由 IMM8.RC 决定
+        DEST[63:0] := ConvertDPFPToInteger_Imm(SRC[63:0]);
+        DEST[127:64] := ConvertDPFPToInteger_Imm(SRC[127:64]);
+FI
+</pre>
+		<h3 id="roundpd--128-bit-legacy-sse-version-">ROUNDPD（128位传统 SSE 版本）<a class="anchor" href="#roundpd--128-bit-legacy-sse-version-">¶</a></h3>
+		<pre>DEST[63:0] := RoundToInteger(SRC[63:0]], ROUND_CONTROL)
+DEST[127:64] := RoundToInteger(SRC[127:64]], ROUND_CONTROL)
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+		<h3 id="vroundpd--vex-128-encoded-version-">VROUNDPD（VEX.128 编码版本）<a class="anchor" href="#vroundpd--vex-128-encoded-version-">¶</a></h3>
+		<pre>DEST[63:0] := RoundToInteger(SRC[63:0]], ROUND_CONTROL)
+DEST[127:64] := RoundToInteger(SRC[127:64]], ROUND_CONTROL)
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vroundpd--vex-256-encoded-version-">VROUNDPD（VEX.256 编码版本）<a class="anchor" href="#vroundpd--vex-256-encoded-version-">¶</a></h3>
+		<pre>DEST[63:0] := RoundToInteger(SRC[63:0], ROUND_CONTROL)
+DEST[127:64] := RoundToInteger(SRC[127:64]], ROUND_CONTROL)
+DEST[191:128] := RoundToInteger(SRC[191:128]], ROUND_CONTROL)
+DEST[255:192] := RoundToInteger(SRC[255:192] ], ROUND_CONTROL)
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>__m128 _mm_round_pd(__m128d s1, int iRoundMode);</pre>
+		<pre>__m128 _mm_floor_pd(__m128d s1);</pre>
+		<pre>__m128 _mm_ceil_pd(__m128d s1)</pre>
+		<pre>__m256 _mm256_round_pd(__m256d s1, int iRoundMode);</pre>
+		<pre>__m256 _mm256_floor_pd(__m256d s1);</pre>
+		<pre>__m256 _mm256_ceil_pd(__m256d s1)</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无效（仅当 SRC = SNaN 时发出信号）。</p>
+		<p>精度（仅当 imm[3] = '0 时发出信号；如果 imm[3] = '1，则忽略 MXCSR 中的精度掩码，且不发出精度异常信号。）</p>
+		<p>请注意，ROUNDPD 不会发出反常数（Denormal）信号。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-19，“第 2 类异常条件”，此外：</p>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果 VEX.vvvv ̸= 1111B。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

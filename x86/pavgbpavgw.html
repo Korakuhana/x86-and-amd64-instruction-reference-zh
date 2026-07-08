@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>PAVGB/PAVGW — 计算打包整数平均值</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>PAVGB/PAVGW — 计算打包整数平均值</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F E0 /r<sup>1</sup> PAVGB mm1, mm2/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE</td>
+				<td>计算 mm2/m64 和 mm1 中打包无符号字节整数的平均值，并进行舍入。</td>
+			</tr>
+			<tr>
+				<td>66 0F E0, /r PAVGB xmm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>计算 xmm2/m128 和 xmm1 中打包无符号字节整数的平均值，并进行舍入。</td>
+			</tr>
+			<tr>
+				<td>NP 0F E3 /r<sup>1</sup> PAVGW mm1, mm2/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE</td>
+				<td>计算 mm2/m64 和 mm1 中打包无符号字整数的平均值，并进行舍入。</td>
+			</tr>
+			<tr>
+				<td>66 0F E3 /r PAVGW xmm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>计算 xmm2/m128 和 xmm1 中打包无符号字整数的平均值，并进行舍入。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F.WIG E0 /r VPAVGB xmm1, xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>计算 xmm3/m128 和 xmm2 中打包无符号字节整数的平均值，并进行舍入。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F.WIG E3 /r VPAVGW xmm1, xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>计算 xmm3/m128 和 xmm2 中打包无符号字整数的平均值，并进行舍入。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F.WIG E0 /r VPAVGB ymm1, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>计算 ymm2 和 ymm3/m256 中打包无符号字节整数的平均值（进行舍入），并存储到 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F.WIG E3 /r VPAVGW ymm1, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>计算 ymm2 和 ymm3/m256 中打包无符号字整数的平均值（进行舍入），并存储到 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.WIG E0 /r VPAVGB xmm1 {k1}{z}, xmm2, xmm3/m128</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>在写掩码 k1 下，计算 xmm2 和 xmm3/m128 中打包无符号字节整数的平均值（进行舍入），并存储到 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.WIG E0 /r VPAVGB ymm1 {k1}{z}, ymm2, ymm3/m256</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>在写掩码 k1 下，计算 ymm2 和 ymm3/m256 中打包无符号字节整数的平均值（进行舍入），并存储到 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.WIG E0 /r VPAVGB zmm1 {k1}{z}, zmm2, zmm3/m512</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512BW</td>
+				<td>在写掩码 k1 下，计算 zmm2 和 zmm3/m512 中打包无符号字节整数的平均值（进行舍入），并存储到 zmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.WIG E3 /r VPAVGW xmm1 {k1}{z}, xmm2, xmm3/m128</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>在写掩码 k1 下，计算 xmm2 和 xmm3/m128 中打包无符号字整数的平均值（进行舍入），并存储到 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.WIG E3 /r VPAVGW ymm1 {k1}{z}, ymm2, ymm3/m256</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>在写掩码 k1 下，计算 ymm2 和 ymm3/m256 中打包无符号字整数的平均值（进行舍入），并存储到 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.WIG E3 /r VPAVGW zmm1 {k1}{z}, zmm2, zmm3/m512</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512BW</td>
+				<td>在写掩码 k1 下，计算 zmm2 和 zmm3/m512 中打包无符号字整数的平均值（进行舍入），并存储到 zmm1 中。</td>
+			</tr>
+		</table>
+		<blockquote>
+			<p>1. 请参阅 Intel® 64 和 IA-32 架构软件开发人员手册第 2B 卷第 2.5 节“Intel® AVX 和 Intel® SSE 指令异常分类”中的注释，以及第 3B 卷第 23.25.3 节“对 MMX 寄存器操作的传统 SIMD 指令的异常条件”。</p>
+		</blockquote>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (r, w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>C</td>
+				<td>Full Mem</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>计算源操作数（第二个操作数）和目的操作数（第一个操作数）的打包无符号整数的 SIMD 平均值，并将结果存储在目的操作数中。对于第一和第二操作数中的每个对应数据元素对，将这两个元素相加，在临时和上加 1，然后将该结果向右移一位。</p>
+		<p>(V)PAVGB 指令对打包无符号字节进行操作，(V)PAVGW 指令对打包无符号字进行操作。</p>
+		<p>在 64 位模式下且未使用 VEX/EVEX 编码时，使用 REX.R 形式的 REX 前缀允许此指令访问额外的寄存器（XMM8-XMM15）。</p>
+		<p>传统 SSE 指令：源操作数可以是 MMX 技术寄存器或 64 位内存位置。目的操作数可以是 MMX 技术寄存器。</p>
+		<p>128位传统 SSE 版本：第一个源操作数是 XMM 寄存器。第二个操作数可以是 XMM 寄存器或 128 位内存位置。目的操作数与第一个源 XMM 寄存器相同，且对应寄存器目的操作数的高位（MAXVL-1:128）保持不变。</p>
+		<p>EVEX.512 编码版本：第一个源操作数是 ZMM 寄存器。第二个源操作数是 ZMM 寄存器或 512 位内存位置。目的操作数是 ZMM 寄存器。</p>
+		<p>VEX.256 和 EVEX.256 编码版本：第一个源操作数是 YMM 寄存器。第二个源操作数是 YMM 寄存器或 256 位内存位置。目的操作数是 YMM 寄存器。</p>
+		<p>VEX.128 和 EVEX.128 编码版本：第一个源操作数是 XMM 寄存器。第二个源操作数是 XMM 寄存器或 128 位内存位置。目的操作数是 XMM 寄存器。对应寄存器目的操作数的高位（MAXVL-1:128）清零。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="pavgb--with-64-bit-operands-">PAVGB（使用 64 位操作数）<a class="anchor" href="#pavgb--with-64-bit-operands-">¶</a></h3>
+		<pre>DEST[7:0] := (SRC[7:0] + DEST[7:0] + 1) &gt;&gt; 1; (* Temp sum before shifting is 9 bits *)
+(* Repeat operation performed for bytes 2 through 6 *)
+DEST[63:56] := (SRC[63:56] + DEST[63:56] + 1) &gt;&gt; 1;
+</pre>
+		<h3 id="pavgw--with-64-bit-operands-">PAVGW（使用 64 位操作数）<a class="anchor" href="#pavgw--with-64-bit-operands-">¶</a></h3>
+		<pre>DEST[15:0] := (SRC[15:0] + DEST[15:0] + 1) &gt;&gt; 1; (* Temp sum before shifting is 17 bits *)
+(* Repeat operation performed for words 2 and 3 *)
+DEST[63:48] := (SRC[63:48] + DEST[63:48] + 1) &gt;&gt; 1;
+</pre>
+		<h3 id="pavgb--with-128-bit-operands-">PAVGB（使用 128 位操作数）<a class="anchor" href="#pavgb--with-128-bit-operands-">¶</a></h3>
+		<pre>DEST[7:0] := (SRC[7:0] + DEST[7:0] + 1) &gt;&gt; 1; (* Temp sum before shifting is 9 bits *)
+(* Repeat operation performed for bytes 2 through 14 *)
+DEST[127:120] := (SRC[127:120] + DEST[127:120] + 1) &gt;&gt; 1;
+</pre>
+		<h3 id="pavgw--with-128-bit-operands-">PAVGW（使用 128 位操作数）<a class="anchor" href="#pavgw--with-128-bit-operands-">¶</a></h3>
+		<pre>DEST[15:0] := (SRC[15:0] + DEST[15:0] + 1) &gt;&gt; 1; (* Temp sum before shifting is 17 bits *)
+(* Repeat operation performed for words 2 through 6 *)
+DEST[127:112] := (SRC[127:112] + DEST[127:112] + 1) &gt;&gt; 1;
+</pre>
+		<h3 id="vpavgb--vex-128-encoded-version-">VPAVGB（VEX.128 编码版本）<a class="anchor" href="#vpavgb--vex-128-encoded-version-">¶</a></h3>
+		<pre>DEST[7:0] := (SRC1[7:0] + SRC2[7:0] + 1) &gt;&gt; 1;
+(* Repeat operation performed for bytes 2 through 15 *)
+DEST[127:120] := (SRC1[127:120] + SRC2[127:120] + 1) &gt;&gt; 1
+DEST[MAXVL-1:128] := 0;
+</pre>
+		<h3 id="vpavgw--vex-128-encoded-version-">VPAVGW（VEX.128 编码版本）<a class="anchor" href="#vpavgw--vex-128-encoded-version-">¶</a></h3>
+		<pre>DEST[15:0] := (SRC1[15:0] + SRC2[15:0] + 1) &gt;&gt; 1;
+(* Repeat operation performed for 16-bit words 2 through 7 *)
+DEST[127:112] := (SRC1[127:112] + SRC2[127:112] + 1) &gt;&gt; 1
+DEST[MAXVL-1:128] := 0;
+</pre>
+		<h3 id="vpavgb--vex-256-encoded-instruction-">VPAVGB（VEX.256 编码指令）<a class="anchor" href="#vpavgb--vex-256-encoded-instruction-">¶</a></h3>
+		<pre>DEST[7:0] := (SRC1[7:0] + SRC2[7:0] + 1) &gt;&gt; 1; (* Temp sum before shifting is 9 bits *)
+(* Repeat operation performed for bytes 2 through 31)
+DEST[255:248] := (SRC1[255:248] + SRC2[255:248] + 1) &gt;&gt; 1;
+</pre>
+		<h3 id="vpavgw--vex-256-encoded-instruction-">VPAVGW（VEX.256 编码指令）<a class="anchor" href="#vpavgw--vex-256-encoded-instruction-">¶</a></h3>
+		<pre>DEST[15:0] := (SRC1[15:0] + SRC2[15:0] + 1) &gt;&gt; 1; (* Temp sum before shifting is 17 bits *)
+(* Repeat operation performed for words 2 through 15)
+DEST[255:14]) := (SRC1[255:240] + SRC2[255:240] + 1) &gt;&gt; 1;
+VPAVGB (EVEX encoded versions)
+(KL, VL) = (16, 128), (32, 256), (64, 512)
+FOR j := 0 TO KL-1
+    i := j * 8
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+7:i] := (SRC1[i+7:i] + SRC2[i+7:i] + 1) &gt;&gt; 1; (* Temp sum before shifting is 9 bits *)
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+7:i] remains unchanged*
+                ELSE *zeroing-masking*
+                        ; zeroing-masking
+                    DEST[i+7:i] = 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vpavgw--evex-encoded-versions-">VPAVGW（EVEX 编码版本）<a class="anchor" href="#vpavgw--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (8, 128), (16, 256), (32, 512)
+FOR j := 0 TO KL-1
+    i := j * 16
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i] := (SRC1[i+15:i] + SRC2[i+15:i] + 1) &gt;&gt; 1
+                        ; (* Temp sum before shifting is 17 bits *)
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE *zeroing-masking*
+                            ; zeroing-masking
+                    DEST[i+15:i] = 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalents">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalents">¶</a></h2>
+		<pre>VPAVGB __m512i _mm512_avg_epu8( __m512i a, __m512i b);</pre>
+		<pre>VPAVGW __m512i _mm512_avg_epu16( __m512i a, __m512i b);</pre>
+		<pre>VPAVGB __m512i _mm512_mask_avg_epu8(__m512i s, __mmask64 m, __m512i a, __m512i b);</pre>
+		<pre>VPAVGW __m512i _mm512_mask_avg_epu16(__m512i s, __mmask32 m, __m512i a, __m512i b);</pre>
+		<pre>VPAVGB __m512i _mm512_maskz_avg_epu8( __mmask64 m, __m512i a, __m512i b);</pre>
+		<pre>VPAVGW __m512i _mm512_maskz_avg_epu16( __mmask32 m, __m512i a, __m512i b);</pre>
+		<pre>VPAVGB __m256i _mm256_mask_avg_epu8(__m256i s, __mmask32 m, __m256i a, __m256i b);</pre>
+		<pre>VPAVGW __m256i _mm256_mask_avg_epu16(__m256i s, __mmask16 m, __m256i a, __m256i b);</pre>
+		<pre>VPAVGB __m256i _mm256_maskz_avg_epu8( __mmask32 m, __m256i a, __m256i b);</pre>
+		<pre>VPAVGW __m256i _mm256_maskz_avg_epu16( __mmask16 m, __m256i a, __m256i b);</pre>
+		<pre>VPAVGB __m128i _mm_mask_avg_epu8(__m128i s, __mmask16 m, __m128i a, __m128i b);</pre>
+		<pre>VPAVGW __m128i _mm_mask_avg_epu16(__m128i s, __mmask8 m, __m128i a, __m128i b);</pre>
+		<pre>VPAVGB __m128i _mm_maskz_avg_epu8( __mmask16 m, __m128i a, __m128i b);</pre>
+		<pre>VPAVGW __m128i _mm_maskz_avg_epu16( __mmask8 m, __m128i a, __m128i b);</pre>
+		<pre>PAVGB __m64 _mm_avg_pu8 (__m64 a, __m64 b)</pre>
+		<pre>PAVGW __m64 _mm_avg_pu16 (__m64 a, __m64 b)</pre>
+		<pre>(V)PAVGB __m128i _mm_avg_epu8 ( __m128i a, __m128i b)</pre>
+		<pre>(V)PAVGW __m128i _mm_avg_epu16 ( __m128i a, __m128i b)</pre>
+		<pre>VPAVGB __m256i _mm256_avg_epu8 ( __m256i a, __m256i b)</pre>
+		<pre>VPAVGW __m256i _mm256_avg_epu16 ( __m256i a, __m256i b)</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="numeric-exceptions">数值异常<a class="anchor" href="#numeric-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>非 EVEX 编码指令，请参阅表 2-21，“第 4 类异常条件”。</p>
+		<p>EVEX 编码指令，请参阅表 2-49 “第 E4 类异常条件” 中的异常类型 E4.nb。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>RORX — 逻辑右移且不影响标志位</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>RORX — 逻辑右移且不影响标志位</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>VEX.LZ.F2.0F3A.W0 F0 /r ib RORX r32, r/m32, imm8</td>
+				<td>RMI</td>
+				<td>V/V</td>
+				<td>BMI2</td>
+				<td>将 32 位 r/m32 循环右移 imm8 次，不影响算术标志位。</td>
+			</tr>
+			<tr>
+				<td>VEX.LZ.F2.0F3A.W1 F0 /r ib RORX r64, r/m64, imm8</td>
+				<td>RMI</td>
+				<td>V/N.E.</td>
+				<td>BMI2</td>
+				<td>将 64 位 r/m64 循环右移 imm8 次，不影响算术标志位。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>RMI</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>imm8</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将第二个操作数的位右移由 imm8 指定的计数值，且不影响算术标志位。RORX 指令不读取或写入算术标志位。</p>
+		<p>在实模式和虚拟-8086 模式下不支持此指令。如果不在 64 位模式下，操作数大小始终为 32 位。在 64 位模式下，操作数大小为 64 需要 VEX.W1。在非 64 位模式下，VEX.W1 被忽略。尝试在 VEX.L 不等于 0 的情况下执行此指令将导致 #UD。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>IF (OperandSize = 32)
+    y := imm8 AND 1FH;
+    DEST := (SRC &gt;&gt; y) | (SRC &lt;&lt; (32-y));
+ELSEIF (OperandSize = 64 )
+    y := imm8 AND 3FH;
+    DEST := (SRC &gt;&gt; y) | (SRC &lt;&lt; (64-y));
+FI;
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>由高级语言自动生成。</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-29，“第 13 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

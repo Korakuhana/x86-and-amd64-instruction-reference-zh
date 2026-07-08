@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>LDDQU — 加载 128 位未对齐整数</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>LDDQU — 加载 128 位未对齐整数</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64/32位模式</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>F2 0F F0 /r LDDQU xmm1, mem</td>
+			<td>RM</td>
+			<td>有效/有效</td>
+			<td>SSE3</td>
+			<td>从内存加载未对齐的数据，并在 xmm1 中返回双四字。</td>
+		</tr>
+		<tr>
+			<td>VEX.128.F2.0F.WIG F0 /r VLDDQU xmm1, m128</td>
+			<td>RM</td>
+			<td>有效/有效</td>
+			<td>AVX</td>
+			<td>将未对齐的打包整数值从内存加载到 xmm1 中。</td>
+		</tr>
+		<tr>
+			<td>VEX.256.F2.0F.WIG F0 /r VLDDQU ymm1, m256</td>
+			<td>RM</td>
+			<td>有效/有效</td>
+			<td>AVX</td>
+			<td>将未对齐的打包整数值从内存加载到 ymm1 中。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>RM</td>
+			<td>ModRM:reg (w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>该指令在从内存加载时与 (V)MOVDQU ymm/xmm, m256/m128 <strong>功能相似</strong>。即：从内存中获取由源内存操作数（第二个操作数）指定地址开始的 32/16 字节数据，并放入目的寄存器（第一个操作数）中。源操作数不需要对齐到 32/16 字节边界。最多可以从内存加载 64/32 字节，这取决于具体实现。</p>
+	<p>如果源操作数跨越了缓存行边界，与 (V)MOVDQU 相比，此指令可以提高性能。在需要修改 (V)LDDQU 加载的数据并将其存储到相同位置的情况下，使用 (V)MOVDQU 或 (V)MOVDQA 而不是 (V)LDDQU。要在已知对齐到 16 字节边界的内存位置传送双四字，使用 (V)MOVDQA 指令。</p>
+
+	<h2 id="implementation-notes">实现说明<a class="anchor" href="#implementation-notes">¶</a></h2>
+	<ul>
+		<li>如果源地址对齐到 32/16 字节边界，根据实现的不同， 32/16 字节可能会被加载多次。因此，在使用未缓存或写合并 (WC) 内存区域时，应避免使用 (V)LDDQU。对于未缓存或 WC 内存区域，请继续使用 (V)MOVDQU。</li>
+		<li>此指令是 (V)MOVDQU（加载）在缓存行拆分显著影响性能时的替代品。在存储-加载转发（store-load forwarding）对性能至关重要的情况下，不应使用它。如果存储-加载转发的性能对应用程序至关重要，当数据为 256/128 位对齐时，使用 (V)MOVDQA 存储-加载对；当数据为 256/128 位未对齐时，使用 (V)MOVDQU 存储-加载对。</li>
+		<li>如果内存地址未对齐到 32/16 字节边界，某些实现可能会加载多达 64/32 字节，并在目的操作数中返回 32/16 字节。某些处理器实现可能会发出多次加载以访问适当的 32/16 字节。多线程或多处理器软件的开发人员应注意，在这些处理器上，加载将以非原子方式执行。</li>
+		<li>如果启用了对齐检查（CR0.AM = 1，RFLAGS.AC = 1 且 CPL = 3），当内存地址未对齐到 8 字节边界时，可能产生或不产生对齐检查异常 (#AC)（取决于处理器实现）。</li>
+	</ul>
+	<p>在 64 位模式下，使用 REX.R 前缀允许此指令访问额外的寄存器 (XMM8-XMM15)。</p>
+	<p>注意：在 VEX 编码版本中，VEX.vvvv 是保留的，必须为 1111b，否则指令将产生 #UD 异常。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<h3 id="lddqu--128-bit-legacy-sse-version-">LDDQU (128-bit Legacy SSE Version)<a class="anchor" href="#lddqu--128-bit-legacy-sse-version-">¶</a></h3>
+	<pre>DEST[127:0] := SRC[127:0]
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+
+	<h3 id="vlddqu--vex-128-encoded-version-">VLDDQU (VEX.128 Encoded Version)<a class="anchor" href="#vlddqu--vex-128-encoded-version-">¶</a></h3>
+	<pre>DEST[127:0] := SRC[127:0]
+DEST[MAXVL-1:128] := 0
+</pre>
+
+	<h3 id="vlddqu--vex-256-encoded-version-">VLDDQU (VEX.256 Encoded Version)<a class="anchor" href="#vlddqu--vex-256-encoded-version-">¶</a></h3>
+	<pre>DEST[255:0] := SRC[255:0]
+</pre>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>LDDQU __m128i _mm_lddqu_si128 (__m128i * p);
+</pre>
+	<pre>VLDDQU __m256i _mm256_lddqu_si256 (__m256i * p);
+</pre>
+
+	<h2 class="exceptions" id="numeric-exceptions">数值异常<a class="anchor" href="#numeric-exceptions">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+	<p>参见表 2-21，“Type 4 类异常条件”。</p>
+	<p>注意对 #AC 的处理有所不同。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

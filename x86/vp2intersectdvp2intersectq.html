@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VP2INTERSECTD/VP2INTERSECTQ — 计算双字/四字之间的交集到一对掩码寄存器</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VP2INTERSECTD/VP2INTERSECTQ — 计算双字/四字之间的交集到一对掩码寄存器</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.NDS.128.F2.0F38.W0 68 /r VP2INTERSECTD k1+1, xmm2, xmm3/m128/m32bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512_VP2INTERSECT</td>
+				<td>在奇偶对的掩码寄存器中，存储 xmm3/m128/m32bcst 与 xmm2 中的双字（dword）之间的数值匹配位置指示器。</td>
+			</tr>
+			<tr>
+				<td>EVEX.NDS.256.F2.0F38.W0 68 /r VP2INTERSECTD k1+1, ymm2, ymm3/m256/m32bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512_VP2INTERSECT</td>
+				<td>在奇偶对的掩码寄存器中，存储 ymm3/m256/m32bcst 与 ymm2 中的双字（dword）之间的数值匹配位置指示器。</td>
+			</tr>
+			<tr>
+				<td>EVEX.NDS.512.F2.0F38.W0 68 /r VP2INTERSECTD k1+1, zmm2, zmm3/m512/m32bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F AVX512_VP2INTERSECT</td>
+				<td>在奇偶对的掩码寄存器中，存储 zmm3/m512/m32bcst 与 zmm2 中的双字（dword）之间的数值匹配位置指示器。</td>
+			</tr>
+			<tr>
+				<td>EVEX.NDS.128.F2.0F38.W1 68 /r VP2INTERSECTQ k1+1, xmm2, xmm3/m128/m64bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512_VP2INTERSECT</td>
+				<td>在奇偶对的掩码寄存器中，存储 xmm3/m128/m64bcst 与 xmm2 中的四字（quadword）之间的数值匹配位置指示器。</td>
+			</tr>
+			<tr>
+				<td>EVEX.NDS.256.F2.0F38.W1 68 /r VP2INTERSECTQ k1+1, ymm2, ymm3/m256/m64bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512_VP2INTERSECT</td>
+				<td>在奇偶对的掩码寄存器中，存储 ymm3/m256/m64bcst 与 ymm2 中的四字（quadword）之间的数值匹配位置指示器。</td>
+			</tr>
+			<tr>
+				<td>EVEX.NDS.512.F2.0F38.W1 68 /r VP2INTERSECTQ k1+1, zmm2, zmm3/m512/m64bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F AVX512_VP2INTERSECT</td>
+				<td>在奇偶对的掩码寄存器中，存储 zmm3/m512/m64bcst 与 zmm2 中的四字（quadword）之间的数值匹配位置指示器。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>该指令写入一对奇偶掩码寄存器。MODRM.REG 字段中指示的掩码寄存器目的地用作形成寄存器对的基础。该字段的低位被屏蔽（设为零），以创建寄存器对的第一个寄存器。</p>
+		<p>EVEX.aaa 和 EVEX.z 必须为零。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vp2intersectd-destmask--src1--src2">VP2INTERSECTD destmask, src1, src2<a class="anchor" href="#vp2intersectd-destmask--src1--src2">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+// dest_mask_reg_id is the register id specified in the instruction for destmask
+dest_base := dest_mask_reg_id &amp; ~1
+// maskregs[ ] is an array representing the mask registers
+maskregs[dest_base+0][MAX_KL-1:0] := 0
+maskregs[dest_base+1][MAX_KL-1:0] := 0
+FOR i := 0 to KL-1:
+    FOR j := 0 to KL-1:
+        match := (src1.dword[i] == src2.dword[j])
+        maskregs[dest_base+0].bit[i] |= match
+        maskregs[dest_base+1].bit[j] |= match
+</pre>
+		<h3 id="vp2intersectq-destmask--src1--src2">VP2INTERSECTQ destmask, src1, src2<a class="anchor" href="#vp2intersectq-destmask--src1--src2">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+// dest_mask_reg_id is the register id specified in the instruction for destmask
+dest_base := dest_mask_reg_id &amp; ~1
+// maskregs[ ] is an array representing the mask registers
+maskregs[dest_base+0][MAX_KL-1:0] := 0
+maskregs[dest_base+1][MAX_KL-1:0] := 0
+FOR i = 0 to KL-1:
+    FOR j = 0 to KL-1:
+        match := (src1.qword[i] == src2.qword[j])
+        maskregs[dest_base+0].bit[i] |= match
+        maskregs[dest_base+1].bit[j] |= match
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VP2INTERSECTD void _mm_2intersect_epi32(__m128i, __m128i, __mmask8 *, __mmask8 *);
+</pre>
+		<pre>VP2INTERSECTD void _mm256_2intersect_epi32(__m256i, __m256i, __mmask8 *, __mmask8 *);
+</pre>
+		<pre>VP2INTERSECTD void _mm512_2intersect_epi32(__m512i, __m512i, __mmask16 *, __mmask16 *);
+</pre>
+		<pre>VP2INTERSECTQ void _mm_2intersect_epi64(__m128i, __m128i, __mmask8 *, __mmask8 *);
+</pre>
+		<pre>VP2INTERSECTQ void _mm256_2intersect_epi64(__m256i, __m256i, __mmask8 *, __mmask8 *);
+</pre>
+		<pre>VP2INTERSECTQ void _mm512_2intersect_epi64(__m512i, __m512i, __mmask8 *, __mmask8 *);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-50，“第 E4NF 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

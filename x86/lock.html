@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>LOCK — 断言 LOCK# 信号前缀</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>LOCK — 断言 LOCK# 信号前缀</h1>
+
+	<p><strong>操作码<sup>1</sup></strong></p>
+	<table>
+		<tr>
+			<th></th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>F0</td>
+			<td>LOCK</td>
+			<td>ZO</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>在伴随的指令执行期间断言 LOCK# 信号。</td>
+		</tr>
+	</table>
+	<blockquote>
+		<p>1. 参见下文的“IA-32 架构兼容性”部分。</p>
+	</blockquote>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>导致处理器的 LOCK# 信号在伴随的指令执行期间被断言（将该指令变成原子指令）。在多处理器环境中，LOCK# 信号可确保处理器在断言该信号时独占使用任何共享内存。</p>
+	<p>在大多数 IA-32 和所有 Intel 64 处理器中，锁定可以在不断言 LOCK# 信号的情况下发生。有关更多详细信息，请参阅下文的“IA-32 架构兼容性”部分。</p>
+	<p>LOCK 前缀只能加在以下指令的前面，且只能加在这些指令的目的操作数是内存操作数的形式前面：ADD、ADC、AND、BTC、BTR、BTS、CMPXCHG、CMPXCH8B、CMPXCHG16B、DEC、INC、NEG、NOT、OR、SBB、SUB、XOR、XADD 和 XCHG。如果将 LOCK 前缀与这些指令之一一起使用，且源操作数是内存操作数，则可能会产生未定义操作码异常 (#UD)。如果将 LOCK 前缀与上述列表之外的任何指令一起使用，也会产生未定义操作码异常。无论是否存在 LOCK 前缀，XCHG 指令总是会断言 LOCK# 信号。</p>
+	<p>LOCK 前缀通常与 BTS 指令一起使用，以在共享内存环境中对内存位置执行读-修改-写操作。</p>
+	<p>LOCK 前缀的完整性不受内存字段对齐方式的影响。对于任意未对齐的字段，都会执行内存锁定。</p>
+	<p>此指令在非 64 位模式和 64 位模式下的操作相同。</p>
+
+	<h2 id="ia-32-architecture-compatibility">IA-32 架构兼容性<a class="anchor" href="#ia-32-architecture-compatibility">¶</a></h2>
+	<p>从 P6 系列处理器开始，当将 LOCK 前缀加在指令前且被访问的内存区域内部缓存在处理器中时，通常不会断言 LOCK# 信号。相反，仅锁定处理器的缓存。此时，处理器的缓存一致性机制可确保该操作在内存方面是原子执行的。有关缓存锁定的更多信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 3A 卷第 9 章中的“锁定操作对内部处理器缓存的影响”。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>AssertLOCK#(DurationOfAccompaningInstruction);
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果将 LOCK 前缀与未列出的指令一起使用：ADD、ADC、AND、BTC、BTR、BTS、CMPXCHG、CMPXCH8B、CMPXCHG16B、DEC、INC、NEG、NOT、OR、SBB、SUB、XOR、XADD、XCHG。</td>
+		</tr>
+		<tr>
+			<td>应用 LOCK 前缀时，该指令可能会产生其他异常。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

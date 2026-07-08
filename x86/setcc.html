@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>SETcc — 根据条件设置字节</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>SETcc — 根据条件设置字节</h1>
+
+		<table>
+			<tr>
+				<th>操作码</th>
+				<th>指令</th>
+				<th>Op/En</th>
+				<th>64位模式</th>
+				<th>兼容/传统模式</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>0F 97</td>
+				<td>SETA r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果高于则置字节（CF=0 且 ZF=0）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 97</td>
+				<td>SETA r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果高于则置字节（CF=0 且 ZF=0）。</td>
+			</tr>
+			<tr>
+				<td>0F 93</td>
+				<td>SETAE r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果高于或等于则置字节（CF=0）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 93</td>
+				<td>SETAE r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果高于或等于则置字节（CF=0）。</td>
+			</tr>
+			<tr>
+				<td>0F 92</td>
+				<td>SETB r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果低于则置字节（CF=1）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 92</td>
+				<td>SETB r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果低于则置字节（CF=1）。</td>
+			</tr>
+			<tr>
+				<td>0F 96</td>
+				<td>SETBE r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果低于或等于则置字节（CF=1 或 ZF=1）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 96</td>
+				<td>SETBE r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果低于或等于则置字节（CF=1 或 ZF=1）。</td>
+			</tr>
+			<tr>
+				<td>0F 92</td>
+				<td>SETC r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果进位则置字节（CF=1）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 92</td>
+				<td>SETC r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果进位则置字节（CF=1）。</td>
+			</tr>
+			<tr>
+				<td>0F 94</td>
+				<td>SETE r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果等于则置字节（ZF=1）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 94</td>
+				<td>SETE r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果等于则置字节（ZF=1）。</td>
+			</tr>
+			<tr>
+				<td>0F 9F</td>
+				<td>SETG r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果大于则置字节（ZF=0 且 SF=OF）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 9F</td>
+				<td>SETG r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果大于则置字节（ZF=0 且 SF=OF）。</td>
+			</tr>
+			<tr>
+				<td>0F 9D</td>
+				<td>SETGE r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果大于或等于则置字节（SF=OF）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 9D</td>
+				<td>SETGE r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果大于或等于则置字节（SF=OF）。</td>
+			</tr>
+			<tr>
+				<td>0F 9C</td>
+				<td>SETL r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果小于则置字节（SF ̸= OF）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 9C</td>
+				<td>SETL r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果小于则置字节（SF ̸= OF）。</td>
+			</tr>
+			<tr>
+				<td>0F 9E</td>
+				<td>SETLE r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果小于或等于则置字节（ZF=1 或 SF ̸= OF）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 9E</td>
+				<td>SETLE r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果小于或等于则置字节（ZF=1 或 SF ̸= OF）。</td>
+			</tr>
+			<tr>
+				<td>0F 96</td>
+				<td>SETNA r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果非高于则置字节（CF=1 或 ZF=1）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 96</td>
+				<td>SETNA r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果非高于则置字节（CF=1 或 ZF=1）。</td>
+			</tr>
+			<tr>
+				<td>0F 92</td>
+				<td>SETNAE r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果非高于或等于则置字节（CF=1）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 92</td>
+				<td>SETNAE r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果非高于或等于则置字节（CF=1）。</td>
+			</tr>
+			<tr>
+				<td>0F 93</td>
+				<td>SETNB r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果非低于则置字节（CF=0）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 93</td>
+				<td>SETNB r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果非低于则置字节（CF=0）。</td>
+			</tr>
+			<tr>
+				<td>0F 97</td>
+				<td>SETNBE r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果非低于或等于则置字节（CF=0 且 ZF=0）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 97</td>
+				<td>SETNBE r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果非低于或等于则置字节（CF=0 且 ZF=0）。</td>
+			</tr>
+			<tr>
+				<td>0F 93</td>
+				<td>SETNC r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果非进位则置字节（CF=0）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 93</td>
+				<td>SETNC r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果非进位则置字节（CF=0）。</td>
+			</tr>
+			<tr>
+				<td>0F 95</td>
+				<td>SETNE r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果非等于则置字节（ZF=0）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 95</td>
+				<td>SETNE r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果非等于则置字节（ZF=0）。</td>
+			</tr>
+			<tr>
+				<td>0F 9E</td>
+				<td>SETNG r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果非大于则置字节（ZF=1 或 SF ̸= OF）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 9E</td>
+				<td>SETNG r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果非大于则置字节（ZF=1 或 SF ̸= OF）。</td>
+			</tr>
+			<tr>
+				<td>0F 9C</td>
+				<td>SETNGE r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果非大于或等于则置字节（SF ̸= OF）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 9C</td>
+				<td>SETNGE r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果非大于或等于则置字节（SF ̸= OF）。</td>
+			</tr>
+			<tr>
+				<td>0F 9D</td>
+				<td>SETNL r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果非小于则置字节（SF=OF）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 9D</td>
+				<td>SETNL r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果非小于则置字节（SF=OF）。</td>
+			</tr>
+			<tr>
+				<td>0F 9F</td>
+				<td>SETNLE r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果非小于或等于则置字节（ZF=0 且 SF=OF）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 9F</td>
+				<td>SETNLE r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果非小于或等于则置字节（ZF=0 且 SF=OF）。</td>
+			</tr>
+			<tr>
+				<td>0F 91</td>
+				<td>SETNO r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果无溢出则置字节（OF=0）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 91</td>
+				<td>SETNO r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果无溢出则置字节（OF=0）。</td>
+			</tr>
+			<tr>
+				<td>0F 9B</td>
+				<td>SETNP r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果非奇偶性（奇校验）则置字节（PF=0）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 9B</td>
+				<td>SETNP r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果非奇偶性（奇校验）则置字节（PF=0）。</td>
+			</tr>
+			<tr>
+				<td>0F 99</td>
+				<td>SETNS r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果无符号则置字节（SF=0）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 99</td>
+				<td>SETNS r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果无符号则置字节（SF=0）。</td>
+			</tr>
+			<tr>
+				<td>0F 95</td>
+				<td>SETNZ r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果非零则置字节（ZF=0）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 95</td>
+				<td>SETNZ r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果非零则置字节（ZF=0）。</td>
+			</tr>
+			<tr>
+				<td>0F 90</td>
+				<td>SETO r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果溢出则置字节（OF=1）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 90</td>
+				<td>SETO r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果溢出则置字节（OF=1）。</td>
+			</tr>
+			<tr>
+				<td>0F 9A</td>
+				<td>SETP r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果奇偶性（偶校验）则置字节（PF=1）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 9A</td>
+				<td>SETP r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果奇偶性（偶校验）则置字节（PF=1）。</td>
+			</tr>
+			<tr>
+				<td>0F 9A</td>
+				<td>SETPE r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果偶校验则置字节（PF=1）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 9A</td>
+				<td>SETPE r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果偶校验则置字节（PF=1）。</td>
+			</tr>
+			<tr>
+				<td>0F 9B</td>
+				<td>SETPO r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果奇校验则置字节（PF=0）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 9B</td>
+				<td>SETPO r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果奇校验则置字节（PF=0）。</td>
+			</tr>
+			<tr>
+				<td>0F 98</td>
+				<td>SETS r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果有符号则置字节（SF=1）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 98</td>
+				<td>SETS r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果有符号则置字节（SF=1）。</td>
+			</tr>
+			<tr>
+				<td>0F 94</td>
+				<td>SETZ r/m8</td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>Valid</td>
+				<td>如果为零则置字节（ZF=1）。</td>
+			</tr>
+			<tr>
+				<td>REX + 0F 94</td>
+				<td>SETZ r/m8<sup>1</sup></td>
+				<td>M</td>
+				<td>Valid</td>
+				<td>N.E.</td>
+				<td>如果为零则置字节（ZF=1）。</td>
+			</tr>
+		</table>
+		<blockquote>
+			<p>1. 在 64 位模式下，如果使用 REX 前缀，则无法编码 r/m8 来访问以下字节寄存器：AH、BH、CH、DH。</p>
+		</blockquote>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>M</td>
+				<td>ModRM:r/m (w)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>根据 EFLAGS 寄存器中状态标志（CF、SF、OF、ZF 和 PF）的设置，将目的操作数设置为 0 或 1。目的操作数指向字节寄存器或内存中的字节。条件码后缀 (<em>cc</em>) 指示要测试的条件。</p>
+		<p>术语“高于（above）”和“低于（below）”与 CF 标志相关联，指两个无符号整数值之间的关系。术语“大于（greater）”和“小于（less）”与 SF 和 OF 标志相关联，指两个有符号整数值之间的关系。</p>
+		<p>许多 SET<em>cc</em> 指令操作码都有备用助记符。例如，SETG（如果大于则置字节）和 SETNLE（如果非小于或等于则置位）具有相同的操作码并测试相同的条件：ZF 等于 0 且 SF 等于 OF。提供这些备用助记符是为了使代码更易理解。请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷附录 B“EFLAGS 条件码”以获取各种测试条件的备用助记符。</p>
+		<p>某些语言将逻辑“真”（logical one）表示为所有位都设置的整数。这种表示可以通过为 SET<em>cc</em> 指令选择逻辑上相反的条件，然后对结果进行递减来获得。例如，要测试溢出，可以使用 SETNO 指令，然后对结果进行递减。</p>
+		<p>ModR/M 字节的 reg 字段不用于 SETcc 指令，这些操作码位被处理器忽略。</p>
+		<p>在 64 位模式下，操作数大小固定为 8 位。使用 REX 前缀可以实现对其他字节寄存器的统一寻址。否则，此指令的操作与传统模式和兼容模式相同。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>IF condition
+    THEN DEST := 1;
+    ELSE DEST := 0;
+FI;
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="3">#GP(0)</td>
+				<td>如果目标操作数位于不可写的段中。</td>
+			</tr>
+			<tr>
+				<td>如果内存操作数的有效地址超出了 CS、DS、ES、FS 或 GS 段的界限。</td>
+			</tr>
+			<tr>
+				<td>如果 DS、ES、FS 或 GS 寄存器包含一个 NULL 段选择子。</td>
+			</tr>
+			<tr>
+				<td>#SS(0)</td>
+				<td>如果内存操作数的有效地址超出了 SS 段的界限。</td>
+			</tr>
+			<tr>
+				<td>#PF(错误码)</td>
+				<td>如果发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP</td>
+				<td>如果内存操作数的有效地址超出了 CS、DS、ES、FS 或 GS 段的界限。</td>
+			</tr>
+			<tr>
+				<td>#SS</td>
+				<td>如果内存操作数的有效地址超出了 SS 段的界限。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP(0)</td>
+				<td>如果内存操作数的有效地址超出了 CS、DS、ES、FS 或 GS 段的界限。</td>
+			</tr>
+			<tr>
+				<td>#SS(0)</td>
+				<td>如果内存操作数的有效地址超出了 SS 段的界限。</td>
+			</tr>
+			<tr>
+				<td>#PF(错误码)</td>
+				<td>如果发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#SS(0)</td>
+				<td>如果引用 SS 段的内存地址为非规范形式。</td>
+			</tr>
+			<tr>
+				<td>#GP(0)</td>
+				<td>如果内存地址为非规范形式。</td>
+			</tr>
+			<tr>
+				<td>#PF(错误码)</td>
+				<td>如果发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

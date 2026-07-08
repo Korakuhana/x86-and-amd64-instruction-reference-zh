@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>INVD — 使内部缓存失效</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>INVD — 使内部缓存失效</h1>
+
+	<p><strong>操作码<sup>1</sup></strong></p>
+	<table>
+		<tr>
+			<th></th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>0F 08</td>
+			<td>INVD</td>
+			<td>ZO</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>刷新内部缓存；启动外部缓存刷新。</td>
+		</tr>
+	</table>
+	<blockquote>
+		<p>1. 参见下文的“IA-32 架构兼容性”部分。</p>
+	</blockquote>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>使处理器的内部缓存失效（刷新），并发出特殊的总线周期，指示外部缓存也进行自我刷新。保存在内部缓存中的数据不会写回到主内存中。</p>
+	<p>执行该指令后，处理器在继续执行指令之前，不会等待外部缓存完成其刷新操作。硬件有责任对缓存刷新信号做出响应。</p>
+	<p>INVD 指令是特权指令。当处理器在保护模式下运行时，程序或过程的 CPL 必须为 0 才能执行此指令。</p>
+	<p>当缓存被用作临时内存，并且需要使缓存内容失效而不是将其写回内存时，可以使用 INVD 指令。当缓存用作临时内存时，任何外部设备都不应主动向主内存写入数据。</p>
+	<p>请谨慎使用此指令。缓存在内部且未写回主内存的数据将会丢失。请注意，从外部设备到主内存的任何数据（例如，通过 PCI 写入）都可能临时存储在缓存中；当执行 INVD 指令时，这些数据可能会丢失。除非有特定需求或优势需要在不写回修改后的缓存行的情况下刷新缓存（例如，临时内存、测试或不需要考虑主内存与缓存一致性的故障恢复），否则软件应改用 WBINVD 指令。</p>
+	<p>在支持处理器保留内存的处理器上，当激活了处理器保留内存保护时，不能执行 INVD 指令。请参见《Intel® 64 和 IA-32 架构软件开发人员手册》卷 3D 第 36.5 节“EPC 和 EPC 页的管理”。</p>
+	<p>某些处理器在 BIOS 执行完成后会阻止执行 INVD 指令。它们通过将 CPUID.(EAX=07H,ECX=1H):EAX[位 30] 枚举为 1 来报告此情况。在这些处理器上，如果 MSR_BIOS_DONE（MSR 地址 151H）的位 0 为 1，则无法执行 INVD 指令。</p>
+	<p>此指令在非 64 位模式和 64 位模式下的操作相同。</p>
+
+	<h2 id="ia-32-architecture-compatibility">IA-32 架构兼容性<a class="anchor" href="#ia-32-architecture-compatibility">¶</a></h2>
+	<p>INVD 指令的实现取决于具体实现；在不同系列的 Intel 64 或 IA-32 处理器上，其实现可能不同。早于 Intel486 处理器的 IA-32 处理器不支持此指令。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>Flush(InternalCaches);
+SignalFlush(ExternalCaches);
+Continue (* Continue execution *)
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="3">#GP(0)</td>
+			<td>如果当前特权级不为 0。</td>
+		</tr>
+		<tr>
+			<td>如果激活了处理器保留内存保护。</td>
+		</tr>
+		<tr>
+			<td>如果 CPUID.(EAX=07H, ECX=1H):EAX[30] = 1 且 MSR_BIOS_DONE（MSR 地址 151H）中设置了位 0。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果 CPUID.(EAX=07H, ECX=1H):EAX[30] = 1 且 MSR_BIOS_DONE（MSR 地址 151H）中设置了位 0。</td>
+		</tr>
+		<tr>
+			<td>如果激活了处理器保留内存保护。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果使用了 LOCK 前缀。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#GP(0)</td>
+			<td>INVD 指令在虚拟-8086 模式下无法执行。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

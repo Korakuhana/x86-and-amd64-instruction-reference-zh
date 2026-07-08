@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>PANDN — 逻辑与非</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>PANDN — 逻辑与非</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F DF /r<sup>1</sup> PANDN mm, mm/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>MMX</td>
+				<td>对 mm/m64 和 mm 进行按位“与非”（AND NOT）操作。</td>
+			</tr>
+			<tr>
+				<td>66 0F DF /r PANDN xmm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>对 xmm2/m128 和 xmm1 进行按位“与非”（AND NOT）操作。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F.WIG DF /r VPANDN xmm1, xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>对 xmm3/m128 和 xmm2 进行按位“与非”（AND NOT）操作。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F.WIG DF /r VPANDN ymm1, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>对 ymm2 和 ymm3/m256 进行按位“与非”（AND NOT）操作，并将结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.W0 DF /r VPANDND xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用写掩码 k1，对 xmm2 和 xmm3/m128/m32bcst 中的打包双字整数进行按位“与非”（AND NOT）操作，并将结果存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.W0 DF /r VPANDND ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用写掩码 k1，对 ymm2 和 ymm3/m256/m32bcst 中的打包双字整数进行按位“与非”（AND NOT）操作，并将结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.W0 DF /r VPANDND zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用写掩码 k1，对 zmm2 和 zmm3/m512/m32bcst 中的打包双字整数进行按位“与非”（AND NOT）操作，并将结果存储在 zmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.W1 DF /r VPANDNQ xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用写掩码 k1，对 xmm2 和 xmm3/m128/m64bcst 中的打包四字整数进行按位“与非”（AND NOT）操作，并将结果存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.W1 DF /r VPANDNQ ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用写掩码 k1，对 ymm2 和 ymm3/m256/m64bcst 中的打包四字整数进行按位“与非”（AND NOT）操作，并将结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.W1 DF /r VPANDNQ zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用写掩码 k1，对 zmm2 和 zmm3/m512/m64bcst 中的打包四字整数进行按位“与非”（AND NOT）操作，并将结果存储在 zmm1 中。</td>
+			</tr>
+		</table>
+		<blockquote>
+			<p>1. 请参阅 Intel® 64 和 IA-32 架构软件开发人员手册第 2A 卷第 2.5 节“Intel® AVX 和 Intel® SSE 指令异常分类”中的注释，以及第 3B 卷第 23.25.3 节“对 MMX 寄存器操作的传统 SIMD 指令的异常条件”。</p>
+		</blockquote>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (r, w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>C</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>对第一个源操作数进行按位逻辑非操作，然后与第二个源操作数进行按位与操作，并将结果存储在目的操作数中。如果第一个操作数中的对应位为 0 且第二个操作数中的对应位为 1，则结果的每个位都设置为 1，否则设置为 0。</p>
+		<p>在 64 位模式下且未使用 VEX/EVEX 编码时，使用 REX.R 形式 of REX 前缀允许此指令访问额外的寄存器（XMM8-XMM15）。</p>
+		<p>传统 SSE 指令：源操作数可以是 MMX 技术寄存器或 64 位内存位置。目的操作数可以是 MMX 技术寄存器。</p>
+		<p>128位传统 SSE 版本：第一个源操作数是 XMM 寄存器。第二个操作数可以是 XMM 寄存器或 128 位内存位置。目的操作数与第一个源 XMM 寄存器相同，且对应 ZMM 寄存器目的操作数的高位（MAXVL-1:128）保持不变。</p>
+		<p>EVEX 编码版本：第一个源操作数是 ZMM/YMM/XMM 寄存器。第二个源操作数可以是 ZMM/YMM/XMM 寄存器、512/256/128 位内存位置，或从 32/64 位内存位置广播的 512/256/128 位向量。目的操作数是 ZMM/YMM/XMM 寄存器，在 32/64 位粒度下使用写掩码 k1 条件更新。</p>
+		<p>VEX.256 编码版本：第一个源操作数是 YMM 寄存器。第二个源操作数是 YMM 寄存器或 256 位内存位置。目的操作数是 YMM 寄存器。对应 ZMM 寄存器目的操作数的高位（MAXVL-1:256）清零。</p>
+		<p>VEX.128 编码版本：第一个源操作数是 XMM 寄存器。第二个源操作数是 XMM 寄存器或 128 位内存位置。目的操作数是 XMM 寄存器。对应 ZMM 寄存器目的操作数的高位（MAXVL-1:128）清零。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="pandn--64-bit-operand-">PANDN（64 位操作数）<a class="anchor" href="#pandn--64-bit-operand-">¶</a></h3>
+		<pre>DEST := NOT(DEST) AND SRC
+</pre>
+		<h3 id="pandn--128-bit-legacy-sse-version-">PANDN（128 位传统 SSE 版本）<a class="anchor" href="#pandn--128-bit-legacy-sse-version-">¶</a></h3>
+		<pre>DEST := NOT(DEST) AND SRC
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+		<h3 id="vpandn--vex-128-encoded-version-">VPANDN（VEX.128 编码版本）<a class="anchor" href="#vpandn--vex-128-encoded-version-">¶</a></h3>
+		<pre>DEST := NOT(SRC1) AND SRC2
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vpandn--vex-256-encoded-instruction-">VPANDN（VEX.256 编码指令）<a class="anchor" href="#vpandn--vex-256-encoded-instruction-">¶</a></h3>
+		<pre>DEST[255:0] := ((NOT SRC1[255:0]) AND SRC2[255:0])
+DEST[MAXVL-1:256] := 0
+</pre>
+		<h3 id="vpandnd--evex-encoded-versions-">VPANDND（EVEX 编码版本）<a class="anchor" href="#vpandnd--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j := 0 TO KL-1
+    i := j * 32
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN DEST[i+31:i] := ((NOT SRC1[i+31:i]) AND SRC2[31:0])
+                ELSE DEST[i+31:i] := ((NOT SRC1[i+31:i]) AND SRC2[i+31:i])
+            FI;
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE
+                        ; zeroing-masking
+                    DEST[i+31:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vpandnq--evex-encoded-versions-">VPANDNQ（EVEX 编码版本）<a class="anchor" href="#vpandnq--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN DEST[i+63:i] := ((NOT SRC1[i+63:i]) AND SRC2[63:0])
+                ELSE DEST[i+63:i] := ((NOT SRC1[i+63:i]) AND SRC2[i+63:i])
+            FI;
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE ; zeroing-masking
+                    DEST[i+63:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalents">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalents">¶</a></h2>
+		<pre>VPANDND __m512i _mm512_andnot_epi32( __m512i a, __m512i b);</pre>
+		<pre>VPANDND __m512i _mm512_mask_andnot_epi32(__m512i s, __mmask16 k, __m512i a, __m512i b);</pre>
+		<pre>VPANDND __m512i _mm512_maskz_andnot_epi32( __mmask16 k, __m512i a, __m512i b);</pre>
+		<pre>VPANDND __m256i _mm256_mask_andnot_epi32(__m256i s, __mmask8 k, __m256i a, __m256i b);</pre>
+		<pre>VPANDND __m256i _mm256_maskz_andnot_epi32( __mmask8 k, __m256i a, __m256i b);</pre>
+		<pre>VPANDND __m128i _mm_mask_andnot_epi32(__m128i s, __mmask8 k, __m128i a, __m128i b);</pre>
+		<pre>VPANDND __m128i _mm_maskz_andnot_epi32( __mmask8 k, __m128i a, __m128i b);</pre>
+		<pre>VPANDNQ __m512i _mm512_andnot_epi64( __m512i a, __m512i b);</pre>
+		<pre>VPANDNQ __m512i _mm512_mask_andnot_epi64(__m512i s, __mmask8 k, __m512i a, __m512i b);</pre>
+		<pre>VPANDNQ __m512i _mm512_maskz_andnot_epi64( __mmask8 k, __m512i a, __m512i b);</pre>
+		<pre>VPANDNQ __m256i _mm256_mask_andnot_epi64(__m256i s, __mmask8 k, __m256i a, __m256i b);</pre>
+		<pre>VPANDNQ __m256i _mm256_maskz_andnot_epi64( __mmask8 k, __m256i a, __m256i b);</pre>
+		<pre>VPANDNQ __m128i _mm_mask_andnot_epi64(__m128i s, __mmask8 k, __m128i a, __m128i b);</pre>
+		<pre>VPANDNQ __m128i _mm_maskz_andnot_epi64( __mmask8 k, __m128i a, __m128i b);</pre>
+		<pre>PANDN __m64 _mm_andnot_si64 (__m64 m1, __m64 m2)</pre>
+		<pre>(V)PANDN __m128i _mm_andnot_si128 ( __m128i a, __m128i b)</pre>
+		<pre>VPANDN __m256i _mm256_andnot_si256 ( __m256i a, __m256i b)</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="numeric-exceptions">数值异常<a class="anchor" href="#numeric-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>非 EVEX 编码指令，请参阅表 2-21，“第 4 类异常条件”。</p>
+		<p>EVEX 编码指令，请参阅表 2-49 “第 E4 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

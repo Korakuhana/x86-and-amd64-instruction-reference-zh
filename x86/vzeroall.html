@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VZEROALL — 将 XMM、YMM 和 ZMM 寄存器清零</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VZEROALL — 将 XMM、YMM 和 ZMM 寄存器清零</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>VEX.256.0F.WIG 77 VZEROALL</td>
+				<td>ZO</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>将部分 XMM、YMM 和 ZMM 寄存器清零。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>ZO</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>在 64 位模式下，该指令将 XMM0-XMM15、YMM0-YMM15 和 ZMM0-ZMM15 清零。在 64 位模式之外，它仅将 XMM0-XMM7、YMM0-YMM7 和 ZMM0-ZMM7 清零。VZEROALL 不修改 ZMM16-ZMM31。</p>
+		<p>注意：VEX.vvvv 是保留的，必须为 1111b，否则指令将触发 #UD 故障。在兼容和传统 32 位模式下，只有低 8 个寄存器会被修改。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>simd_reg_file[][] 是一个二维数组，代表 SIMD 寄存器堆，包含该实现中存在的所有重叠的 xmm、ymm 和 zmm 寄存器。主维度是寄存器编号：0 代表 xmm0, ymm0 和 zmm0；1 代表 xmm1, ymm1 和 zmm1；等等。次维度大小是实现的 SIMD 状态的宽度（以位为单位测定）。在支持 Intel AVX-512 的机器上，其宽度为 512。
+</pre>
+
+		<h3 id="vzeroall--vex-256-encoded-version-">VZEROALL (VEX.256 编码版本)<a class="anchor" href="#vzeroall--vex-256-encoded-version-">¶</a></h3>
+		<pre>IF (64-bit mode)
+    limit :=15
+ELSE
+    limit := 7
+FOR i in 0 .. limit:
+    simd_reg_file[i][MAXVL-1:0] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VZEROALL: _mm256_zeroall()
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-25，“第 8 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

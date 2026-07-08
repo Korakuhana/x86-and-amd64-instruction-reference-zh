@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>PREFETCHW — 预期写操作预取数据入缓存</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>PREFETCHW — 预期写操作预取数据入缓存</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>0F 0D /1 PREFETCHW m8</td>
+				<td>M</td>
+				<td>有效/有效</td>
+				<td>PREFETCHW</td>
+				<td>预期进行写操作，将数据从 m8 移到更靠近处理器的位置。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>M</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>从内存中获取包含由源操作数指定的字节的缓存行数据，并将其放入一级或二级缓存位置，并使该缓存行的其他已缓存实例无效。</p>
+		<p>源操作数是一个字节内存位置。如果所选缓存行已存在于最低层级缓存中且已处于独占拥有状态，则不会发生数据移动。对非回写 (non-writeback) 内存的预取操作会被忽略。</p>
+		<p>PREFETCHW 指令仅是一个提示，不会影响程序行为。如果执行此指令，它会出于对将来写入该行的预期，将数据移到更靠近处理器的位置并使其他已缓存的副本无效。</p>
+		<p>预取局部性提示的特征取决于具体的处理器实现，并且可能被处理器实现重载或忽略。预取的数据量也取决于处理器实现。但是，它将至少为 32 字节。关于取决于处理器实现的局部性提示的其他详细信息，在《Intel® 64 和 IA-32 架构优化参考手册》的第 7.4 节中进行了描述。</p>
+		<p>应当注意，处理器可以自由地从允许此类访问的系统内存区域（即 WB 内存类型）投机地获取并以独占所有权缓存数据。PREFETCHW 指令被视为对此投机行为的一个提示。因为这种投机获取可以在任何时间发生且不与指令执行绑定，所以 PREFETCHW 指令与屏障指令 (MFENCE, SFENCE, 和 LFENCE) 或锁定的内存引用之间不保证顺序。PREFETCHW 指令也与 CLFLUSH 和 CLFLUSHOPT 指令、其他 PREFETCHW 指令，或任何其他通用指令之间无序。</p>
+		<p>它与序列化指令（如 CPUID、WRMSR、OUT 和 MOV CR）之间是有序的。</p>
+		<p>该指令在非 64 位模式与 64 位模式下的操作相同。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>FETCH_WITH_EXCLUSIVE_OWNERSHIP (m8);
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="c-c++-compiler-intrinsic-equivalent">C/C++ 编译器等价内部函数<a class="anchor" href="#c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>void _m_prefetchw( void * );
+</pre>
+
+		<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

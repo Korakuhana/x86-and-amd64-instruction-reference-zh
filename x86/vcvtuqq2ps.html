@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VCVTUQQ2PS — 将打包的无符号四字整数转换为打包的单精度浮点值</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VCVTUQQ2PS — 将打包的无符号四字整数转换为打包的单精度浮点值</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.128.F2.0F.W1 7A /r VCVTUQQ2PS xmm1 {k1}{z}, xmm2/m128/m64bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512DQ</td>
+				<td>在写掩码 k1 的控制下，将 xmm2/m128/m64bcst 中的两个打包无符号四字整数转换为 xmm1 中的打包单精度浮点值。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.F2.0F.W1 7A /r VCVTUQQ2PS xmm1 {k1}{z}, ymm2/m256/m64bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512DQ</td>
+				<td>在写掩码 k1 的控制下，将 ymm2/m256/m64bcst 中的四个打包无符号四字整数转换为 xmm1 中的打包单精度浮点值。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.F2.0F.W1 7A /r VCVTUQQ2PS ymm1 {k1}{z}, zmm2/m512/m64bcst{er}</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512DQ</td>
+				<td>在写掩码 k1 的控制下，将 zmm2/m512/m64bcst 中的八个打包无符号四字整数转换为 ymm1 中的八个打包单精度浮点值。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将源操作数（第二个操作数）中的打包无符号四字整数转换为目的操作数（第一个操作数）中的单精度浮点值。</p>
+		<p>EVEX 编码版本：源操作数是 ZMM/YMM/XMM 寄存器或 512/256/128 位内存位置。目的操作数是根据写掩码 k1 有条件更新的 YMM/XMM/XMM（低 64 位）寄存器。</p>
+		<p>注意：EVEX.vvvv 保留且必须为 1111b，否则指令会导致 #UD。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vcvtuqq2ps--evex-encoded-version--when-src-operand-is-a-register">VCVTUQQ2PS（EVEX 编码版本）当源操作数为寄存器时<a class="anchor" href="#vcvtuqq2ps--evex-encoded-version--when-src-operand-is-a-register">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+IF (VL = 512) AND (EVEX.b = 1)
+    THEN
+        SET_ROUNDING_MODE_FOR_THIS_INSTRUCTION(EVEX.RC);
+    ELSE
+        SET_ROUNDING_MODE_FOR_THIS_INSTRUCTION(MXCSR.RC);
+FI;
+FOR j := 0 TO KL-1
+    i := j * 32
+    k := j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i] :=
+            Convert_UQuadInteger_To_Single_Precision_Floating_Point(SRC[k+63:k])
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing-masking
+                    DEST[i+31:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL/2] := 0
+</pre>
+
+		<h3 id="vcvtuqq2ps--evex-encoded-version--when-src-operand-is-a-memory-source">VCVTUQQ2PS（EVEX 编码版本）当源操作数为内存源时<a class="anchor" href="#vcvtuqq2ps--evex-encoded-version--when-src-operand-is-a-memory-source">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 32
+    k := j * 64
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1)
+                THEN
+                    DEST[i+31:i] :=
+            Convert_UQuadInteger_To_Single_Precision_Floating_Point(SRC[63:0])
+                ELSE
+                    DEST[i+31:i] :=
+            Convert_UQuadInteger_To_Single_Precision_Floating_Point(SRC[k+63:k])
+            FI;
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing-masking
+                    DEST[i+31:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL/2] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VCVTUQQ2PS __m256 _mm512_cvtepu64_ps( __m512i a);
+</pre>
+		<pre>VCVTUQQ2PS __m256 _mm512_mask_cvtepu64_ps( __m256 s, __mmask8 k, __m512i a);
+</pre>
+		<pre>VCVTUQQ2PS __m256 _mm512_maskz_cvtepu64_ps( __mmask8 k, __m512i a);
+</pre>
+		<pre>VCVTUQQ2PS __m256 _mm512_cvt_roundepu64_ps( __m512i a, int r);
+</pre>
+		<pre>VCVTUQQ2PS __m256 _mm512_mask_cvt_roundepu64_ps( __m256 s, __mmask8 k, __m512i a, int r);
+</pre>
+		<pre>VCVTUQQ2PS __m256 _mm512_maskz_cvt_roundepu64_ps( __mmask8 k, __m512i a, int r);
+</pre>
+		<pre>VCVTUQQ2PS __m128 _mm256_cvtepu64_ps( __m256i a);
+</pre>
+		<pre>VCVTUQQ2PS __m128 _mm256_mask_cvtepu64_ps( __m128 s, __mmask8 k, __m256i a);
+</pre>
+		<pre>VCVTUQQ2PS __m128 _mm256_maskz_cvtepu64_ps( __mmask8 k, __m256i a);
+</pre>
+		<pre>VCVTUQQ2PS __m128 _mm_cvtepu64_ps( __m128i a);
+</pre>
+		<pre>VCVTUQQ2PS __m128 _mm_mask_cvtepu64_ps( __m128 s, __mmask8 k, __m128i a);
+</pre>
+		<pre>VCVTUQQ2PS __m128 _mm_maskz_cvtepu64_ps( __mmask8 k, __m128i a);
+</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>精度。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>EVEX 编码指令，请参阅表 2-46，“第 E2 类异常条件”。</p>
+		<p>此外：</p>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果 EVEX.vvvv != 1111B。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

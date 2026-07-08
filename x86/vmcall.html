@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VMCALL — 呼叫 VM 监控程序</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VMCALL — 呼叫 VM 监控程序</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>0F 01 C1 VMCALL</td>
+				<td>ZO</td>
+				<td>通过触发 VM exit 呼叫 VM 监控程序。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>ZO</td>
+				<td>NA</td>
+				<td>NA</td>
+				<td>NA</td>
+				<td>NA</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>此指令允许客户软件向底层的 VM 监控程序（VMM）发起服务呼叫。此类呼叫的编程接口细节是特定于 VMM 的；此指令除了触发 VM exit 并记录相应的退出原因外，不执行任何其他操作。</p>
+		<p>在 VMX 根操作中使用此指令会调用 SMM 监控程序（参见第 32.15.2 节）。如果尚未激活，此调用将激活系统管理中断（SMI）和系统管理模式（SMM）的双监控程序处理机制（参见第 32.15.6 节）。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>IF not in VMX operation
+    THEN #UD;
+ELSIF in VMX non-root operation
+    THEN VM exit;
+ELSIF (RFLAGS.VM = 1) or (IA32_EFER.LMA = 1 and CS.L = 0)
+    THEN #UD;
+ELSIF CPL &gt; 0
+    THEN #GP(0);
+ELSIF in SMM or the logical processor does not support the dual-monitor treatment of SMIs and SMM or the valid bit in the
+IA32_SMM_MONITOR_CTL MSR is clear
+    THEN VMfail (VMCALL executed in VMX root operation);
+ELSIF dual-monitor treatment of SMIs and SMM is active
+    THEN perform an SMM VM exit (see Section 32.15.2);
+ELSIF current-VMCS pointer is not valid
+    THEN VMfailInvalid;
+ELSIF launch state of current VMCS is not clear
+    THEN VMfailValid(VMCALL with non-clear VMCS);
+ELSIF VM-exit control fields are not valid (see Section 32.15.6.1)
+    THEN VMfailValid (VMCALL with invalid VM-exit control fields);
+ELSE
+    enter SMM;
+    read revision identifier in MSEG;
+    IF revision identifier does not match that supported by processor
+        THEN
+            leave SMM;
+            VMfailValid(VMCALL with incorrect MSEG revision identifier);
+        ELSE
+            read SMM-monitor features field in MSEG (see Section 32.15.6.1);
+            IF features field is invalid
+                THEN
+                    leave SMM;
+                    VMfailValid(VMCALL with invalid SMM-monitor features);
+                ELSE activate dual-monitor treatment of SMIs and SMM (see Section 32.15.6);
+            FI;
+        FI;
+FI;
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>请参阅操作部分和第 31.2 节。</p>
+
+		<h2 id="protected-mode-exceptions" class="exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP(0)</td>
+				<td>如果当前特权级别不为 0 且逻辑处理器处于 VMX 根操作中。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果是在 VMX 操作外部执行。</td>
+			</tr>
+		</table>
+
+		<h2 id="real-address-mode-exceptions" class="exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果是在 VMX 操作外部执行。</td>
+			</tr>
+		</table>
+
+		<h2 id="virtual-8086-mode-exceptions" class="exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果是在 VMX 非根操作外部执行。</td>
+			</tr>
+		</table>
+
+		<h2 id="compatibility-mode-exceptions" class="exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果是在 VMX 非根操作外部执行。</td>
+			</tr>
+		</table>
+
+		<h2 id="64-bit-mode-exceptions" class="exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果是在 VMX 操作外部执行。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

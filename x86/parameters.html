@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>GETSEC[PARAMETERS] — 报告 SMX 参数</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>GETSEC[PARAMETERS] — 报告 SMX 参数</h1>
+
+		<table>
+			<tr>
+				<th>操作码</th>
+				<th>指令</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F 37 (EAX=6)</td>
+				<td>GETSEC[PARAMETERS]</td>
+				<td>报告 SMX 参数。参数索引在 EBX 中输入，结果在 EAX、EBX 和 ECX 中返回。</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>GETSEC[PARAMETERS] 指令返回处理器支持的 SMX 功能的特定参数信息。参数信息在 EAX、EBX 和 ECX 中返回，输入参数使用 EBX 进行选择。</p>
+		<p>软件通过从 0 开始搜索 EBX 的输入索引来检索参数信息，然后读取在 EAX、EBX 和 ECX 中返回的结果。EAX[4:0] 指定用于返回参数类型字段，表示参数是否可用以及其类型。如果返回的 EAX[4:0] 为 0，这表示空参数，表示没有更多参数可用。</p>
+		<p>表 7-7 定义了当前和未来实现中支持的参数类型。</p>
+
+		<figure id="tbl-7-7">
+			<table>
+				<tr>
+					<th>参数类型 EAX[4:0]</th>
+					<th>参数描述</th>
+					<th>EAX[31:5]</th>
+					<th>EBX[31:0]</th>
+					<th>ECX[31:0]</th>
+				</tr>
+				<tr>
+					<td>0</td>
+					<td>NULL</td>
+					<td>保留（返回 0）</td>
+					<td>保留（未修改）</td>
+					<td>保留（未修改）</td>
+				</tr>
+				<tr>
+					<td>1</td>
+					<td>支持的 AC 模块版本</td>
+					<td>保留（返回 0）</td>
+					<td>版本比较掩码</td>
+					<td>支持的版本号</td>
+				</tr>
+				<tr>
+					<td>2</td>
+					<td>已认证代码执行区域的最大大小</td>
+					<td>乘以 32 得到以字节为单位的大小</td>
+					<td>保留（未修改）</td>
+					<td>保留（未修改）</td>
+				</tr>
+				<tr>
+					<td>3</td>
+					<td>AC 模式下支持的外部内存类型</td>
+					<td>内存类型位掩码</td>
+					<td>保留（未修改）</td>
+					<td>保留（未修改）</td>
+				</tr>
+				<tr>
+					<td>4</td>
+					<td>选择性 SENTER 功能控制</td>
+					<td>EAX[14:8] 对应于可用的 SENTER 功能禁用控制</td>
+					<td>保留（未修改）</td>
+					<td>保留（未修改）</td>
+				</tr>
+				<tr>
+					<td>5</td>
+					<td>TXT 扩展支持</td>
+					<td>TXT 功能扩展标志（见表 7-8）</td>
+					<td>保留</td>
+					<td>保留</td>
+				</tr>
+				<tr>
+					<td>6-31</td>
+					<td>未定义</td>
+					<td>保留（未修改）</td>
+					<td>保留（未修改）</td>
+					<td>保留（未修改）</td>
+				</tr>
+			</table>
+			<figcaption>表 7-7. SMX 报告参数格式</figcaption>
+		</figure>
+
+		<figure id="tbl-7-8">
+			<table>
+				<tr>
+					<th>位</th>
+					<th>定义</th>
+					<th>描述</th>
+				</tr>
+				<tr>
+					<td>5</td>
+					<td>基于处理器的 S-CRTM 支持</td>
+					<td>如果此处理器实现基于处理器的 S-CRTM 功能，则返回 1，否则返回 0（S-CRTM 植根于 BIOS）。此标志不能用于推断芯片组是否支持 TXT，或处理器是否支持 SMX。</td>
+				</tr>
+				<tr>
+					<td>6</td>
+					<td>机器检查处理</td>
+					<td>如果在通过 ENTERACCS 和 SENTER 时可以保留机器检查状态寄存器，则返回 1。如果该位为 1，则 ENTERACCS 和 SENTER 的调用者在调用这些 GETSEC 叶之前不需要清除机器检查错误状态位。如果该位返回 0，则 ENTERACCS 和 SENTER 的调用者在调用这些 GETSEC 叶之前必须清除所有机器检查错误状态位。</td>
+				</tr>
+				<tr>
+					<td>31:7</td>
+					<td>保留</td>
+					<td>保留供将来使用。将返回 0。</td>
+				</tr>
+			</table>
+			<figcaption>表 7-8. TXT 功能扩展标志</figcaption>
+		</figure>
+
+		<p>对于支持 SMX 的特定处理器，可以通过类型 1 参数确定支持的 AC 模块版本（由 AC 模块 HeaderVersion 字段定义）。使用 EBX 对由 GETSEC[PARAMETERS] 报告的可用于每个为类型 1 返回的唯一参数集的参数进行索引，软件可以确定支持的 AC 模块版本的完整列表。</p>
+		<p>对于每个参数集，EBX 返回比较掩码，而 ECX 在目标 HeaderVersion 与比较掩码进行逻辑与之后，返回所支持的可用 HeaderVersion 字段值。软件然后可以通过遵循下面给出的伪代码搜索程序来确定是否支持特定的 AC 模块版本：</p>
+		<p>parameter_search_index= 0 do { EBX= parameter_search_index++ EAX= 6 GETSEC if (EAX[4:0] = 1) { if ((version_query &amp; EBX) = ECX) { version_is_supported= 1 break } }</p>
+		<p>} while (EAX[4:0] ≠ 0)</p>
+		<p>如果处理器仅支持 HeaderVersion 为 0 的 AC 模块，则仅返回类型 1 的一个参数集，如下所示：EAX = 00000001H，EBX = FFFFFFFFH 且 ECX = 00000000H。</p>
+		<p>处理器支持的已认证代码执行区域的最大容量用参数类型 2 报告。以字节为单位的最大支持大小是通过将 EAX[31:5] 中返回的大小乘以 32 来确定的。因此，对于最大支持的已认证 RAM 大小为 32KB，EAX 返回 00008002H。</p>
+		<p>参数类型 3 报告在已认证代码执行区域之外映射的内存的可支持内存类型。当 AC 模式（通过 GETSEC 函数 SENTER 和 ENTERACCS 启动并由 EXITAC 终止）处于活动状态时，对系统内存的其余部分允许使用哪些内存类型存在限制。系统软件有责任初始化内存类型范围寄存器 (MTRR) MSR 和/或页属性表 (PAT)，以仅映射与此参数报告一致的内存类型。外部内存的可支持内存类型的报告使用 EAX[31:8] 中返回的位图表示。这些位位置对应于为 MTRR MSR 和 PAT 编程定义的内存类型编码。参见表 7-9。</p>
+		<p>参数类型 4 用于枚举选择性 GETSEC[SENTER] 功能禁用控制的可用性。如果在返回的参数 EAX 的 14:8 位中报告了 1，则表示 SENTER 对特定功能存在禁用控制功能。14:8 位中的枚举字段对应于 SENTER 的 EDX 输入参数的 6:0 位的使用。如果枚举字段位设置为 1，则 EDX 的对应 EDX 输入参数位可以设置为 1 以禁用该指定功能。如果枚举字段位为 0 或未报告此参数，则 SENTER 的对应 EDX 输入参数不存在禁用功能，并且 EDX 位必须清零以启用 SENTER 的执行。如果枚举中不存在 SENTER 的选择性禁用功能，则如果设置了 MSR 的 SENTER 全局启用位 15，IA32_FEATURE_CONTROL MSR 的对应 14:8 位也必须编程为 1。这是为了支持将来对于 SENTER 选择性禁用功能的扩展（相对于潜在的独立软件初始化 MSR）。</p>
+
+		<figure id="tbl-7-9">
+			<table>
+				<tr>
+					<th>EAX 位位置</th>
+					<th>参数描述</th>
+				</tr>
+				<tr>
+					<td>8</td>
+					<td>不可缓存 (UC)</td>
+				</tr>
+				<tr>
+					<td>9</td>
+					<td>写入合并 (WC)</td>
+				</tr>
+				<tr>
+					<td>11:10</td>
+					<td>保留</td>
+				</tr>
+				<tr>
+					<td>12</td>
+					<td>直写 (WT)</td>
+				</tr>
+				<tr>
+					<td>13</td>
+					<td>写保护 (WP)</td>
+				</tr>
+				<tr>
+					<td>14</td>
+					<td>回写 (WB)</td>
+				</tr>
+				<tr>
+					<td>31:15</td>
+					<td>保留</td>
+				</tr>
+			</table>
+			<figcaption>表 7-9. 使用参数 3 的外部内存类型</figcaption>
+		</figure>
+
+		<p>如果给定的支持 SMX 的处理器不存在 GETSEC[PARAMETERS] 叶或特定参数，则应假定默认参数值。这些在表 7-10 中定义。</p>
+
+		<figure id="tbl-7-10">
+			<table>
+				<tr>
+					<th>参数类型 EAX[4:0]</th>
+					<th>默认设置</th>
+					<th>参数描述</th>
+				</tr>
+				<tr>
+					<td>1</td>
+					<td>仅 0.0</td>
+					<td>支持的 AC 模块版本。</td>
+				</tr>
+				<tr>
+					<td>2</td>
+					<td>32 KB</td>
+					<td>已认证代码执行区域大小。</td>
+				</tr>
+				<tr>
+					<td>3</td>
+					<td>仅 UC</td>
+					<td>AC 执行模式下支持的外部内存类型。</td>
+				</tr>
+				<tr>
+					<td>4</td>
+					<td>无</td>
+					<td>可用的 SENTER 选择性禁用控制。</td>
+				</tr>
+			</table>
+			<figcaption>表 7-10. 默认参数值</figcaption>
+		</figure>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>(* 仅支持 0.0 HeaderVersion、32K ACRAM 大小、内存类型 UC 和 WC 的处理器的示例 *)
+IF (CR4.SMXE=0)
+    THEN #UD;
+ELSE IF (in VMX non-root operation)
+    THEN VM Exit (reason=”GETSEC instruction”);
+ELSE IF (GETSEC leaf unsupported)
+    THEN #UD;
+    (* 支持 0.0 HeaderVersion 的处理器的示例 *)
+IF (EBX=0) THEN
+    EAX := 00000001h;
+    EBX := FFFFFFFFh;
+    ECX := 00000000h;
+ELSE IF (EBX=1)
+    (* 支持 32K ACRAM 大小的处理器的示例 *)
+    THEN EAX := 00008002h;
+ESE IF (EBX= 2)
+    (* 支持外部内存类型 UC 和 WC 的处理器的示例 *)
+    THEN EAX := 00000303h;
+ESE IF (EBX= other value(s) less than unsupported index value)
+    (* EAX 值会有所不同。请参阅表 7-7 和表 *)
+ELSE (* 不受支持的索引 *)
+    EAX := 00000000h;
+END;
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="use-of-prefixes">前缀的使用<a class="anchor" href="#use-of-prefixes">¶</a></h2>
+		<p>LOCK 前缀导致 #UD。</p>
+		<p>REP* 前缀导致 #UD（包括 REPNE/REPNZ 和 REP/REPE/REPZ）。</p>
+		<p>操作数大小前缀导致 #UD。</p>
+		<p>不允许 66/F2/F3 前缀。</p>
+		<p>段超越前缀被忽略。</p>
+		<p>地址大小前缀被忽略。</p>
+		<p>REX 前缀被忽略。</p>
+
+		<h2 id="protected-mode-exceptions" class="exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 CR4.SMXE = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 GETSEC[PARAMETERS] 未被 GETSEC[CAPABILITIES] 报告为受支持。</td>
+			</tr>
+		</table>
+
+		<h2 id="real-address-mode-exceptions" class="exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 CR4.SMXE = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 GETSEC[PARAMETERS] 未被 GETSEC[CAPABILITIES] 报告为受支持。</td>
+			</tr>
+		</table>
+
+		<h2 id="virtual-8086-mode-exceptions" class="exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 CR4.SMXE = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 GETSEC[PARAMETERS] 未被 GETSEC[CAPABILITIES] 报告为受支持。</td>
+			</tr>
+		</table>
+
+		<h2 id="compatibility-mode-exceptions" class="exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>所有保护模式异常均适用。</p>
+
+		<h2 id="64-bit-mode-exceptions" class="exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<p>所有保护模式异常均适用。</p>
+
+		<h2 id="vm-exit-condition">VM-Exit 条件<a class="anchor" href="#vm-exit-condition">¶</a></h2>
+		<p>原因 (GETSEC) 如果处于 VMX 非根操作中。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

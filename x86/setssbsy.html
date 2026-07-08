@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>SETSSBSY — 将影子栈标记为忙</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>SETSSBSY — 将影子栈标记为忙</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>F3 0F 01 E8 SETSSBSY</td>
+				<td>ZO</td>
+				<td>V/V</td>
+				<td>CET_SS</td>
+				<td>在由 IA32_PL0_SSP 引用的主管影子栈令牌中设置 busy（忙）标志。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>ZO</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>SETSSBSY 指令验证在 IA32_PL0_SSP MSR 地址处存在非忙的主管影子栈令牌，并将其标记为忙。成功执行该指令后，SSP 被设置为 IA32_PL0_SSP MSR 的值。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>IF (CR4.CET = 0)
+    THEN #UD; FI;
+IF (IA32_S_CET.SH_STK_EN = 0)
+    THEN #UD; FI;
+IF CPL &gt; 0
+    THEN GP(0); FI;
+SSP_LA = IA32_PL0_SSP
+If SSP_LA not aligned to 8 bytes
+    THEN #GP(0); FI;
+expected_token_value = SSP_LA
+new_token_value = SSP_LA | BUSY_BIT
+IF shadow_stack_lock_cmpxchg8B(SSP_LA, new_token_value, expected_token_value) != expected_token_value
+    THEN #CP(SETSSBSY); FI;
+SSP = SSP_LA
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="c-c++-compiler-intrinsic-equivalent">C/C++ 编译器等价内部函数<a class="anchor" href="#c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>SETSSBSYvoid _setssbsy(void);</pre>
+
+		<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="3">#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+			<tr>
+				<td>如果 CR4.CET = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 IA32_S_CET.SH_STK_EN = 0。</td>
+			</tr>
+			<tr>
+				<td rowspan="2">#GP(0)</td>
+				<td>如果 IA32_PL0_SSP 未对齐到 8 字节。</td>
+			</tr>
+			<tr>
+				<td>如果 CPL 不为 0。</td>
+			</tr>
+			<tr>
+				<td rowspan="2">#CP(setssbsy)</td>
+				<td>如果令牌中的 busy 位被设置。</td>
+			</tr>
+			<tr>
+				<td>如果处于 32 位或兼容模式，且令牌中的地址不低于 4G。</td>
+			</tr>
+			<tr>
+				<td>#PF(错误码)</td>
+				<td>如果发生缺页异常。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>在实地址模式下无法识别 SETSSBSY 指令。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>在虚拟-8086 模式下无法识别 SETSSBSY 指令。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

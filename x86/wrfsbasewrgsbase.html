@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>WRFSBASE/WRGSBASE — 写入 FS/GS 段基址</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>WRFSBASE/WRGSBASE — 写入 FS/GS 段基址</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>F3 0F AE /2 WRFSBASE r32</td>
+				<td>M</td>
+				<td>V/I</td>
+				<td>FSGSBASE</td>
+				<td>用源寄存器中的 32 位值加载 FS 基地址。</td>
+			</tr>
+			<tr>
+				<td>F3 REX.W 0F AE /2 WRFSBASE r64</td>
+				<td>M</td>
+				<td>V/I</td>
+				<td>FSGSBASE</td>
+				<td>用源寄存器中的 64 位值加载 FS 基地址。</td>
+			</tr>
+			<tr>
+				<td>F3 0F AE /3 WRGSBASE r32</td>
+				<td>M</td>
+				<td>V/I</td>
+				<td>FSGSBASE</td>
+				<td>用源寄存器中的 32 位值加载 GS 基地址。</td>
+			</tr>
+			<tr>
+				<td>F3 REX.W 0F AE /3 WRGSBASE r64</td>
+				<td>M</td>
+				<td>V/I</td>
+				<td>FSGSBASE</td>
+				<td>用源寄存器中的 64 位值加载 GS 基地址。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>M</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>用 modR/M:r/m 字段指示的通用寄存器值加载 FS 或 GS 段基地址。</p>
+		<p>源操作数可以是 32 位或 64 位通用寄存器。REX.W 前缀表示操作数大小为 64 位。如果不使用 REX.W 前缀，则操作数大小为 32 位；源寄存器的高 32 位被忽略，且基地址（对应 FS 或 GS）的高 32 位被清零。</p>
+		<p>该指令仅在 64 位模式下受支持。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>FS/GS 段基址 := SRC;
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="c-c++-compiler-intrinsic-equivalent">C/C++ 编译器等价内部函数<a class="anchor" href="#c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>WRFSBASE void _writefsbase_u32( unsigned int );
+</pre>
+		<pre>WRFSBASE void _writefsbase_u64( unsigned __int64 );
+</pre>
+		<pre>WRGSBASE void _writegsbase_u32( unsigned int );
+</pre>
+		<pre>WRGSBASE void _writegsbase_u64( unsigned __int64 );
+</pre>
+
+		<h2 id="protected-mode-exceptions" class="exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>WRFSBASE 和 WRGSBASE 指令在保护模式下不被识别。</td>
+			</tr>
+		</table>
+
+		<h2 id="real-address-mode-exceptions" class="exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>WRFSBASE 和 WRGSBASE 指令在实地址模式下不被识别。</td>
+			</tr>
+		</table>
+
+		<h2 id="virtual-8086-mode-exceptions" class="exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>WRFSBASE 和 WRGSBASE 指令在虚拟-8086 模式下不被识别。</td>
+			</tr>
+		</table>
+
+		<h2 id="compatibility-mode-exceptions" class="exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>WRFSBASE 和 WRGSBASE 指令在兼容模式下不被识别。</td>
+			</tr>
+		</table>
+
+		<h2 id="64-bit-mode-exceptions" class="exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="3">#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+			<tr>
+				<td>如果 CR4.FSGSBASE[bit 16] = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 CPUID.07H.0H:EBX.FSGSBASE[bit 0] = 0</td>
+			</tr>
+			<tr>
+				<td>#GP(0)</td>
+				<td>如果源寄存器包含非规范地址。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

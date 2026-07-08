@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>MONITOR — 设置监控地址</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>MONITOR — 设置监控地址</h1>
+
+	<table>
+		<tr>
+			<th>操作码</th>
+			<th>指令</th>
+			<th>Op/En</th>
+			<th>64位模式</th>
+			<th>兼容/传统模式</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>0F 01 C8</td>
+			<td>MONITOR</td>
+			<td>ZO</td>
+			<td>有效</td>
+			<td>有效</td>
+			<td>设置要由硬件监控的线性地址范围并激活监控。该地址范围应为写回（write-back）内存缓存类型。地址为 DS:RAX/EAX/AX。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>ZO</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>MONITOR 指令使用 EAX 中指定的地址武装地址监控硬件（监控硬件检查写操作的地址范围可以通过 CPUID 确定）。写入指定地址范围内的地址将触发监控硬件。监控硬件的状态由 MWAIT 使用。</p>
+	<p>地址在 RAX/EAX/AX 中指定，其大小基于编码指令 of 有效地址大小。默认情况下，DS 段用于创建被监控的线性地址。可以使用段超越。</p>
+	<p>ECX 和 EDX 也被使用。它们向 MONITOR 传递其他信息。ECX 指定可选的扩展。EDX 指定可选的提示；它不改变指令的体系结构行为。对于奔腾 4 处理器（系列 15，模型 3），没有定义任何扩展或提示。EDX 中的未定义提示会被处理器忽略；ECX 中的未定义扩展将引发一般保护性异常。</p>
+	<p>该地址范围必须使用写回类型的内存。只有写回内存才会正确触发监控硬件。有关如何确定要使用的地址范围以防止错误唤醒的其他信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 3A 卷第 9 章“多处理器管理”。</p>
+	<p>相对于其他内存事务，MONITOR 指令被排序为加载操作。该指令受与字节加载相关的权限检查和异常的影响。与加载类似，MONITOR 会在页表中设置 A 位，但不会设置 D 位。</p>
+	<p>CPUID.01H:ECX.MONITOR[位 3] 指示处理器中 MONITOR 和 MWAIT 的可用性。当设置时，MONITOR 仅能在特权级 0 执行（在任何其他特权级使用会导致未定义操作码异常）。操作系统或系统 BIOS 可以通过使用 IA32_MISC_ENABLE MSR 禁用此指令；禁用 MONITOR 将清除 CPUID 特征标志，并使执行产生未定义操作码异常。</p>
+	<p>此指令在非 64 位模式和 64 位模式下的操作相同。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>MONITOR sets up an address range for the monitor hardware using the content of EAX (RAX in 64-bit mode) as an effective address
+and puts the monitor hardware in armed state. Always use memory of the write-back caching type. A store to the specified address
+range will trigger the monitor hardware. The content of ECX and EDX are used to communicate other information to the monitor
+hardware.
+</pre>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>MONITOR void _mm_monitor(void const *p, unsigned extensions,unsigned hints)
+</pre>
+
+	<h2 class="exceptions" id="numeric-exceptions">数值异常<a class="anchor" href="#numeric-exceptions">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="3">#GP(0)</td>
+			<td>如果 EAX 中的值超出 CS、DS、ES、FS 或 GS 段界限。</td>
+		</tr>
+		<tr>
+			<td>如果使用 DS、ES、FS 或 GS 寄存器访问内存且它包含一个 NULL 段选择子。</td>
+		</tr>
+		<tr>
+			<td>如果 ECX ≠ 0。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果 EAX 中的值超出 SS 段界限。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果 CPUID.01H:ECX.MONITOR[位 3] = 0。</td>
+		</tr>
+		<tr>
+			<td>如果当前特权级不为 0。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#GP</td>
+			<td>如果使用 CS、DS、ES、FS 或 GS 寄存器访问内存，且 EAX 中的值超出了从 0 到 FFFFH 的有效地址空间。</td>
+		</tr>
+		<tr>
+			<td>如果 ECX ≠ 0。</td>
+		</tr>
+		<tr>
+			<td>#SS</td>
+			<td>如果使用 SS 寄存器访问内存，且 EAX 中的值超出了从 0 到 FFFFH 的有效地址空间。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果 CPUID.01H:ECX.MONITOR[位 3] = 0。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td>#UD</td>
+			<td>MONITOR 指令在虚拟-8086 模式下不可识别（即使 CPUID.01H:ECX.MONITOR[位 3] = 1）。</td>
+		</tr>
+	</table>
+
+	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+	<p>与保护模式下的异常相同。</p>
+
+	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+	<table>
+		<tr>
+			<td rowspan="2">#GP(0)</td>
+			<td>如果 CS、DS、ES、FS 或 GS 段中操作数的线性地址为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>如果 RCX ≠ 0。</td>
+		</tr>
+		<tr>
+			<td>#SS(0)</td>
+			<td>如果使用 SS 寄存器访问内存，且 EAX 中的值为非规范形式。</td>
+		</tr>
+		<tr>
+			<td>#PF(错误码)</td>
+			<td>如果发生缺页异常。</td>
+		</tr>
+		<tr>
+			<td rowspan="2">#UD</td>
+			<td>如果当前特权级不为 0。</td>
+		</tr>
+		<tr>
+			<td>如果 CPUID.01H:ECX.MONITOR[位 3] = 0。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

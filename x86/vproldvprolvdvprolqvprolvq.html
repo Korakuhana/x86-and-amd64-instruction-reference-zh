@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VPROLD/VPROLVD/VPROLQ/VPROLVQ — 位循环左移</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VPROLD/VPROLVD/VPROLQ/VPROLVQ — 位循环左移</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op / En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W0 15 /r VPROLVD xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>按 xmm3/m128/m32bcst 中对应元素指定的计数循环左移 xmm2 中的双字。在写掩码 k1 控制下，结果写入 xmm1。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.W0 72 /1 ib VPROLD xmm1 {k1}{z}, xmm2/m128/m32bcst, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>循环左移 xmm2/m128/m32bcst 中的双字 imm8 位。使用写掩码 k1，结果写入 xmm1。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W1 15 /r VPROLVQ xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>按 xmm3/m128/m64bcst 中对应元素指定的计数循环左移 xmm2 中的四字。在写掩码 k1 控制下，结果写入 xmm1。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.W1 72 /1 ib VPROLQ xmm1 {k1}{z}, xmm2/m128/m64bcst, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>循环左移 xmm2/m128/m64bcst 中的四字 imm8 位。使用写掩码 k1，结果写入 xmm1。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W0 15 /r VPROLVD ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>按 ymm3/m256/m32bcst 中对应元素指定的计数循环左移 ymm2 中的双字。在写掩码 k1 控制下，结果写入 ymm1。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.W0 72 /1 ib VPROLD ymm1 {k1}{z}, ymm2/m256/m32bcst, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>循环左移 ymm2/m256/m32bcst 中的双字 imm8 位。使用写掩码 k1，结果写入 ymm1。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W1 15 /r VPROLVQ ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>按 ymm3/m256/m64bcst 中对应元素指定的计数循环左移 ymm2 中的四字。在写掩码 k1 控制下，结果写入 ymm1。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.W1 72 /1 ib VPROLQ ymm1 {k1}{z}, ymm2/m256/m64bcst, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>循环左移 ymm2/m256/m64bcst 中的四字 imm8 位。使用写掩码 k1，结果写入 ymm1。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W0 15 /r VPROLVD zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>按 zmm3/m512/m32bcst 中对应元素指定的计数循环左移 zmm2 中的双字。使用写掩码 k1，结果写入 zmm1。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.W0 72 /1 ib VPROLD zmm1 {k1}{z}, zmm2/m512/m32bcst, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>循环左移 zmm3/m512/m32bcst 中的双字 imm8 位。使用写掩码 k1，结果写入 zmm1。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W1 15 /r VPROLVQ zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>按 zmm3/m512/m64bcst 中对应元素指定的计数循环左移 zmm2 中的四字。在写掩码 k1 控制下，结果写入 zmm1。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.W1 72 /1 ib VPROLQ zmm1 {k1}{z}, zmm2/m512/m64bcst, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>循环左移 zmm2/m512/m64bcst 中的四字 imm8 位。使用写掩码 k1，结果写入 zmm1。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Full</td>
+				<td>VEX.vvvv (w)</td>
+				<td>ModRM:r/m (R)</td>
+				<td>imm8</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将第一源操作数中各个数据元素（双字或四字）中的位，按计数操作数中指定的位数向左循环移位。如果计数操作数指定的值大于 31（对于双字）或 63（对于四字），则使用计数操作数模数据大小（32 或 64）的结果。</p>
+		<p>EVEX.128 编码版本：目的操作数是 XMM 寄存器。源操作数是 XMM 寄存器或内存位置（用于立即数形式）。计数操作数可以来自 XMM 寄存器、内存位置或 8 位立即数。对应 ZMM 寄存器的 bits (MAXVL-1:128) 清零。</p>
+		<p>EVEX.256 编码版本：目的操作数是 YMM 寄存器。源操作数是 YMM 寄存器或内存位置（用于立即数形式）。计数操作数可以来自 XMM 寄存器、内存位置或 8 位立即数。对应 ZMM 寄存器的 bits (MAXVL-1:256) 清零。</p>
+		<p>EVEX.512 编码版本：目的操作数是根据写掩码更新的 ZMM 寄存器。对于立即数形式的计数操作数，源操作数可以是 ZMM 寄存器、512 位内存位置或从 32/64 位内存位置广播的 512 位向量，计数操作数是 8 位立即数。对于可变形式的计数操作数，第一源操作数（第二操作数）是 ZMM 寄存器，计数器操作数（第三操作数）是 ZMM 寄存器、512 位内存位置，或从 32/64 位内存位置广播的 512 位向量。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>LEFT_ROTATE_DWORDS(SRC, COUNT_SRC)
+COUNT := COUNT_SRC modulo 32;
+DEST[31:0] := (SRC &lt;&lt; COUNT) | (SRC &gt;&gt; (32 - COUNT));
+LEFT_ROTATE_QWORDS(SRC, COUNT_SRC)
+COUNT := COUNT_SRC modulo 64;
+DEST[63:0] := (SRC &lt;&lt; COUNT) | (SRC &gt;&gt; (64 - COUNT));
+</pre>
+		<h3 id="vprold--evex-encoded-versions-">VPROLD (EVEX 编码版本)<a class="anchor" href="#vprold--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j := 0 TO KL-1
+    i := j * 32
+    IF k1[j] OR *no writemask* THEN
+            IF (EVEX.b = 1) AND (SRC1 *is memory*)
+                THEN DEST[i+31:i] := LEFT_ROTATE_DWORDS(SRC1[31:0], imm8)
+                ELSE DEST[i+31:i] := LEFT_ROTATE_DWORDS(SRC1[i+31:i], imm8)
+            FI;
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE *zeroing-masking*
+                        ; zeroing-masking
+                    DEST[i+31:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vprolvd--evex-encoded-versions-">VPROLVD (EVEX 编码版本)<a class="anchor" href="#vprolvd--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j := 0 TO KL-1
+    i := j * 32
+    IF k1[j] OR *no writemask* THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN DEST[i+31:i] := LEFT_ROTATE_DWORDS(SRC1[i+31:i], SRC2[31:0])
+                ELSE DEST[i+31:i] := LEFT_ROTATE_DWORDS(SRC1[i+31:i], SRC2[i+31:i])
+            FI;
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE *zeroing-masking*
+                        ; zeroing-masking
+                    DEST[i+31:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vprolq--evex-encoded-versions-">VPROLQ (EVEX 编码版本)<a class="anchor" href="#vprolq--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k1[j] OR *no writemask* THEN
+            IF (EVEX.b = 1) AND (SRC1 *is memory*)
+                THEN DEST[i+63:i] := LEFT_ROTATE_QWORDS(SRC1[63:0], imm8)
+                ELSE DEST[i+63:i] := LEFT_ROTATE_QWORDS(SRC1[i+63:i], imm8)
+            FI;
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing-masking*
+                        ; zeroing-masking
+                    DEST[i+63:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vprolvq--evex-encoded-versions-">VPROLVQ (EVEX 编码版本)<a class="anchor" href="#vprolvq--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k1[j] OR *no writemask* THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN DEST[i+63:i] := LEFT_ROTATE_QWORDS(SRC1[i+63:i], SRC2[63:0])
+                ELSE DEST[i+63:i] := LEFT_ROTATE_QWORDS(SRC1[i+63:i], SRC2[i+63:i])
+            FI;
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing-masking*
+                        ; zeroing-masking
+                    DEST[i+63:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VPROLD __m512i _mm512_rol_epi32(__m512i a, int imm);
+</pre>
+		<pre>VPROLD __m512i _mm512_mask_rol_epi32(__m512i a, __mmask16 k, __m512i b, int imm);
+</pre>
+		<pre>VPROLD __m512i _mm512_maskz_rol_epi32( __mmask16 k, __m512i a, int imm);
+</pre>
+		<pre>VPROLD __m256i _mm256_rol_epi32(__m256i a, int imm);
+</pre>
+		<pre>VPROLD __m256i _mm256_mask_rol_epi32(__m256i a, __mmask8 k, __m256i b, int imm);
+</pre>
+		<pre>VPROLD __m256i _mm256_maskz_rol_epi32( __mmask8 k, __m256i a, int imm);
+</pre>
+		<pre>VPROLD __m128i _mm_rol_epi32(__m128i a, int imm);
+</pre>
+		<pre>VPROLD __m128i _mm_mask_rol_epi32(__m128i a, __mmask8 k, __m128i b, int imm);
+</pre>
+		<pre>VPROLD __m128i _mm_maskz_rol_epi32( __mmask8 k, __m128i a, int imm);
+</pre>
+		<pre>VPROLQ __m512i _mm512_rol_epi64(__m512i a, int imm);
+</pre>
+		<pre>VPROLQ __m512i _mm512_mask_rol_epi64(__m512i a, __mmask8 k, __m512i b, int imm);
+</pre>
+		<pre>VPROLQ __m512i _mm512_maskz_rol_epi64(__mmask8 k, __m512i a, int imm);
+</pre>
+		<pre>VPROLQ __m256i _mm256_rol_epi64(__m256i a, int imm);
+</pre>
+		<pre>VPROLQ __m256i _mm256_mask_rol_epi64(__m256i a, __mmask8 k, __m256i b, int imm);
+</pre>
+		<pre>VPROLQ __m256i _mm256_maskz_rol_epi64( __mmask8 k, __m256i a, int imm);
+</pre>
+		<pre>VPROLQ __m128i _mm_rol_epi64(__m128i a, int imm);
+</pre>
+		<pre>VPROLQ __m128i _mm_mask_rol_epi64(__m128i a, __mmask8 k, __m128i b, int imm);
+</pre>
+		<pre>VPROLQ __m128i _mm_maskz_rol_epi64( __mmask8 k, __m128i a, int imm);
+</pre>
+		<pre>VPROLVD __m512i _mm512_rolv_epi32(__m512i a, __m512i cnt);
+</pre>
+		<pre>VPROLVD __m512i _mm512_mask_rolv_epi32(__m512i a, __mmask16 k, __m512i b, __m512i cnt);
+</pre>
+		<pre>VPROLVD __m512i _mm512_maskz_rolv_epi32(__mmask16 k, __m512i a, __m512i cnt);
+</pre>
+		<pre>VPROLVD __m256i _mm256_rolv_epi32(__m256i a, __m256i cnt);
+</pre>
+		<pre>VPROLVD __m256i _mm256_mask_rolv_epi32(__m256i a, __mmask8 k, __m256i b, __m256i cnt);
+</pre>
+		<pre>VPROLVD __m256i _mm256_maskz_rolv_epi32(__mmask8 k, __m256i a, __m256i cnt);
+</pre>
+		<pre>VPROLVD __m128i _mm_rolv_epi32(__m128i a, __m128i cnt);
+</pre>
+		<pre>VPROLVD __m128i _mm_mask_rolv_epi32(__m128i a, __mmask8 k, __m128i b, __m128i cnt);
+</pre>
+		<pre>VPROLVD __m128i _mm_maskz_rolv_epi32(__mmask8 k, __m128i a, __m128i cnt);
+</pre>
+		<pre>VPROLVQ __m512i _mm512_rolv_epi64(__m512i a, __m512i cnt);
+</pre>
+		<pre>VPROLVQ __m512i _mm512_mask_rolv_epi64(__m512i a, __mmask8 k, __m512i b, __m512i cnt);
+</pre>
+		<pre>VPROLVQ __m512i _mm512_maskz_rolv_epi64( __mmask8 k, __m512i a, __m512i cnt);
+</pre>
+		<pre>VPROLVQ __m256i _mm256_rolv_epi64(__m256i a, __m256i cnt);
+</pre>
+		<pre>VPROLVQ __m256i _mm256_mask_rolv_epi64(__m256i a, __mmask8 k, __m256i b, __m256i cnt);
+</pre>
+		<pre>VPROLVQ __m256i _mm256_maskz_rolv_epi64(__mmask8 k, __m256i a, __m256i cnt);
+</pre>
+		<pre>VPROLVQ __m128i _mm_rolv_epi64(__m128i a, __m128i cnt);
+</pre>
+		<pre>VPROLVQ __m128i _mm_mask_rolv_epi64(__m128i a, __mmask8 k, __m128i b, __m128i cnt);
+</pre>
+		<pre>VPROLVQ __m128i _mm_maskz_rolv_epi64(__mmask8 k, __m128i a, __m128i cnt);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>EVEX 编码指令，请参阅表 2-49，“第 E4 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

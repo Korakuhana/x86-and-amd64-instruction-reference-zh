@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>OUTS/OUTSB/OUTSW/OUTSD — 将字符串输出到端口</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>OUTS/OUTSB/OUTSW/OUTSD — 将字符串输出到端口</h1>
+
+		<p><strong>操作码<sup>1</sup></strong></p>
+		<table>
+			<tr>
+				<th></th>
+				<th>指令</th>
+				<th>Op/En</th>
+				<th>64位模式</th>
+				<th>兼容/传统模式</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>6E</td>
+				<td>OUTS DX, m8</td>
+				<td>ZO</td>
+				<td>有效</td>
+				<td>有效</td>
+				<td>将 DS:(E)SI 或 RSI 指定的内存位置的字节输出到 DX 指定的 I/O 端口<sup>2</sup>。</td>
+			</tr>
+			<tr>
+				<td>6F</td>
+				<td>OUTS DX, m16</td>
+				<td>ZO</td>
+				<td>有效</td>
+				<td>有效</td>
+				<td>将 DS:(E)SI 或 RSI 指定的内存位置的字输出到 DX 指定的 I/O 端口<sup>2</sup>。</td>
+			</tr>
+			<tr>
+				<td>6F</td>
+				<td>OUTS DX, m32</td>
+				<td>ZO</td>
+				<td>有效</td>
+				<td>有效</td>
+				<td>将 DS:(E)SI 或 RSI 指定的内存位置的双字输出到 DX 指定的 I/O 端口<sup>2</sup>。</td>
+			</tr>
+			<tr>
+				<td>6E</td>
+				<td>OUTSB</td>
+				<td>ZO</td>
+				<td>有效</td>
+				<td>有效</td>
+				<td>将 DS:(E)SI 或 RSI 指定的内存位置的字节输出到 DX 指定的 I/O 端口<sup>2</sup>。</td>
+			</tr>
+			<tr>
+				<td>6F</td>
+				<td>OUTSW</td>
+				<td>ZO</td>
+				<td>有效</td>
+				<td>有效</td>
+				<td>将 DS:(E)SI 或 RSI 指定的内存位置的字输出到 DX 指定的 I/O 端口<sup>2</sup>。</td>
+			</tr>
+			<tr>
+				<td>6F</td>
+				<td>OUTSD</td>
+				<td>ZO</td>
+				<td>有效</td>
+				<td>有效</td>
+				<td>将 DS:(E)SI 或 RSI 指定的内存位置的双字输出到 DX 指定的 I/O 端口<sup>2</sup>。</td>
+			</tr>
+		</table>
+		<blockquote>
+			<p>1. 请参阅下文的 IA-32 架构兼容性部分。</p>
+			<p>2. 在 64 位模式下，仅支持 64 位 (RSI) 和 32 位 (ESI) 地址大小。在非 64 位模式下，仅支持 32 位 (ESI) 和 16 位 (SI) 地址大小。</p>
+		</blockquote>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>ZO</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将数据从源操作数（第二个操作数）复制到目的操作数（第一个操作数）指定的 I/O 端口。源操作数是一个内存位置，其地址读取自 DS:SI、DS:ESI 或 RSI 寄存器（分别取决于指令的地址大小属性 16、32 或 64）。（DS 段可以用段超越前缀进行超越。）目的操作数是从 DX 寄存器中读取的 I/O 端口地址（从 0 到 65,535）。被访问的 I/O 端口大小（即源操作数和目的操作数的大小）对于 8 位 I/O 端口由操作码决定，或者对于 16 位或 32 位 I/O 端口由指令的操作数大小属性决定。</p>
+		<p>在汇编代码级别，允许此指令的两种形式：“显式操作数”形式和“无操作数”形式。显式操作数形式（使用 OUTS 助记符指定）允许显式指定源操作数和目的操作数。在这里，源操作数应该是一个指示 I/O 端口大小和源地址的符号，而目的操作数必须是 DX。提供此显式操作数形式是为了便于文档记录；然而，请注意，此形式提供的文档记录可能会产生误导。也就是说，源操作数符号必须指定正确的操作数类型（大小）（字节、字或双字），但它不一定指定正确的位置。位置始终由 DS:(E)SI 或 RSI 寄存器指定，在执行 OUTS 指令之前必须正确加载这些寄存器。</p>
+		<p>无操作数形式提供了 OUTS 指令的字节、字和双字版本的“简短形式”。在这里，也假定 DS:(E)SI 是源操作数，DX 是目的操作数。I/O 端口的大小通过选择助记符来指定：OUTSB（字节）、OUTSW（字）或 OUTSD（双字）。</p>
+		<p>在字节、字或双字从内存位置传输到 I/O 端口之后，SI/ESI/RSI 寄存器会根据 EFLAGS 寄存器中 DF 标志的设置自动递增或递减。（如果 DF 标志为 0，则 (E)SI 寄存器递增；如果 DF 标志为 1，则 SI/ESI/RSI 寄存器递减。）对于字节操作，SI/ESI/RSI 寄存器递增或递减 1，对于字操作递增或递减 2，对于双字操作递增或递减 4。</p>
+		<p>OUTS、OUTSB、OUTSW 和 OUTSD 指令前面可以加 REP 前缀，以便对 ECX 个字节、字或双字进行块输出。请参阅本章中的“REP/REPE/REPZ /REPNE/REPNZ——重复字符串操作前缀”以获取 REP 前缀的说明。此指令仅对访问位于处理器 I/O 地址空间中的 I/O 端口有用。有关访问 I/O 地址空间中的 I/O 端口的更多信息，请参阅 Intel® 64 和 IA-32 架构软件开发人员手册第 1 卷第 19 章“输入/输出”。</p>
+		<p>在 64 位模式下，默认操作数大小为 32 位；使用 REX.W 不会提升操作数大小。在 64 位模式下，默认地址大小为 64 位，默认情况下使用 RSI 指定 64 位地址。使用前缀 67H 支持使用 ESI 的 32 位地址，但在 64 位模式下不支持 16 位地址。</p>
+
+		<h2 id="ia-32-architecture-compatibility">IA-32 架构兼容性<a class="anchor" href="#ia-32-architecture-compatibility">¶</a></h2>
+		<p>执行 OUTS、OUTSB、OUTSW 或 OUTSD 指令后，Pentium 处理器会确保在开始执行下一条指令之前已采样到 EWBE# 引脚为活动状态。（注意，如果 EWBE# 不活动，可以预取该指令，但直到采样到 EWBE# 引脚为活动状态时才会执行该指令。）只有 Pentium 处理器系列具有 EWBE# 引脚。</p>
+		<p>对于 Pentium 4、Intel® Xeon® 和 P6 处理器系列，在执行 OUTS、OUTSB、OUTSW 或 OUTSD 指令时，处理器在事务的数据阶段完成之前不会执行下一条指令。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>IF ((PE = 1) and ((CPL &gt; IOPL) or (VM = 1)))
+    THEN (* Protected mode with CPL &gt; IOPL or virtual-8086 mode *)
+        IF (Any I/O Permission Bit for I/O port being accessed = 1)
+            THEN (* I/O operation is not allowed *)
+                #GP(0);
+            ELSE (* I/O operation is allowed *)
+                DEST := SRC; (* Writes to I/O port *)
+        FI;
+    ELSE (Real Mode or Protected Mode or 64-Bit Mode with CPL ≤ IOPL *)
+        DEST := SRC; (* Writes to I/O port *)
+FI;
+Byte transfer:
+    IF 64-bit mode
+        Then
+            IF 64-Bit Address Size
+                THEN
+                    IF DF = 0
+                        THEN RSI := RSI RSI + 1;
+                        ELSE RSI := RSI or – 1;
+                    FI;
+                ELSE (* 32-Bit Address Size *)
+                    IF DF = 0
+                        THEN ESI := ESI + 1;
+                        ELSE ESI := ESI – 1;
+                    FI;
+            FI;
+        ELSE
+            IF DF = 0
+                THEN (E)SI := (E)SI + 1;
+                ELSE (E)SI := (E)SI – 1;
+            FI;
+    FI;
+Word transfer:
+    IF 64-bit mode
+        Then
+            IF 64-Bit Address Size
+                THEN
+                    IF DF = 0
+                        THEN RSI := RSI RSI + 2;
+                        ELSE RSI := RSI or – 2;
+                    FI;
+                ELSE (* 32-Bit Address Size *)
+                    IF DF = 0
+                        THEN ESI := ESI + 2;
+                        ELSE ESI := ESI – 2;
+                    FI;
+            FI;
+        ELSE
+            IF DF = 0
+                THEN (E)SI := (E)SI + 2;
+                ELSE (E)SI := (E)SI – 2;
+            FI;
+    FI;
+Doubleword transfer:
+    IF 64-bit mode
+        Then
+            IF 64-Bit Address Size
+                THEN
+                    IF DF = 0
+                        THEN RSI := RSI RSI + 4;
+                        ELSE RSI := RSI or – 4;
+                    FI;
+                ELSE (* 32-Bit Address Size *)
+                    IF DF = 0
+                        THEN ESI := ESI + 4;
+                        ELSE ESI := ESI – 4;
+                    FI;
+            FI;
+        ELSE
+            IF DF = 0
+                THEN (E)SI := (E)SI + 4;
+                ELSE (E)SI := (E)SI – 4;
+            FI;
+    FI;
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="3">#GP(0)</td>
+				<td>如果 CPL 大于（特权级低于）I/O 特权级 (IOPL)，且 TSS 中被访问 I/O 端口对应的任何 I/O 许可位为 1。</td>
+			</tr>
+			<tr>
+				<td>如果内存操作数有效地址超出 CS、DS、ES、FS 或 GS 段的界限。</td>
+			</tr>
+			<tr>
+				<td>如果段寄存器包含 NULL 段选择子。</td>
+			</tr>
+			<tr>
+				<td>#PF(fault-code)</td>
+				<td>如果发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td>#AC(0)</td>
+				<td>如果启用了对齐检查，并且在当前特权级为 3 时进行了未对齐的内存引用。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP</td>
+				<td>如果内存操作数有效地址超出 CS、DS、ES、FS 或 GS 段的界限。</td>
+			</tr>
+			<tr>
+				<td>#SS</td>
+				<td>如果内存操作数有效地址超出 SS 段的界限。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#GP(0)</td>
+				<td>如果 TSS 中被访问 I/O 端口对应的任何 I/O 许可位为 1。</td>
+			</tr>
+			<tr>
+				<td>#PF(fault-code)</td>
+				<td>如果发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td>#AC(0)</td>
+				<td>如果启用了对齐检查，并且进行了未对齐的内存引用。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#SS(0)</td>
+				<td>如果引用 SS 段的内存地址为非规范形式。</td>
+			</tr>
+			<tr>
+				<td rowspan="2">#GP(0)</td>
+				<td>如果 CPL 大于（特权级低于）I/O 特权级 (IOPL)，且 TSS 中被访问 I/O 端口对应的任何 I/O 许可位为 1。</td>
+			</tr>
+			<tr>
+				<td>如果内存地址为非规范形式。</td>
+			</tr>
+			<tr>
+				<td>#PF(fault-code)</td>
+				<td>如果发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td>#AC(0)</td>
+				<td>如果启用了对齐检查，并且在当前特权级为 3 时进行了未对齐 of 内存引用。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>GETSEC[CAPABILITIES] — 报告 SMX 功能</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>GETSEC[CAPABILITIES] — 报告 SMX 功能</h1>
+
+		<table>
+			<tr>
+				<th>操作码</th>
+				<th>指令</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F 37 (EAX = 0)</td>
+				<td>GETSEC[CAPABILITIES]</td>
+				<td>报告 SMX 功能。功能索引在 EBX 中输入，结果在 EAX 中返回。</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>GETSEC[CAPABILITIES] 函数返回受支持的 GETSEC 叶函数的位向量。在入口处将 EAX 设置为 0，以选择 GETSEC 的 CAPABILITIES 叶。EBX 用作在 EAX 中返回位向量字段的选择器。GETSEC[CAPABILITIES] 可以在所有特权级别下执行，但必须设置 CR4.SMXE 位，否则将返回未定义操作码异常 (#UD)。</p>
+		<p>在执行 GETSEC[CAPABILITIES] 时，如果 EBX = 0，则 EAX 返回一个位向量，表示支持 Intel® TXT 的芯片组的存在状态以及前 30 个可用的 GETSEC 叶函数。返回的位向量格式在表 7-3 中提供。</p>
+		<p>如果第 0 位被设置为 1，则表示处理器采样到了支持 Intel® TXT 的芯片组存在。如果设置了 1-30 范围内的位，则对应的 GETSEC 叶函数可用。如果给定位索引处的位值为 0，则该索引对应的 GETSEC 叶函数不受支持，尝试执行会导致 #UD。</p>
+		<p>EAX 的第 31 位指示是否支持更多的叶索引。如果 Extended Leafs（扩展叶）第 31 位被设置，则可以通过重复执行 GETSEC[CAPABILITIES] 并将 EBX 递增 1 来访问其他叶函数。当 EAX 的最高有效位未设置时，则不支持其他 GETSEC 叶函数；将 EBX 索引为更高的值会导致 EAX 返回零。</p>
+
+		<figure id="tbl-7-3">
+			<table>
+				<tr>
+					<th>字段</th>
+					<th>位位置</th>
+					<th>描述</th>
+				</tr>
+				<tr>
+					<td>Chipset Present</td>
+					<td>0</td>
+					<td>存在支持 Intel® TXT 的芯片组。</td>
+				</tr>
+				<tr>
+					<td>Undefined</td>
+					<td>1</td>
+					<td>保留</td>
+				</tr>
+				<tr>
+					<td>ENTERACCS</td>
+					<td>2</td>
+					<td>GETSEC[ENTERACCS] 可用。</td>
+				</tr>
+				<tr>
+					<td>EXITAC</td>
+					<td>3</td>
+					<td>GETSEC[EXITAC] 可用。</td>
+				</tr>
+				<tr>
+					<td>SENTER</td>
+					<td>4</td>
+					<td>GETSEC[SENTER] 可用。</td>
+				</tr>
+				<tr>
+					<td>SEXIT</td>
+					<td>5</td>
+					<td>GETSEC[SEXIT] 可用。</td>
+				</tr>
+				<tr>
+					<td>PARAMETERS</td>
+					<td>6</td>
+					<td>GETSEC[PARAMETERS] 可用。</td>
+				</tr>
+				<tr>
+					<td>SMCTRL</td>
+					<td>7</td>
+					<td>GETSEC[SMCTRL] 可用。</td>
+				</tr>
+				<tr>
+					<td>WAKEUP</td>
+					<td>8</td>
+					<td>GETSEC[WAKEUP] 可用。</td>
+				</tr>
+				<tr>
+					<td>Undefined</td>
+					<td>30:9</td>
+					<td>保留</td>
+				</tr>
+				<tr>
+					<td>Extended Leafs</td>
+					<td>31</td>
+					<td>保留用于 GETSEC 功能的扩展信息报告。</td>
+				</tr>
+			</table>
+			<figcaption>表 7-3. GETSEC 功能结果编码 (EBX = 0)</figcaption>
+		</figure>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>IF (CR4.SMXE=0)
+    THEN #UD;
+ELSIF (in VMX non-root operation)
+    THEN VM Exit (reason=”GETSEC instruction”);
+IF (EBX=0) THEN
+        BitVector := 0;
+        IF (TXT chipset present)
+            BitVector[Chipset present] := 1;
+        IF (ENTERACCS Available)
+            THEN BitVector[ENTERACCS] := 1;
+        IF (EXITAC Available)
+            THEN BitVector[EXITAC] := 1;
+        IF (SENTER Available)
+            THEN BitVector[SENTER] := 1;
+        IF (SEXIT Available)
+            THEN BitVector[SEXIT] := 1;
+        IF (PARAMETERS Available)
+            THEN BitVector[PARAMETERS] := 1;
+        IF (SMCTRL Available)
+            THEN BitVector[SMCTRL] := 1;
+        IF (WAKEUP Available)
+            THEN BitVector[WAKEUP] := 1;
+        EAX := BitVector;
+ELSE
+    EAX := 0;
+END;;
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="use-of-prefixes">前缀的使用<a class="anchor" href="#use-of-prefixes">¶</a></h2>
+		<p>LOCK 前缀导致 #UD。</p>
+		<p>REP* 前缀导致 #UD（包括 REPNE/REPNZ 和 REP/REPE/REPZ）。</p>
+		<p>操作数大小前缀导致 #UD。</p>
+		<p>不允许 66/F2/F3 前缀。</p>
+		<p>段超越前缀被忽略。</p>
+		<p>地址大小前缀被忽略。</p>
+		<p>REX 前缀被忽略。</p>
+
+		<h2 id="protected-mode-exceptions" class="exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果 CR4.SMXE = 0。</td>
+			</tr>
+		</table>
+
+		<h2 id="real-address-mode-exceptions" class="exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果 CR4.SMXE = 0。</td>
+			</tr>
+		</table>
+
+		<h2 id="virtual-8086-mode-exceptions" class="exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果 CR4.SMXE = 0。</td>
+			</tr>
+		</table>
+
+		<h2 id="compatibility-mode-exceptions" class="exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果 CR4.SMXE = 0。</td>
+			</tr>
+		</table>
+
+		<h2 id="64-bit-mode-exceptions" class="exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果 CR4.SMXE = 0。</td>
+			</tr>
+		</table>
+
+		<h2 id="vm-exit-condition">VM-exit 条件<a class="anchor" href="#vm-exit-condition">¶</a></h2>
+		<p>原因 (GETSEC) 如果处于 VMX 非根操作中。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

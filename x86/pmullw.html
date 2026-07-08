@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>PMULLW — 打包有符号字乘法并存储低位结果</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>PMULLW — 打包有符号字乘法并存储低位结果</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F D5 /r<sup>1</sup> PMULLW mm, mm/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>MMX</td>
+				<td>将 mm1 寄存器中的打包有符号字整数与 mm2/m64 相乘，并将结果的低 16 位存储在 mm1 中。</td>
+			</tr>
+			<tr>
+				<td>66 0F D5 /r PMULLW xmm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>将 xmm1 中的打包有符号字整数与 xmm2/m128 相乘，并将结果的低 16 位存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F.WIG D5 /r VPMULLW xmm1, xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>将 xmm2 和 xmm3/m128 中的打包有符号字整数相乘，并将结果的低 16 位存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F.WIG D5 /r VPMULLW ymm1, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>将 ymm2 中的打包有符号字整数与 ymm3/m256 相乘，并将结果的低 16 位存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.WIG D5 /r VPMULLW xmm1 {k1}{z}, xmm2, xmm3/m128</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>在写掩码 k1 下，将 xmm2 中的打包有符号字整数与 xmm3/m128 相乘，并将结果的低 16 位存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.WIG D5 /r VPMULLW ymm1 {k1}{z}, ymm2, ymm3/m256</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>在写掩码 k1 下，将 ymm2 中的打包有符号字整数与 ymm3/m256 相乘，并将结果的低 16 位存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.WIG D5 /r VPMULLW zmm1 {k1}{z}, zmm2, zmm3/m512</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512BW</td>
+				<td>在写掩码 k1 下，将 zmm2 中的打包有符号字整数与 zmm3/m512 相乘，并将结果的低 16 位存储在 zmm1 中。</td>
+			</tr>
+		</table>
+		<blockquote>
+			<p>1. 请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 2A 卷第 2.5 节“Intel® AVX 和 Intel® SSE 指令异常分类”中的注释，以及《Intel® 64 和 IA-32 架构软件开发人员手册》第 3B 卷第 23.25.3 节“操作 MMX 寄存器的传统 SIMD 指令的异常条件”中的注释。</p>
+		</blockquote>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (r, w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>C</td>
+				<td>Full Mem</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>对目的操作数（第一个操作数）和源操作数（第二个操作数）中的打包有符号字整数执行 SIMD 有符号乘法，并将每个中间 32 位结果的低 16 位存储在目的操作数中。（<a href='pmulhuw.html#fig-4-12'>图 4-12</a> 展示了使用 64 位操作数时的此操作。）</p>
+		<p>在 64 位模式下且未采用 VEX/EVEX 编码时，使用 REX.R 形式 of REX 前缀允许该指令访问其他寄存器（XMM8-XMM15）。</p>
+		<p>传统 SSE 版本 64 位操作数：源操作数可以是 MMX 技术寄存器或 64 位内存位置。目的操作数是 MMX 技术寄存器。</p>
+		<p>128位传统 SSE 版本：第一个源操作数和目的操作数是 XMM 寄存器。第二个源操作数是 XMM 寄存器或 128 位内存位置。对应 YMM 目的寄存器的位（MAXVL-1:128）保持不变。</p>
+		<p>VEX.128 编码版本：第一个源操作数和目的操作数是 XMM 寄存器。第二个源操作数是 XMM 寄存器或 128 位内存位置。目的 YMM 寄存器的位（MAXVL-1:128）清零。VEX.L 必须为 0，否则指令将产生 #UD。</p>
+		<p>VEX.256 编码版本：第二个源操作数可以是 YMM 寄存器或 256 位内存位置。第一个源操作数和目的操作数是 YMM 寄存器。</p>
+		<p>EVEX 编码版本：第一个源操作数是 ZMM/YMM/XMM 寄存器。第二个源操作数是 ZMM/YMM/XMM 寄存器、512/256/128 位内存位置。目的操作数根据写掩码 k1 条件性地更新。</p>
+
+		<figure id="fig-4-13">
+			<svg style="width: 455.616pt; height: 142.0559759999999pt" viewbox="109.10000000000001 0.0 384.68 123.37997999999993">
+				<g xmlns="http://www.w3.org/2000/svg" style="fill: none; stroke: none">
+					<rect height="117.30000000000001" style="fill: rgb(0%, 0%, 0%)" width="0.48" x="111.60000000000001" y="0.5399799999999004"></rect>
+					<rect height="117.30000000000001" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="490.8" y="0.5399799999999004"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="379.68" x="111.60000000000001" y="0.0"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="379.68" x="111.60000000000001" y="117.89999999999992"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="72.24" x="170.04" y="66.65999999999997"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48" x="241.8" y="66.89997999999991"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="72.24" x="169.8" y="84.65999999999997"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="169.8" y="66.6599799999999"></rect>
+					<rect height="18.0" style="fill: rgb(100%, 100%, 100%)" width="72.0" x="242.04" y="66.89997999999991"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="72.24" x="242.04" y="66.65999999999997"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="313.8" y="66.89997999999991"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="72.24" x="241.8" y="84.65999999999997"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48" x="241.8" y="66.6599799999999"></rect>
+					<rect height="18.0" style="fill: rgb(100%, 100%, 100%)" width="72.0" x="314.04" y="66.89997999999991"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="72.24" x="314.04" y="66.65999999999997"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="385.8" y="66.89997999999991"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="72.24" x="313.8" y="84.65999999999997"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="313.8" y="66.6599799999999"></rect>
+					<rect height="18.0" style="fill: rgb(100%, 100%, 100%)" width="72.0" x="386.04" y="66.89997999999991"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="72.24" x="386.04" y="66.65999999999997"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="457.8" y="66.89997999999991"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="72.24" x="385.8" y="84.65999999999997"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="385.8" y="66.6599799999999"></rect>
+					<rect height="18.0" style="fill: rgb(100%, 100%, 100%)" width="36.36" x="241.08" y="10.85997999999995"></rect>
+					<rect height="0.48004" style="fill: rgb(0%, 0%, 0%)" width="36.6" x="241.08" y="10.619939999999929"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="277.2" y="10.85997999999995"></rect>
+					<rect height="0.48004" style="fill: rgb(0%, 0%, 0%)" width="36.6" x="240.84" y="28.61993999999993"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48" x="240.84" y="10.619979999999941"></rect>
+					<rect height="18.0" style="fill: rgb(100%, 100%, 100%)" width="36.36" x="277.44" y="10.85997999999995"></rect>
+					<rect height="0.48004" style="fill: rgb(0%, 0%, 0%)" width="36.6" x="277.44" y="10.619939999999929"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="313.56" y="10.85997999999995"></rect>
+					<rect height="0.48004" style="fill: rgb(0%, 0%, 0%)" width="36.6" x="277.2" y="28.61993999999993"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="277.2" y="10.619979999999941"></rect>
+					<rect height="18.0" style="fill: rgb(100%, 100%, 100%)" width="36.36" x="313.8" y="10.85997999999995"></rect>
+					<rect height="0.48004" style="fill: rgb(0%, 0%, 0%)" width="36.6" x="313.8" y="10.619939999999929"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="349.92" y="10.85997999999995"></rect>
+					<rect height="0.48004" style="fill: rgb(0%, 0%, 0%)" width="36.6" x="313.56" y="28.61993999999993"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="313.56" y="10.619979999999941"></rect>
+					<rect height="18.0" style="fill: rgb(100%, 100%, 100%)" width="36.42" x="350.16" y="10.85997999999995"></rect>
+					<rect height="0.48004" style="fill: rgb(0%, 0%, 0%)" width="36.660000000000004" x="350.16" y="10.619939999999929"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="386.34000000000003" y="10.85997999999995"></rect>
+					<rect height="0.48004" style="fill: rgb(0%, 0%, 0%)" width="36.660000000000004" x="349.92" y="28.61993999999993"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="349.92" y="10.619979999999941"></rect>
+					<rect height="18.0" style="fill: rgb(100%, 100%, 100%)" width="36.36" x="241.02" y="37.079979999999864"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="36.6" x="241.02" y="36.83999999999992"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="277.14" y="37.079979999999864"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="36.6" x="240.78" y="54.83999999999992"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48" x="240.78" y="36.839979999999855"></rect>
+					<rect height="18.0" style="fill: rgb(100%, 100%, 100%)" width="36.42" x="277.38" y="37.079979999999864"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="36.660000000000004" x="277.38" y="36.83999999999992"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="313.56" y="37.079979999999864"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="36.660000000000004" x="277.14" y="54.83999999999992"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="277.14" y="36.839979999999855"></rect>
+					<rect height="18.0" style="fill: rgb(100%, 100%, 100%)" width="36.36" x="313.8" y="37.079979999999864"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="36.6" x="313.8" y="36.83999999999992"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="349.92" y="37.079979999999864"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="36.6" x="313.56" y="54.83999999999992"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="313.56" y="36.839979999999855"></rect>
+					<rect height="18.0" style="fill: rgb(100%, 100%, 100%)" width="36.36" x="350.16" y="37.079979999999864"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="36.6" x="350.16" y="36.83999999999992"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="386.28000000000003" y="37.079979999999864"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="36.6" x="349.92" y="54.83999999999992"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="349.92" y="36.839979999999855"></rect>
+					<rect height="18.0" style="fill: rgb(100%, 100%, 100%)" width="36.42" x="240.96" y="93.29997999999989"></rect>
+					<rect height="0.48004" style="fill: rgb(0%, 0%, 0%)" width="36.660000000000004" x="240.96" y="93.05993999999987"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="277.14" y="93.29997999999989"></rect>
+					<rect height="0.48001000000000005" style="fill: rgb(0%, 0%, 0%)" width="36.660000000000004" x="240.72" y="111.05996999999991"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48" x="240.72" y="93.05997999999988"></rect>
+					<rect height="18.0" style="fill: rgb(100%, 100%, 100%)" width="36.36" x="277.38" y="93.29997999999989"></rect>
+					<rect height="0.48004" style="fill: rgb(0%, 0%, 0%)" width="36.6" x="277.38" y="93.05993999999987"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="313.5" y="93.29997999999989"></rect>
+					<rect height="0.48001000000000005" style="fill: rgb(0%, 0%, 0%)" width="36.6" x="277.14" y="111.05996999999991"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="277.14" y="93.05997999999988"></rect>
+					<rect height="18.0" style="fill: rgb(100%, 100%, 100%)" width="36.36" x="313.74" y="93.29997999999989"></rect>
+					<rect height="0.48004" style="fill: rgb(0%, 0%, 0%)" width="36.6" x="313.74" y="93.05993999999987"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="349.86" y="93.29997999999989"></rect>
+					<rect height="0.48001000000000005" style="fill: rgb(0%, 0%, 0%)" width="36.6" x="313.5" y="111.05996999999991"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="313.5" y="93.05997999999988"></rect>
+					<rect height="18.0" style="fill: rgb(100%, 100%, 100%)" width="36.42" x="350.1" y="93.29997999999989"></rect>
+					<rect height="0.48004" style="fill: rgb(0%, 0%, 0%)" width="36.660000000000004" x="350.1" y="93.05993999999987"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="386.28000000000003" y="93.29997999999989"></rect>
+					<rect height="0.48001000000000005" style="fill: rgb(0%, 0%, 0%)" width="36.660000000000004" x="349.86" y="111.05996999999991"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="349.86" y="93.05997999999988"></rect>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="16.86740279999998" x="202.3212714" y="23.28640209999992">SRC</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="9.783381299999974" x="252.60000000000002" y="23.946080999999936">X3</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="9.783381299999974" x="288.11919589999997" y="23.946080999999936">X2</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="9.783381299999974" x="325.13830249999995" y="23.946080999999936">X1</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="9.783381299999974" x="361.6172174999999" y="23.946080999999936">X0</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="9.783381299999974" x="291.2991959" y="51.24608099999989">Y2</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="9.783381299999974" x="328.31830249999996" y="51.24608099999989">Y1</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="9.783381299999974" x="364.79721749999993" y="51.24608099999989">Y0</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.918333699999948pt; fill: #000" textlength="46.01255619999998" x="181.8604716" y="79.68608099999994">Z3 = X3 ∗ Y3</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="46.09925509999999" x="254.9289556" y="79.68608099999994">Z2 = X2 ∗ Y2</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="45.94915930000002" x="328.263936" y="79.68608099999994">Z1 = X1 ∗ Y1</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="46.096263299999976" x="397.248751" y="79.68608099999994">Z0 = X0 ∗ Y0</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="22.194203399999992" x="144.1209579" y="80.46597159999988">TEMP</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.917956000000004pt; fill: #000" textlength="21.32638079999998" x="203.4016546" y="105.36595859999989">DEST</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.720880000000022pt; fill: #000" textlength="25.99908000000005" x="246.42000000000002" y="106.56333999999987">Z3[15:0]</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.720880000000022pt; fill: #000" textlength="26.079816000000108" x="281.981424" y="106.56333999999987">Z2[15:0]</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.720880000000022pt; fill: #000" textlength="26.079816000000108" x="319.0037520000001" y="106.56333999999987">Z1[15:0]</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.720880000000022pt; fill: #000" textlength="26.010912000000076" x="355.4261280000001" y="106.56333999999987">Z0[15:0]</text>
+				</g>
+			</svg>
+			<figcaption><a href='pmullw.html#fig-4-13'>图 4-13</a>. 使用 64 位操作数时的 PMULLU 指令操作</figcaption>
+		</figure>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="pmullw--with-64-bit-operands-">PMULLW（配合 64 位操作数）<a class="anchor" href="#pmullw--with-64-bit-operands-">¶</a></h3>
+		<pre>TEMP0[31:0] := DEST[15:0] ∗ SRC[15:0]; (* Signed multiplication *)
+TEMP1[31:0] := DEST[31:16] ∗ SRC[31:16];
+TEMP2[31:0] := DEST[47:32] ∗ SRC[47:32];
+TEMP3[31:0] := DEST[63:48] ∗ SRC[63:48];
+DEST[15:0] := TEMP0[15:0];
+DEST[31:16] := TEMP1[15:0];
+DEST[47:32] := TEMP2[15:0];
+DEST[63:48] := TEMP3[15:0];
+</pre>
+		<h3 id="pmullw--with-128-bit-operands-">PMULLW（配合 128 位操作数）<a class="anchor" href="#pmullw--with-128-bit-operands-">¶</a></h3>
+		<pre>    TEMP0[31:0] := DEST[15:0] ∗ SRC[15:0]; (* Signed multiplication *)
+    TEMP1[31:0] := DEST[31:16] ∗ SRC[31:16];
+    TEMP2[31:0] := DEST[47:32] ∗ SRC[47:32];
+    TEMP3[31:0] := DEST[63:48] ∗ SRC[63:48];
+    TEMP4[31:0] := DEST[79:64] ∗ SRC[79:64];
+    TEMP5[31:0] := DEST[95:80] ∗ SRC[95:80];
+    TEMP6[31:0] := DEST[111:96] ∗ SRC[111:96];
+    TEMP7[31:0] := DEST[127:112] ∗ SRC[127:112];
+    DEST[15:0] := TEMP0[15:0];
+    DEST[31:16] := TEMP1[15:0];
+    DEST[47:32] := TEMP2[15:0];
+    DEST[63:48] := TEMP3[15:0];
+    DEST[79:64] := TEMP4[15:0];
+    DEST[95:80] := TEMP5[15:0];
+    DEST[111:96] := TEMP6[15:0];
+    DEST[127:112] := TEMP7[15:0];
+DEST[MAXVL-1:256] := 0
+</pre>
+		<h3 id="vpmullw--vex-128-encoded-version-">VPMULLW（VEX.128 编码版本）<a class="anchor" href="#vpmullw--vex-128-encoded-version-">¶</a></h3>
+		<pre>Temp0[31:0] := SRC1[15:0] * SRC2[15:0]
+Temp1[31:0] := SRC1[31:16] * SRC2[31:16]
+Temp2[31:0] := SRC1[47:32] * SRC2[47:32]
+Temp3[31:0] := SRC1[63:48] * SRC2[63:48]
+Temp4[31:0] := SRC1[79:64] * SRC2[79:64]
+Temp5[31:0] := SRC1[95:80] * SRC2[95:80]
+Temp6[31:0] := SRC1[111:96] * SRC2[111:96]
+Temp7[31:0] := SRC1[127:112] * SRC2[127:112]
+DEST[15:0] := Temp0[15:0]
+DEST[31:16] := Temp1[15:0]
+DEST[47:32] := Temp2[15:0]
+DEST[63:48] := Temp3[15:0]
+DEST[79:64] := Temp4[15:0]
+DEST[95:80] := Temp5[15:0]
+DEST[111:96] := Temp6[15:0]
+DEST[127:112] := Temp7[15:0]
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="pmullw--evex-encoded-versions-">PMULLW（EVEX 编码版本）<a class="anchor" href="#pmullw--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (8, 128), (16, 256), (32, 512)
+FOR j := 0 TO KL-1
+    i := j * 16
+    IF k1[j] OR *no writemask*
+        THEN
+            temp[31:0] := SRC1[i+15:i] * SRC2[i+15:i]
+            DEST[i+15:i] := temp[15:0]
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE *zeroing-masking*
+                        ; zeroing-masking
+                    DEST[i+15:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VPMULLW __m512i _mm512_mullo_epi16(__m512i a, __m512i b);</pre>
+		<pre>VPMULLW __m512i _mm512_mask_mullo_epi16(__m512i s, __mmask32 k, __m512i a, __m512i b);</pre>
+		<pre>VPMULLW __m512i _mm512_maskz_mullo_epi16( __mmask32 k, __m512i a, __m512i b);</pre>
+		<pre>VPMULLW __m256i _mm256_mask_mullo_epi16(__m256i s, __mmask16 k, __m256i a, __m256i b);</pre>
+		<pre>VPMULLW __m256i _mm256_maskz_mullo_epi16( __mmask16 k, __m256i a, __m256i b);</pre>
+		<pre>VPMULLW __m128i _mm_mask_mullo_epi16(__m128i s, __mmask8 k, __m128i a, __m128i b);</pre>
+		<pre>VPMULLW __m128i _mm_maskz_mullo_epi16( __mmask8 k, __m128i a, __m128i b);</pre>
+		<pre>PMULLW __m64 _mm_mullo_pi16(__m64 m1, __m64 m2)</pre>
+		<pre>(V)PMULLW __m128i _mm_mullo_epi16 ( __m128i a, __m128i b)</pre>
+		<pre>VPMULLW __m256i _mm256_mullo_epi16 ( __m256i a, __m256i b);</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>非 EVEX 编码指令，请参阅表 2-21，“第 4 类异常条件”。</p>
+		<p>EVEX 编码指令，请参阅表 2-49，“第 E4 类异常条件”中的异常类型 E4.nb。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

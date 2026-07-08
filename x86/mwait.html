@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>MWAIT — 监控等待</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>MWAIT — 监控等待</h1>
+		<table>
+			<tr>
+				<th>操作码</th>
+				<th>指令</th>
+				<th>Op/En</th>
+				<th>64位模式</th>
+				<th>兼容/传统模式</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>0F 01 C9</td>
+				<td>MWAIT</td>
+				<td>ZO</td>
+				<td>有效</td>
+				<td>有效</td>
+				<td>一个提示，允许处理器停止指令执行并进入与实现相关的优化状态，直到发生某类事件。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>ZO</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>MWAIT 指令提供提示以允许处理器进入与实现相关的优化状态。主要有两个目标用途：地址范围监控和高级电源管理。MWAIT 的这两种用途都需要使用 MONITOR 指令。</p>
+		<p>CPUID.01H:ECX.MONITOR[位 3] 指示处理器中 MONITOR 和 MWAIT 的可用性。当置位时，MWAIT 只能在特权级 0 执行（在任何其他特权级使用会导致无效操作码异常）。操作系统或系统 BIOS 可以通过使用 IA32_MISC_ENABLE MSR 禁用此指令；禁用 MWAIT 会清除 CPUID 特征标志并导致执行产生无效操作码异常。</p>
+		<p>此指令在非64位模式和64位模式下的操作相同。</p>
+		<p>ECX 指定 MWAIT 指令的可选扩展。EAX 可以包含诸如处理器应进入的首选优化状态等提示。首批实现 MWAIT 的处理器仅支持 EAX 和 ECX 为零值。后来的处理器允许设置 ECX[0] 以将屏蔽的中断启用为 MWAIT 的唤醒事件（见下文）。软件可以使用 CPUID 指令来确定处理器支持的扩展和提示。</p>
+
+		<h2 id="mwait-for-address-range-monitoring">MWAIT 用于地址范围监控<a class="anchor" href="#mwait-for-address-range-monitoring">¶</a></h2>
+		<p>对于地址范围监控，MWAIT 指令与 MONITOR 指令配合操作。这两个指令允许定义等待的地址（MONITOR）和在等待地址处开始的与实现相关的优化操作（MWAIT）。执行 MWAIT 是对处理器的提示，提示它可以在等待事件或对 MONITOR 设防的地址范围进行存储操作时，进入与实现相关的优化状态。</p>
+		<p>以下情况会导致处理器退出与实现相关的优化状态：对 MONITOR 指令设防的地址范围进行存储、NMI 或 SMI、调试异常、机器检查异常、BINIT# 信号、INIT# 信号和 RESET# 信号。其他与实现相关的事件也可能导致处理器退出与实现相关的优化状态。</p>
+		<p>此外，在以下情况下，外部中断也会导致处理器退出与实现相关的优化状态：(1) 如果中断将递交给软件（例如，就像执行了 HLT 而不是 MWAIT 一样）；或 (2) 如果 ECX[0] = 1。只有在 CPUID.05H:ECX[位 1] = 1 时，软件才能在 ECX[0] = 1 的情况下执行 MWAIT。（特定于实现的条件可能导致即使屏蔽了中断且 ECX[0] = 0，中断仍会导致处理器退出与实现相关的优化状态。）</p>
+		<p>退出与实现相关的优化状态后，控制权转移到 MWAIT 指令之后的指令。在执行该指令之前，可能会递交未屏蔽的挂起中断（包括 NMI 或 SMI）。与 HLT 指令不同，MWAIT 指令不支持在处理 SMI 后在 MWAIT 指令处重新开始。</p>
+		<p>如果前面的 MONITOR 指令没有成功对地址范围设防，或者在执行 MWAIT 之前没有执行 MONITOR 指令，则处理器不会进入与实现相关的优化状态。执行将在 MWAIT 之后的指令处恢复。</p>
+
+		<h2 id="mwait-for-power-management">MWAIT 用于电源管理<a class="anchor" href="#mwait-for-power-management">¶</a></h2>
+		<p>MWAIT 接受对处理器的提示和可选扩展，使其在等待事件或对 MONITOR 设防的地址范围进行存储操作时，可以进入指定的目标 C 状态。对用于电源管理的 MWAIT 扩展的支持由 CPUID.05H:ECX[位 0] 报告为 1 来指示。</p>
+		<p>EAX 和 ECX 用于向 MWAIT 指令传递附加信息，例如处理器应进入的优化状态类型。ECX 指定 MWAIT 指令的可选扩展。EAX 可以包含诸如处理器首选的优化状态等提示。特定于实现的条件可能导致处理器忽略该提示并进入不同的优化状态。未来的处理器实现可能会实现多个优化的“等待”状态，并将根据提示参数在这些状态之间进行选择。</p>
+		<p>表 4-10 描述了 MWAIT 扩展中 ECX 和 EAX 寄存器的含义。</p>
+		<figure id="tbl-4-10">
+			<table>
+				<tr>
+					<th>位</th>
+					<th>描述</th>
+				</tr>
+				<tr>
+					<td>0</td>
+					<td>即使屏蔽了中断（例如，即使 EFLAGS.IF=0），也将中断视为唤醒事件。仅当 CPUID.05H:ECX[位 1] = 1 时才可以设置。</td>
+				</tr>
+				<tr>
+					<td>31:1</td>
+					<td>保留</td>
+				</tr>
+			</table>
+			<figcaption><a href='mwait.html#tbl-4-10'>表 4-10</a>. MWAIT 扩展寄存器 (ECX)</figcaption>
+		</figure>
+		<figure id="tbl-4-11">
+			<table>
+				<tr>
+					<th>位</th>
+					<th>描述</th>
+				</tr>
+				<tr>
+					<td>3:0</td>
+					<td>C状态内的子C状态，由位 [7:4] 指示</td>
+				</tr>
+				<tr>
+					<td>7:4</td>
+					<td>目标C状态*。值为 0 表示 C1；1 表示 C2 依此类推。值为 01111B 表示 C0。注意：MWAIT 扩展的目标 C 状态是处理器特定的 C 状态，而不是 ACPI C 状态</td>
+				</tr>
+				<tr>
+					<td>31:8</td>
+					<td>保留</td>
+				</tr>
+			</table>
+			<figcaption><a href='mwait.html#tbl-4-11'>表 4-11</a>. MWAIT 提示寄存器 (EAX)</figcaption>
+		</figure>
+		<p>注意，如果使用 MWAIT 进入数值上大于 C1 的任何 C 状态，则只有当存储是由其他处理器代理发起时，对 MONITOR 指令设防的地址范围的存储才会导致处理器退出 MWAIT。在这种情况下，来自非处理器代理的存储可能不会导致处理器退出 MWAIT。</p>
+		<p>有关 MWAIT 扩展的更多详细信息，请参阅 Intel® 64 和 IA-32 架构软件开发人员手册第 3A 卷第 15 章“电源和温度管理”。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>(* MWAIT takes the argument in EAX as a hint extension and is architected to take the argument in ECX as an instruction extension
+MWAIT EAX, ECX *)
+{
+WHILE ( (“Monitor Hardware is in armed state”)) {
+    implementation_dependent_optimized_state(EAX, ECX); }
+Set the state of Monitor Hardware as triggered;
+}
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>MWAIT void _mm_mwait(unsigned extensions, unsigned hints)</pre>
+
+		<h2 id="example">示例<a class="anchor" href="#example">¶</a></h2>
+		<p>MONITOR/MWAIT 指令对必须编写在同一个循环中，因为执行 MWAIT 指令会触发监控硬件。仅执行一次 MONITOR 然后在循环中执行 MWAIT 是不正确的用法。仅设置 MONITOR 而不执行 MWAIT 没有不良影响。</p>
+		<p>通常，MONITOR/MWAIT 对按以下顺序使用：</p>
+		<p>EAX = Logical Address(Trigger)</p>
+		<p>ECX = 0 (*Hints *)</p>
+		<p>EDX = 0 (* Hints *)</p>
+		<p>IF ( !trigger_store_happened) {</p>
+		<p>MONITOR EAX, ECX, EDX</p>
+		<p>IF ( !trigger_store_happened ) {</p>
+		<p>MWAIT EAX, ECX</p>
+		<p>}</p>
+		<p>}</p>
+		<p>上述代码序列确保在第一次检查触发条件和执行监控指令之间不会发生触发性存储。如果没有第二次检查，该触发性存储将不会被察觉。MONITOR 和 MWAIT 的典型用法是将上述代码序列置于循环中。</p>
+
+		<h2 class="exceptions" id="numeric-exceptions">数值异常<a class="anchor" href="#numeric-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#GP(0)</td>
+				<td>如果 ECX[31:1] ≠ 0。</td>
+			</tr>
+			<tr>
+				<td>如果 ECX[0] = 1 且 CPUID.05H:ECX[位 1] = 0。</td>
+			</tr>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 CPUID.01H:ECX.MONITOR[位 3] = 0。</td>
+			</tr>
+			<tr>
+				<td>如果当前特权级不为 0。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#GP</td>
+				<td>如果 ECX[31:1] ≠ 0。</td>
+			</tr>
+			<tr>
+				<td>如果 ECX[0] = 1 且 CPUID.05H:ECX[位 1] = 0。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果 CPUID.01H:ECX.MONITOR[位 3] = 0。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>在虚拟-8086模式下无法识别 MWAIT 指令（即使 CPUID.01H:ECX.MONITOR[位 3] = 1）。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#GP(0)</td>
+				<td>如果 RCX[63:1] ≠ 0。</td>
+			</tr>
+			<tr>
+				<td>如果 RCX[0] = 1 且 CPUID.05H:ECX[位 1] = 0。</td>
+			</tr>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果当前特权级不为 0。</td>
+			</tr>
+			<tr>
+				<td>如果 CPUID.01H:ECX.MONITOR[位 3] = 0。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>PUNPCKLBW/PUNPCKLWD/PUNPCKLDQ/PUNPCKLQDQ — 解包低位数据</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>PUNPCKLBW/PUNPCKLWD/PUNPCKLDQ/PUNPCKLQDQ — 解包低位数据</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F 60 /r<sup>1</sup> PUNPCKLBW mm, mm/m32</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>MMX</td>
+				<td>将 mm 和 mm/m32 中的低位字节交错并解包到 mm 中。</td>
+			</tr>
+			<tr>
+				<td>66 0F 60 /r PUNPCKLBW xmm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>将 xmm1 和 xmm2/m128 中的低位字节交错并解包到 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>NP 0F 61 /r<sup>1</sup> PUNPCKLWD mm, mm/m32</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>MMX</td>
+				<td>将 mm 和 mm/m32 中的低位字交错并解包到 mm 中。</td>
+			</tr>
+			<tr>
+				<td>66 0F 61 /r PUNPCKLWD xmm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>将 xmm1 和 xmm2/m128 中的低位字交错并解包到 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>NP 0F 62 /r<sup>1</sup> PUNPCKLDQ mm, mm/m32</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>MMX</td>
+				<td>将 mm 和 mm/m32 中的低位双字交错并解包到 mm 中。</td>
+			</tr>
+			<tr>
+				<td>66 0F 62 /r PUNPCKLDQ xmm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>将 xmm1 和 xmm2/m128 中的低位双字交错并解包到 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>66 0F 6C /r PUNPCKLQDQ xmm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>将 xmm1 和 xmm2/m128 中的低位四字交错并解包到 xmm1 寄存器中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F.WIG 60/r VPUNPCKLBW xmm1,xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>将 xmm2 和 xmm3/m128 中的低位字节交错到 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F.WIG 61/r VPUNPCKLWD xmm1,xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>将 xmm2 和 xmm3/m128 中的低位字交错到 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F.WIG 62/r VPUNPCKLDQ xmm1, xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>将 xmm2 和 xmm3/m128 中的低位双字交错到 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F.WIG 6C/r VPUNPCKLQDQ xmm1, xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>将 xmm2 和 xmm3/m128 中的低位四字交错到 xmm1 寄存器中。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F.WIG 60 /r VPUNPCKLBW ymm1, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>将 ymm2 和 ymm3/m256 中的低位字节交错到 ymm1 寄存器中。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F.WIG 61 /r VPUNPCKLWD ymm1, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>将 ymm2 和 ymm3/m256 中的低位字交错到 ymm1 寄存器中。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F.WIG 62 /r VPUNPCKLDQ ymm1, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>将 ymm2 和 ymm3/m256 中的低位双字交错到 ymm1 寄存器中。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F.WIG 6C /r VPUNPCKLQDQ ymm1, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>将 ymm2 和 ymm3/m256 中的低位四字交错到 ymm1 寄存器中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.WIG 60 /r VPUNPCKLBW xmm1 {k1}{z}, xmm2, xmm3/m128</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>在写掩码 k1 下，将 xmm2 和 xmm3/m128 中的低位字节交错到 xmm1 寄存器中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.WIG 61 /r VPUNPCKLWD xmm1 {k1}{z}, xmm2, xmm3/m128</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>在写掩码 k1 下，将 xmm2 和 xmm3/m128 中的低位字交错到 xmm1 寄存器中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.W0 62 /r VPUNPCKLDQ xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 下，将 xmm2 和 xmm3/m128/m32bcst 中的低位双字交错到 xmm1 寄存器中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.W1 6C /r VPUNPCKLQDQ xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 下，将 zmm2 和 zmm3/m512/m64bcst 中的低位四字交错到 zmm1 寄存器中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.WIG 60 /r VPUNPCKLBW ymm1 {k1}{z}, ymm2, ymm3/m256</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>在写掩码 k1 下，将 ymm2 和 ymm3/m256 中的低位字节交错到 ymm1 寄存器中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.WIG 61 /r VPUNPCKLWD ymm1 {k1}{z}, ymm2, ymm3/m256</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>在写掩码 k1 下，将 ymm2 和 ymm3/m256 中的低位字交错到 ymm1 寄存器中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.W0 62 /r VPUNPCKLDQ ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 下，将 ymm2 和 ymm3/m256/m32bcst 中的低位双字交错到 ymm1 寄存器中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.W1 6C /r VPUNPCKLQDQ ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 下，将 ymm2 和 ymm3/m256/m64bcst 中的低位四字交错到 ymm1 寄存器中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.WIG 60/r VPUNPCKLBW zmm1 {k1}{z}, zmm2, zmm3/m512</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512BW</td>
+				<td>在写掩码 k1 下，将 zmm2 和 zmm3/m512 中的低位字节交错到 zmm1 寄存器中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.WIG 61/r VPUNPCKLWD zmm1 {k1}{z}, zmm2, zmm3/m512</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512BW</td>
+				<td>在写掩码 k1 下，将 zmm2 和 zmm3/m512 中的低位字交错到 zmm1 寄存器中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.W0 62 /r VPUNPCKLDQ zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>在写掩码 k1 下，将 zmm2 和 zmm3/m512/m32bcst 中的低位双字交错到 zmm1 寄存器中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.W1 6C /r VPUNPCKLQDQ zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>在写掩码 k1 下，将 zmm2 和 zmm3/m512/m64bcst 中的低位四字交错到 zmm1 寄存器中。</td>
+			</tr>
+		</table>
+		<blockquote>
+			<p>1. 请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 2A 卷第 2.5 节“Intel® AVX 和 Intel® SSE 指令异常分类”中的注释，以及《Intel® 64 和 IA-32 架构软件开发人员手册》第 3B 卷第 23.25.3 节“操作 MMX 寄存器的传统 SIMD 指令的异常条件”中的注释。</p>
+		</blockquote>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (r, w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>C</td>
+				<td>Full Mem</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>D</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将目的操作数（第一个操作数）和源操作数（第二个操作数）的低位数据元素（字节、字、双字和四字）交错并解包到目的操作数中。（<a href='punpcklbwpunpcklwdpunpckldqpunpcklqdq.html#fig-4-22'>图 4-22</a> 显示了 64 位操作数中字节的解包操作。）。高位数据元素被忽略。</p>
+
+		<figure id="fig-4-22">
+			<svg style="width: 455.616pt; height: 119.88004799999999pt" viewbox="109.10000000000001 0.0 384.68 104.90003999999999">
+				<g xmlns="http://www.w3.org/2000/svg" style="fill: none; stroke: none">
+					<rect height="98.88" style="fill: rgb(0%, 0%, 0%)" width="0.48" x="111.60000000000001" y="0.5400399999999763"></rect>
+					<rect height="98.88" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="490.8" y="0.5400399999999763"></rect>
+					<rect height="0.48004" style="fill: rgb(0%, 0%, 0%)" width="379.68" x="111.60000000000001" y="0.0"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="379.68" x="111.60000000000001" y="99.42006000000003"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="144.24" x="278.34000000000003" y="74.34006"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="422.1" y="74.58003999999994"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="144.24" x="278.1" y="92.34006"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="278.1" y="74.34003999999993"></rect>
+					<rect height="0.23999" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="313.92" y="74.3400499999999"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="313.92" y="74.58003999999994"></rect>
+					<rect height="0.23999" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="349.98" y="74.3400499999999"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="349.98" y="74.58003999999994"></rect>
+					<rect height="0.23999" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="386.04" y="74.3400499999999"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="386.04" y="74.58003999999994"></rect>
+					<rect height="0.23999" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="404.1" y="74.3400499999999"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="404.1" y="74.58003999999994"></rect>
+					<rect height="0.23999" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="332.1" y="74.3400499999999"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="332.1" y="74.58003999999994"></rect>
+					<rect height="0.23999" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="368.1" y="74.3400499999999"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="368.1" y="74.58003999999994"></rect>
+					<rect height="0.23999" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="296.1" y="74.3400499999999"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="296.1" y="74.58003999999994"></rect>
+					<rect height="18.0" style="fill: rgb(100%, 100%, 100%)" width="144.0" x="309.54" y="11.880040000000008"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="144.24" x="309.54" y="11.640060000000062"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="453.3" y="11.880040000000008"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="144.24" x="309.3" y="29.640060000000062"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="309.3" y="11.640039999999999"></rect>
+					<rect height="0.23999" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="345.18" y="11.640049999999974"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="345.18" y="11.880040000000008"></rect>
+					<rect height="0.23999" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="381.24" y="11.640049999999974"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="381.24" y="11.880040000000008"></rect>
+					<rect height="0.23999" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="417.24" y="11.640049999999974"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="417.24" y="11.880040000000008"></rect>
+					<rect height="0.23999" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="435.3" y="11.640049999999974"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="435.3" y="11.880040000000008"></rect>
+					<rect height="0.23999" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="363.3" y="11.640049999999974"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="363.3" y="11.880040000000008"></rect>
+					<rect height="0.23999" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="399.3" y="11.640049999999974"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="399.3" y="11.880040000000008"></rect>
+					<rect height="0.23999" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="327.3" y="11.640049999999974"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="327.3" y="11.880040000000008"></rect>
+					<rect height="18.0" style="fill: rgb(100%, 100%, 100%)" width="144.0" x="147.3" y="11.940039999999954"></rect>
+					<rect height="0.48004" style="fill: rgb(0%, 0%, 0%)" width="144.24" x="147.3" y="11.699999999999932"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="291.06" y="11.940039999999954"></rect>
+					<rect height="0.48004" style="fill: rgb(0%, 0%, 0%)" width="144.24" x="147.06" y="29.699999999999932"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48" x="147.06" y="11.700039999999944"></rect>
+					<rect height="0.2405" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="182.88" y="11.699989999999957"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="182.88" y="11.940039999999954"></rect>
+					<rect height="0.2405" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="218.94" y="11.699989999999957"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="218.94" y="11.940039999999954"></rect>
+					<rect height="0.2405" style="fill: rgb(0%, 0%, 0%)" width="0.48" x="255.0" y="11.699989999999957"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48" x="255.0" y="11.940039999999954"></rect>
+					<rect height="0.2405" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="273.06" y="11.699989999999957"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="273.06" y="11.940039999999954"></rect>
+					<rect height="0.2405" style="fill: rgb(0%, 0%, 0%)" width="0.48" x="201.06" y="11.699989999999957"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48" x="201.06" y="11.940039999999954"></rect>
+					<rect height="0.2405" style="fill: rgb(0%, 0%, 0%)" width="0.48" x="237.06" y="11.699989999999957"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48" x="237.06" y="11.940039999999954"></rect>
+					<rect height="0.2405" style="fill: rgb(0%, 0%, 0%)" width="0.48" x="165.06" y="11.699989999999957"></rect>
+					<rect height="18.240000000000002" style="fill: rgb(0%, 0%, 0%)" width="0.48" x="165.06" y="11.940039999999954"></rect>
+					<path d="M 312.0 71.16003999999998 L 311.76 70.68003999999996 L 310.8 71.16003999999998 L 311.04 71.64004" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 311.28000000000003 71.04003999999998 L 312.48 72.18003999999996 L 313.26000000000005 72.84003999999993 L 312.18 73.02004 L 306.72 74.16003999999998 L 305.04 74.52004 L 306.3 73.32003999999995 L 310.32000000000005 69.42003999999997 L 311.04 68.70003999999994 L 311.16 69.72003999999993 L 310.98 70.14004 L 306.96000000000004 74.04003999999998 L 306.3 73.32003999999995 L 306.54 73.20003999999994 L 312.00000000000006 72.06003999999996 L 312.18 73.02004 L 311.76000000000005 72.84003999999993 L 310.56 71.70003999999994" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 311.16 69.72004000000004 L 311.40000000000003 71.34004000000004 L 310.56 71.70004000000006 L 310.44 71.58004000000005 L 310.44 71.46004000000005 L 310.20000000000005 69.84004000000004" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 310.92 71.40003999999999 L 312.12 72.54003999999998 L 306.66 73.68003999999996 L 310.68 69.78003999999999" style="fill: rgb(0%, 0%, 0%); fill-rule: evenodd"></path>
+					<path d="M 388.74 30.960039999999935 L 388.92 30.84003999999993 L 388.68 30.42003999999997 L 388.5 30.540039999999976" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 312.0 71.16003999999998 L 311.82 71.28003999999999 L 311.58 70.86004000000003 L 311.76 70.74004000000002" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 388.74 30.960039999999935 L 388.5 30.540039999999976 L 311.76 70.74003999999991 L 312.0 71.16003999999998" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 347.46 70.44003999999995 L 347.21999999999997 70.08003999999994 L 346.38 70.68003999999996 L 346.62 71.04003999999998" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 346.8 70.44003999999995 L 348.12 71.40003999999999 L 349.02000000000004 72.0000399999999 L 347.94 72.30003999999997 L 342.6 73.98003999999992 L 340.98 74.46003999999994 L 342.06 73.20003999999994 L 345.66 68.94003999999995 L 346.32 68.16003999999998 L 346.56 69.06003999999996 L 346.44 69.60003999999992 L 342.84000000000003 73.86003999999991 L 342.06 73.20003999999994 L 342.3 73.02004 L 347.64 71.34003999999993 L 347.94 72.30003999999997 L 347.52000000000004 72.24003999999991 L 346.2 71.28003999999999" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 346.56 69.06003999999996 L 346.98 70.68003999999996 L 346.2 71.28003999999999 L 346.02 71.16003999999998 L 346.02 70.98003999999992 L 345.6 69.36003999999991" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 346.5 70.86003999999991 L 347.82 71.82003999999995 L 342.48 73.5000399999999 L 346.08 69.24003999999991" style="fill: rgb(0%, 0%, 0%); fill-rule: evenodd"></path>
+					<path d="M 407.52 30.960039999999935 L 407.7 30.84003999999993 L 407.46 30.42003999999997 L 407.28 30.540039999999976" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 347.46 70.50004000000001 L 347.28 70.62004000000002 L 347.03999999999996 70.20004000000006 L 347.21999999999997 70.08004000000005" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 407.52 30.960039999999935 L 407.28 30.540039999999976 L 347.21999999999997 70.08003999999994 L 347.46 70.5000399999999" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 383.22 69.48004000000003 L 382.86 69.12004000000002 L 382.08000000000004 69.84004000000004 L 382.44000000000005 70.20004000000006" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 382.5 69.54003999999998 L 384.0 70.32003999999995 L 384.9 70.80003999999997 L 383.94 71.28003999999999 L 378.9 73.74004000000002 L 377.34 74.52004 L 378.24 73.02004 L 381.18 68.28003999999999 L 381.78 67.38004000000001 L 382.14 68.34003999999993 L 382.08 68.82003999999995 L 379.14 73.56003999999996 L 378.24 73.02004 L 378.48 72.84003999999993 L 383.52 70.38004000000001 L 383.94 71.28003999999999 L 383.52 71.28003999999999 L 382.02 70.50004000000001" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 382.14 68.34004000000004 L 382.74 69.84004000000004 L 382.02 70.50004000000001 L 381.84 70.38004000000001 L 381.78 70.20004000000006 L 381.18 68.70004000000006" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 382.26 70.02004 L 383.76 70.80003999999997 L 378.71999999999997 73.26004 L 381.65999999999997 68.52004" style="fill: rgb(0%, 0%, 0%); fill-rule: evenodd"></path>
+					<path d="M 426.3 30.360039999999913 L 426.48 30.240039999999908 L 426.18 29.880039999999894 L 426.0 30.0000399999999" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 383.22 69.48004000000003 L 383.04 69.60004000000004 L 382.74 69.24004000000002 L 382.92 69.12004000000002" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 426.3 30.360039999999913 L 426.0 30.0000399999999 L 382.92 69.1200399999999 L 383.22 69.48003999999992" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 416.88 68.40003999999999 L 416.52 68.16003999999998 L 415.92 69.00004000000001 L 416.28 69.24004000000002" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 416.22 68.64004 L 417.78000000000003 69.12004000000002 L 418.8 69.36004000000003 L 417.96000000000004 70.02004 L 413.58000000000004 73.44003999999995 L 412.20000000000005 74.52004 L 412.8 72.90003999999999 L 414.72 67.68003999999996 L 415.08000000000004 66.66003999999998 L 415.62 67.50004000000001 L 415.68 67.98004000000003 L 413.76000000000005 73.20003999999994 L 412.8 72.90003999999999 L 412.98 72.66003999999998 L 417.36 69.24004000000002 L 417.96000000000004 70.02004 L 417.48 70.08004000000005 L 415.92 69.60004000000004" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 415.62 67.50004000000001 L 416.52 68.82004000000006 L 415.92 69.60004000000004 L 415.74 69.54003999999998 L 415.68 69.42003999999997 L 414.78000000000003 68.10004000000004" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 416.1 69.12004000000002 L 417.66 69.60004000000004 L 413.28000000000003 73.02004 L 415.20000000000005 67.80003999999997" style="fill: rgb(0%, 0%, 0%); fill-rule: evenodd"></path>
+					<path d="M 444.54 30.360039999999913 L 444.66 30.180039999999963 L 444.3 29.880039999999894 L 444.18 30.060039999999958" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 416.88 68.46003999999994 L 416.76 68.6400399999999 L 416.4 68.34003999999993 L 416.52 68.16003999999998" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 444.54 30.360039999999913 L 444.18 30.060039999999958 L 416.52000000000004 68.16003999999987 L 416.88 68.46003999999994" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 388.5 71.46003999999994 L 388.38 71.94003999999995 L 389.34 72.36003999999991 L 389.46 71.8800399999999" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 388.86 72.12004000000002 L 388.92 70.44004000000007 L 388.98 69.42003999999997 L 389.82 70.08004000000005 L 394.26 73.50004000000001 L 395.7 74.58004000000005 L 393.90000000000003 74.40003999999999 L 388.32 73.86004000000003 L 387.24 73.74004000000002 L 387.96000000000004 72.96004000000005 L 388.38 72.84004000000004 L 393.96000000000004 73.38004000000001 L 393.90000000000003 74.40003999999999 L 393.6 74.28003999999999 L 389.16 70.86004000000003 L 389.82 70.08004000000005 L 390.0 70.44004000000007 L 389.94 72.12004000000002" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 387.96000000000004 72.96003999999994 L 389.04 71.76003999999989 L 389.94000000000005 72.1200399999999 L 389.88000000000005 72.30003999999997 L 389.76000000000005 72.48003999999992 L 388.68000000000006 73.68003999999996" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 389.40000000000003 72.12004000000002 L 389.46000000000004 70.44004000000007 L 393.90000000000003 73.86004000000003 L 388.32000000000005 73.32004000000006" style="fill: rgb(0%, 0%, 0%); fill-rule: evenodd"></path>
+					<path d="M 281.04 30.000040000000013 L 280.86 29.940040000000067 L 280.68 30.360040000000026 L 280.86 30.42003999999997" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 388.56 71.52004 L 388.74 71.58003999999994 L 388.56 72.00004000000001 L 388.38 71.94003999999995" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 281.04 30.000040000000013 L 280.86 30.42003999999997 L 388.38 71.94004000000007 L 388.56 71.52004" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 351.78000000000003 71.04003999999998 L 351.54 71.52004 L 352.50000000000006 71.94003999999995 L 352.74 71.46003999999994" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 352.08 71.64004 L 352.2 70.02004 L 352.26 69.00004000000001 L 353.09999999999997 69.72004000000004 L 357.35999999999996 73.38004000000001 L 358.68 74.52004 L 356.94 74.28003999999999 L 351.41999999999996 73.38004000000001 L 350.4 73.20003999999994 L 351.12 72.48004000000003 L 351.59999999999997 72.36004000000003 L 357.12 73.26004 L 356.94 74.28003999999999 L 356.7 74.10004000000004 L 352.44 70.44003999999995 L 353.09999999999997 69.72004000000004 L 353.28 70.14004 L 353.15999999999997 71.76004" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 351.12 72.48004000000003 L 352.26 71.34004000000004 L 353.16 71.76004 L 353.1 71.94004000000007 L 351.84000000000003 73.20004000000006" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 352.62 71.70003999999994 L 352.74 70.08003999999994 L 357.0 73.74003999999991 L 351.48 72.84003999999993" style="fill: rgb(0%, 0%, 0%); fill-rule: evenodd"></path>
+					<path d="M 263.40000000000003 29.880040000000008 L 263.22 29.820040000000063 L 263.04 30.240040000000022 L 263.22 30.300039999999967" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 351.78000000000003 71.10004000000004 L 351.96000000000004 71.16003999999998 L 351.78000000000003 71.58004000000005 L 351.6 71.52004" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 263.40000000000003 29.880040000000008 L 263.22 30.300039999999967 L 351.6 71.52004 L 351.78000000000003 71.10004000000004" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<rect height="18.48" style="fill: rgb(0%, 0%, 0%)" width="0.48" x="296.1" y="74.34003999999993"></rect>
+					<path d="M 280.8 69.66003999999998 L 280.56 70.02004 L 281.46000000000004 70.68003999999996 L 281.7 70.32003999999995" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 281.1 70.38004000000001 L 281.58000000000004 68.82004000000006 L 281.82000000000005 67.80003999999997 L 282.48 68.64004 L 285.84000000000003 73.08004000000005 L 286.86 74.46004000000005 L 285.3 73.86004000000003 L 280.08000000000004 71.88004000000001 L 279.06 71.52004 L 279.90000000000003 70.98004000000003 L 280.38 70.92003999999997 L 285.6 72.90003999999999 L 285.3 73.86004000000003 L 285.06 73.68003999999996 L 281.70000000000005 69.24004000000002 L 282.48 68.64004 L 282.54 69.06003999999996 L 282.06 70.62004000000002" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 279.90000000000003 70.98004000000003 L 281.28000000000003 70.08004000000005 L 282.06000000000006 70.62004000000002 L 282.00000000000006 70.80004000000008 L 281.88000000000005 70.92004000000009 L 280.50000000000006 71.82004000000006" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 281.58 70.50004000000001 L 282.06 68.94004000000007 L 285.41999999999996 73.38004000000001 L 280.2 71.40003999999999" style="fill: rgb(0%, 0%, 0%); fill-rule: evenodd"></path>
+					<path d="M 229.14000000000001 30.540039999999976 L 228.96 30.42003999999997 L 228.66000000000003 30.780039999999985 L 228.84 30.90003999999999" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 280.86 69.66003999999998 L 281.04 69.78003999999999 L 280.74 70.14004 L 280.56 70.02004" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<path d="M 229.14000000000001 30.540039999999976 L 228.84 30.90003999999999 L 280.56 70.02004 L 280.86 69.66003999999998" style="fill: rgb(0%, 0%, 0%); fill-rule: nonzero"></path>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 10.417866700000104pt; fill: #000" textlength="158.46232909999998" x="127.98122189999997" y="14.76696000000004">SRC Y7 Y6 Y5 Y4 Y3 Y2 Y1 Y0</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 8.977888500000063pt; fill: #000" textlength="134.46295879999997" x="314.340132" y="13.626644300000066">X7 X6 X5 X4 X3 X2 X1 X0</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 7.803183600000011pt; fill: #000" textlength="11.625065459999973" x="272.5195646100001" y="58.47546762000013">255</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 7.803183600000001pt; fill: #000" textlength="3.887607600000024" x="420.8996179200001" y="59.25508677000004">0</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 9.098552599999891pt; fill: #000" textlength="163.3825471" x="254.76083419999998" y="76.08669759999992">DEST Y5 X5 Y4 X4 Y1 X1 Y0 X0</text>
+				</g>
+			</svg>
+			<figcaption><a href='punpcklbwpunpcklwdpunpckldqpunpcklqdq.html#fig-4-23'>图 4-23</a>. 256 位 VPUNPCKLDQ 指令操作</figcaption>
+		</figure>
+		<p>当源数据来自 128 位内存操作数时，实现可以仅获取适当的 64 位；然而，仍将强制执行对齐到 16 字节边界和正常的段检查。</p>
+		<p>(V)PUNPCKLBW 指令交错源操作数和目的操作数的低位字节，(V)PUNPCKLWD 指令交错源操作数和目的操作数的低位字，(V)PUNPCKLDQ 指令交错源操作数和目的操作数的低位双字（或多个双字），(V)PUNPCKLQDQ 指令交错源操作数和目的操作数的低位四字。</p>
+		<p>通过在源操作数中放置全 0，这些指令可以分别用于将字节转换为字、字转换为双字、双字转换为四字，以及四字转换为双四字。在此，如果源操作数包含全 0，则结果（存储在目的操作数中）包含目的操作数中原始值高位数据元素的零扩展。例如，使用 (V)PUNPCKLBW 指令时，高位字节被零扩展（即解包为无符号字整数），而使用 (V)PUNPCKLWD 指令时，高位字被零扩展（解包为无符号双字整数）。</p>
+		<p>在 64 位模式下且未在 VEX/EVEX 中编码时，使用 REX.R 形式的 REX 前缀允许此指令访问其他寄存器（XMM8-XMM15）。</p>
+		<p>传统 SSE 版本 64 位操作数：源操作数可以是 MMX 技术寄存器或 32 位内存位置。目的操作数是 MMX 技术寄存器。</p>
+		<p>128位传统 SSE 版本：第二个源操作数是 XMM 寄存器或 128 位内存位置。第一个源操作数和目的操作数是 XMM 寄存器。对应 YMM 目的寄存器的位（MAXVL-1:128）保持不变。</p>
+		<p>VEX.128 编码版本：第二个源操作数是 XMM 寄存器或 128 位内存位置。第一个源操作数和目的操作数是 XMM 寄存器。目的 YMM 寄存器的位（MAXVL-1:128）清零。</p>
+		<p>VEX.256 编码版本：第二个源操作数是 YMM 寄存器或 256 位内存位置。第一个源操作数和目的操作数是 YMM 寄存器。对应 ZMM 寄存器的位（MAXVL-1:256）清零。</p>
+		<p>EVEX 编码 VPUNPCKLDQ/QDQ：第二个源操作数是 ZMM/YMM/XMM 寄存器、512/256/128 位内存位置，或是从 32/64 位内存位置广播的 512/256/128 位向量。第一个源操作数和目的操作数是 ZMM/YMM/XMM 寄存器。目的操作数在写掩码 k1 下有条件地更新。</p>
+		<p>EVEX 编码 VPUNPCKLWD/BW：第二个源操作数是 ZMM/YMM/XMM 寄存器、512/256/128 位内存位置。第一个源操作数和目的操作数是 ZMM/YMM/XMM 寄存器。目的操作数在写掩码 k1 下有条件地更新。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="punpcklbw-instruction-with-64-bit-operands-">PUNPCKLBW 指令（带 64位操作数）:<a class="anchor" href="#punpcklbw-instruction-with-64-bit-operands-">¶</a></h3>
+		<pre>DEST[63:56] := SRC[31:24];
+DEST[55:48] := DEST[31:24];
+DEST[47:40] := SRC[23:16];
+DEST[39:32] := DEST[23:16];
+DEST[31:24] := SRC[15:8];
+DEST[23:16] := DEST[15:8];
+DEST[15:8] := SRC[7:0];
+DEST[7:0] := DEST[7:0];
+</pre>
+		<h3 id="punpcklwd-instruction-with-64-bit-operands-">PUNPCKLWD 指令（带 64位操作数）:<a class="anchor" href="#punpcklwd-instruction-with-64-bit-operands-">¶</a></h3>
+		<pre>DEST[63:48] := SRC[31:16];
+DEST[47:32] := DEST[31:16];
+DEST[31:16] := SRC[15:0];
+DEST[15:0] := DEST[15:0];
+</pre>
+		<h3 id="punpckldq-instruction-with-64-bit-operands-">PUNPCKLDQ 指令（带 64位操作数）:<a class="anchor" href="#punpckldq-instruction-with-64-bit-operands-">¶</a></h3>
+		<pre>    DEST[63:32] := SRC[31:0];
+    DEST[31:0] := DEST[31:0];
+INTERLEAVE_BYTES_512b (SRC1, SRC2)
+TMP_DEST[255:0] := INTERLEAVE_BYTES_256b(SRC1[255:0], SRC[255:0])
+TMP_DEST[511:256] := INTERLEAVE_BYTES_256b(SRC1[511:256], SRC[511:256])
+INTERLEAVE_BYTES_256b (SRC1, SRC2)
+DEST[7:0] := SRC1[7:0]
+DEST[15:8] := SRC2[7:0]
+DEST[23:16] := SRC1[15:8]
+DEST[31:24] := SRC2[15:8]
+DEST[39:32] := SRC1[23:16]
+DEST[47:40] := SRC2[23:16]
+DEST[55:48] := SRC1[31:24]
+DEST[63:56] := SRC2[31:24]
+DEST[71:64] := SRC1[39:32]
+DEST[79:72] := SRC2[39:32]
+DEST[87:80] := SRC1[47:40]
+DEST[95:88] := SRC2[47:40]
+DEST[103:96] := SRC1[55:48]
+DEST[111:104] := SRC2[55:48]
+DEST[119:112] := SRC1[63:56]
+DEST[127:120] := SRC2[63:56]
+DEST[135:128] := SRC1[135:128]
+DEST[143:136] := SRC2[135:128]
+DEST[151:144] := SRC1[143:136]
+DEST[159:152] := SRC2[143:136]
+DEST[167:160] := SRC1[151:144]
+DEST[175:168] := SRC2[151:144]
+DEST[183:176] := SRC1[159:152]
+DEST[191:184] := SRC2[159:152]
+DEST[199:192] := SRC1[167:160]
+DEST[207:200] := SRC2[167:160]
+DEST[215:208] := SRC1[175:168]
+DEST[223:216] := SRC2[175:168]
+DEST[231:224] := SRC1[183:176]
+DEST[239:232] := SRC2[183:176]
+DEST[247:240] := SRC1[191:184]
+DEST[255:248] := SRC2[191:184]
+INTERLEAVE_BYTES (SRC1, SRC2)
+DEST[7:0] := SRC1[7:0]
+DEST[15:8] := SRC2[7:0]
+DEST[23:16] := SRC1[15:8]
+DEST[31:24] := SRC2[15:8]
+DEST[39:32] := SRC1[23:16]
+DEST[47:40] := SRC2[23:16]
+DEST[55:48] := SRC1[31:24]
+DEST[63:56] := SRC2[31:24]
+DEST[71:64] := SRC1[39:32]
+DEST[79:72] := SRC2[39:32]
+DEST[87:80] := SRC1[47:40]
+DEST[95:88] := SRC2[47:40]
+DEST[103:96] := SRC1[55:48]
+DEST[111:104] := SRC2[55:48]
+DEST[119:112] := SRC1[63:56]
+DEST[127:120] := SRC2[63:56]
+INTERLEAVE_WORDS_512b (SRC1, SRC2)
+TMP_DEST[255:0] := INTERLEAVE_WORDS_256b(SRC1[255:0], SRC[255:0])
+TMP_DEST[511:256] := INTERLEAVE_WORDS_256b(SRC1[511:256], SRC[511:256])
+INTERLEAVE_WORDS_256b(SRC1, SRC2)
+DEST[15:0] := SRC1[15:0]
+DEST[31:16] := SRC2[15:0]
+DEST[47:32] := SRC1[31:16]
+DEST[63:48] := SRC2[31:16]
+DEST[79:64] := SRC1[47:32]
+DEST[95:80] := SRC2[47:32]
+DEST[111:96] := SRC1[63:48]
+DEST[127:112] := SRC2[63:48]
+DEST[143:128] := SRC1[143:128]
+DEST[159:144] := SRC2[143:128]
+DEST[175:160] := SRC1[159:144]
+DEST[191:176] := SRC2[159:144]
+DEST[207:192] := SRC1[175:160]
+DEST[223:208] := SRC2[175:160]
+DEST[239:224] := SRC1[191:176]
+DEST[255:240] := SRC2[191:176]
+INTERLEAVE_WORDS (SRC1, SRC2)
+DEST[15:0] := SRC1[15:0]
+DEST[31:16] := SRC2[15:0]
+DEST[47:32] := SRC1[31:16]
+DEST[63:48] := SRC2[31:16]
+DEST[79:64] := SRC1[47:32]
+DEST[95:80] := SRC2[47:32]
+DEST[111:96] := SRC1[63:48]
+DEST[127:112] := SRC2[63:48]
+INTERLEAVE_DWORDS_512b (SRC1, SRC2)
+TMP_DEST[255:0] := INTERLEAVE_DWORDS_256b(SRC1[255:0], SRC2[255:0])
+TMP_DEST[511:256] := INTERLEAVE_DWORDS_256b(SRC1[511:256], SRC2[511:256])
+INTERLEAVE_DWORDS_256b(SRC1, SRC2)
+DEST[31:0] := SRC1[31:0]
+DEST[63:32] := SRC2[31:0]
+DEST[95:64] := SRC1[63:32]
+DEST[127:96] := SRC2[63:32]
+DEST[159:128] := SRC1[159:128]
+DEST[191:160] := SRC2[159:128]
+DEST[223:192] := SRC1[191:160]
+DEST[255:224] := SRC2[191:160]
+INTERLEAVE_DWORDS(SRC1, SRC2)
+DEST[31:0] := SRC1[31:0]
+DEST[63:32] := SRC2[31:0]
+DEST[95:64] := SRC1[63:32]
+DEST[127:96] := SRC2[63:32]
+INTERLEAVE_QWORDS_512b (SRC1, SRC2)
+TMP_DEST[255:0] := INTERLEAVE_QWORDS_256b(SRC1[255:0], SRC2[255:0])
+TMP_DEST[511:256] := INTERLEAVE_QWORDS_256b(SRC1[511:256], SRC2[511:256])
+INTERLEAVE_QWORDS_256b(SRC1, SRC2)
+DEST[63:0] := SRC1[63:0]
+DEST[127:64] := SRC2[63:0]
+DEST[191:128] := SRC1[191:128]
+DEST[255:192] := SRC2[191:128]
+INTERLEAVE_QWORDS(SRC1, SRC2)
+DEST[63:0] := SRC1[63:0]
+DEST[127:64] := SRC2[63:0]
+</pre>
+		<h3 id="punpcklbw">PUNPCKLBW<a class="anchor" href="#punpcklbw">¶</a></h3>
+		<pre>DEST[127:0] := INTERLEAVE_BYTES(DEST, SRC)
+DEST[255:127] (Unmodified)
+</pre>
+		<h3 id="vpunpcklbw--vex-128-encoded-instruction-">VPUNPCKLBW（VEX.128 编码指令）<a class="anchor" href="#vpunpcklbw--vex-128-encoded-instruction-">¶</a></h3>
+		<pre>DEST[127:0] := INTERLEAVE_BYTES(SRC1, SRC2)
+DEST[MAXVL-1:127] := 0
+</pre>
+		<h3 id="vpunpcklbw--vex-256-encoded-instruction-">VPUNPCKLBW（VEX.256 编码指令）<a class="anchor" href="#vpunpcklbw--vex-256-encoded-instruction-">¶</a></h3>
+		<pre>DEST[255:0] := INTERLEAVE_BYTES_256b(SRC1, SRC2)
+DEST[MAXVL-1:256] := 0
+</pre>
+		<h3 id="vpunpcklbw--evex-512-encoded-instruction-">VPUNPCKLBW（EVEX.512 编码指令）<a class="anchor" href="#vpunpcklbw--evex-512-encoded-instruction-">¶</a></h3>
+		<pre>(KL, VL) = (16, 128), (32, 256), (64, 512)
+IF VL = 128
+    TMP_DEST[VL-1:0] := INTERLEAVE_BYTES(SRC1[VL-1:0], SRC2[VL-1:0])
+FI;
+IF VL = 256
+    TMP_DEST[VL-1:0] := INTERLEAVE_BYTES_256b(SRC1[VL-1:0], SRC2[VL-1:0])
+FI;
+IF VL = 512
+    TMP_DEST[VL-1:0] := INTERLEAVE_BYTES_512b(SRC1[VL-1:0], SRC2[VL-1:0])
+FI;
+FOR j := 0 TO KL-1
+    i := j * 8
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+7:i] := TMP_DEST[i+7:i]
+        ELSE
+            IF *merging-masking*
+                        ; merging-masking
+                THEN *DEST[i+7:i] remains unchanged*
+                ELSE *zeroing-masking*
+                            ; zeroing-masking
+                    DEST[i+7:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+DEST[511:0] := INTERLEAVE_BYTES_512b(SRC1, SRC2)
+</pre>
+		<h3 id="punpcklwd">PUNPCKLWD<a class="anchor" href="#punpcklwd">¶</a></h3>
+		<pre>DEST[127:0] := INTERLEAVE_WORDS(DEST, SRC)
+DEST[255:127] (Unmodified)
+</pre>
+		<h3 id="vpunpcklwd--vex-128-encoded-instruction-">VPUNPCKLWD（VEX.128 编码指令）<a class="anchor" href="#vpunpcklwd--vex-128-encoded-instruction-">¶</a></h3>
+		<pre>DEST[127:0] := INTERLEAVE_WORDS(SRC1, SRC2)
+DEST[MAXVL-1:127] := 0
+</pre>
+		<h3 id="vpunpcklwd--vex-256-encoded-instruction-">VPUNPCKLWD（VEX.256 编码指令）<a class="anchor" href="#vpunpcklwd--vex-256-encoded-instruction-">¶</a></h3>
+		<pre>DEST[255:0] := INTERLEAVE_WORDS_256b(SRC1, SRC2)
+DEST[MAXVL-1:256] := 0
+</pre>
+		<h3 id="vpunpcklwd--evex-512-encoded-instruction-">VPUNPCKLWD（EVEX.512 编码指令）<a class="anchor" href="#vpunpcklwd--evex-512-encoded-instruction-">¶</a></h3>
+		<pre>(KL, VL) = (8, 128), (16, 256), (32, 512)
+IF VL = 128
+    TMP_DEST[VL-1:0] := INTERLEAVE_WORDS(SRC1[VL-1:0], SRC2[VL-1:0])
+FI;
+IF VL = 256
+    TMP_DEST[VL-1:0] := INTERLEAVE_WORDS_256b(SRC1[VL-1:0], SRC2[VL-1:0])
+FI;
+IF VL = 512
+    TMP_DEST[VL-1:0] := INTERLEAVE_WORDS_512b(SRC1[VL-1:0], SRC2[VL-1:0])
+FI;
+FOR j := 0 TO KL-1
+    i := j * 16
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i] := TMP_DEST[i+15:i]
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE *zeroing-masking*
+                        ; zeroing-masking
+                    DEST[i+15:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+DEST[511:0] := INTERLEAVE_WORDS_512b(SRC1, SRC2)
+</pre>
+		<h3 id="punpckldq">PUNPCKLDQ<a class="anchor" href="#punpckldq">¶</a></h3>
+		<pre>DEST[127:0] := INTERLEAVE_DWORDS(DEST, SRC)
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+		<h3 id="vpunpckldq--vex-128-encoded-instruction-">VPUNPCKLDQ（VEX.128 编码指令）<a class="anchor" href="#vpunpckldq--vex-128-encoded-instruction-">¶</a></h3>
+		<pre>DEST[127:0] := INTERLEAVE_DWORDS(SRC1, SRC2)
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vpunpckldq--vex-256-encoded-instruction-">VPUNPCKLDQ（VEX.256 编码指令）<a class="anchor" href="#vpunpckldq--vex-256-encoded-instruction-">¶</a></h3>
+		<pre>DEST[255:0] := INTERLEAVE_DWORDS_256b(SRC1, SRC2)
+DEST[MAXVL-1:256] := 0
+</pre>
+		<h3 id="vpunpckldq--evex-encoded-instructions-">VPUNPCKLDQ（EVEX 编码指令）<a class="anchor" href="#vpunpckldq--evex-encoded-instructions-">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j := 0 TO KL-1
+    i := j * 32
+    IF (EVEX.b = 1) AND (SRC2 *is memory*)
+        THEN TMP_SRC2[i+31:i] := SRC2[31:0]
+        ELSE TMP_SRC2[i+31:i] := SRC2[i+31:i]
+    FI;
+ENDFOR;
+IF VL = 128
+    TMP_DEST[VL-1:0] := INTERLEAVE_DWORDS(SRC1[VL-1:0], TMP_SRC2[VL-1:0])
+FI;
+IF VL = 256
+    TMP_DEST[VL-1:0] := INTERLEAVE_DWORDS_256b(SRC1[VL-1:0], TMP_SRC2[VL-1:0])
+FI;
+IF VL = 512
+    TMP_DEST[VL-1:0] := INTERLEAVE_DWORDS_512b(SRC1[VL-1:0], TMP_SRC2[VL-1:0])
+FI;
+FOR j := 0 TO KL-1
+    i := j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i] := TMP_DEST[i+31:i]
+        ELSE
+            IF *merging-masking*
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE *zeroing-masking* ; zeroing-masking
+                    DEST[i+31:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST511:0] := INTERLEAVE_DWORDS_512b(SRC1, SRC2)
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="punpcklqdq">PUNPCKLQDQ<a class="anchor" href="#punpcklqdq">¶</a></h3>
+		<pre>DEST[127:0] := INTERLEAVE_QWORDS(DEST, SRC)
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+		<h3 id="vpunpcklqdq--vex-128-encoded-instruction-">VPUNPCKLQDQ（VEX.128 编码指令）<a class="anchor" href="#vpunpcklqdq--vex-128-encoded-instruction-">¶</a></h3>
+		<pre>DEST[127:0] := INTERLEAVE_QWORDS(SRC1, SRC2)
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vpunpcklqdq--vex-256-encoded-instruction-">VPUNPCKLQDQ（VEX.256 编码指令）<a class="anchor" href="#vpunpcklqdq--vex-256-encoded-instruction-">¶</a></h3>
+		<pre>DEST[255:0] := INTERLEAVE_QWORDS_256b(SRC1, SRC2)
+DEST[MAXVL-1:256] := 0
+</pre>
+		<h3 id="vpunpcklqdq--evex-encoded-instructions-">VPUNPCKLQDQ（EVEX 编码指令）<a class="anchor" href="#vpunpcklqdq--evex-encoded-instructions-">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF (EVEX.b = 1) AND (SRC2 *is memory*)
+        THEN TMP_SRC2[i+63:i] := SRC2[63:0]
+        ELSE TMP_SRC2[i+63:i] := SRC2[i+63:i]
+    FI;
+ENDFOR;
+IF VL = 128
+    TMP_DEST[VL-1:0] := INTERLEAVE_QWORDS(SRC1[VL-1:0], TMP_SRC2[VL-1:0])
+FI;
+IF VL = 256
+    TMP_DEST[VL-1:0] := INTERLEAVE_QWORDS_256b(SRC1[VL-1:0], TMP_SRC2[VL-1:0])
+FI;
+IF VL = 512
+    TMP_DEST[VL-1:0] := INTERLEAVE_QWORDS_512b(SRC1[VL-1:0], TMP_SRC2[VL-1:0])
+FI;
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i] := TMP_DEST[i+63:i]
+        ELSE
+            IF *merging-masking*
+                        ; merging-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing-masking*
+                            ; zeroing-masking
+                    DEST[i+63:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalents">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalents">¶</a></h2>
+		<pre>VPUNPCKLBW __m512i _mm512_unpacklo_epi8(__m512i a, __m512i b);</pre>
+		<pre>VPUNPCKLBW __m512i _mm512_mask_unpacklo_epi8(__m512i s, __mmask64 k, __m512i a, __m512i b);</pre>
+		<pre>VPUNPCKLBW __m512i _mm512_maskz_unpacklo_epi8( __mmask64 k, __m512i a, __m512i b);</pre>
+		<pre>VPUNPCKLBW __m256i _mm256_mask_unpacklo_epi8(__m256i s, __mmask32 k, __m256i a, __m256i b);</pre>
+		<pre>VPUNPCKLBW __m256i _mm256_maskz_unpacklo_epi8( __mmask32 k, __m256i a, __m256i b);</pre>
+		<pre>VPUNPCKLBW __m128i _mm_mask_unpacklo_epi8(v s, __mmask16 k, __m128i a, __m128i b);</pre>
+		<pre>VPUNPCKLBW __m128i _mm_maskz_unpacklo_epi8( __mmask16 k, __m128i a, __m128i b);</pre>
+		<pre>VPUNPCKLWD __m512i _mm512_unpacklo_epi16(__m512i a, __m512i b);</pre>
+		<pre>VPUNPCKLWD __m512i _mm512_mask_unpacklo_epi16(__m512i s, __mmask32 k, __m512i a, __m512i b);</pre>
+		<pre>VPUNPCKLWD __m512i _mm512_maskz_unpacklo_epi16( __mmask32 k, __m512i a, __m512i b);</pre>
+		<pre>VPUNPCKLWD __m256i _mm256_mask_unpacklo_epi16(__m256i s, __mmask16 k, __m256i a, __m256i b);</pre>
+		<pre>VPUNPCKLWD __m256i _mm256_maskz_unpacklo_epi16( __mmask16 k, __m256i a, __m256i b);</pre>
+		<pre>VPUNPCKLWD __m128i _mm_mask_unpacklo_epi16(v s, __mmask8 k, __m128i a, __m128i b);</pre>
+		<pre>VPUNPCKLWD __m128i _mm_maskz_unpacklo_epi16( __mmask8 k, __m128i a, __m128i b);</pre>
+		<pre>VPUNPCKLDQ __m512i _mm512_unpacklo_epi32(__m512i a, __m512i b);</pre>
+		<pre>VPUNPCKLDQ __m512i _mm512_mask_unpacklo_epi32(__m512i s, __mmask16 k, __m512i a, __m512i b);</pre>
+		<pre>VPUNPCKLDQ __m512i _mm512_maskz_unpacklo_epi32( __mmask16 k, __m512i a, __m512i b);</pre>
+		<pre>VPUNPCKLDQ __m256i _mm256_mask_unpacklo_epi32(__m256i s, __mmask8 k, __m256i a, __m256i b);</pre>
+		<pre>VPUNPCKLDQ __m256i _mm256_maskz_unpacklo_epi32( __mmask8 k, __m512i a, __m512i b);</pre>
+		<pre>VPUNPCKLDQ __m128i _mm_mask_unpacklo_epi32(v s, __mmask8 k, __m128i a, __m128i b);</pre>
+		<pre>VPUNPCKLDQ __m128i _mm_maskz_unpacklo_epi32( __mmask8 k, __m128i a, __m128i b);</pre>
+		<pre>VPUNPCKLQDQ __m512i _mm512_unpacklo_epi64(__m512i a, __m512i b);</pre>
+		<pre>VPUNPCKLQDQ __m512i _mm512_mask_unpacklo_epi64(__m512i s, __mmask8 k, __m512i a, __m512i b);</pre>
+		<pre>VPUNPCKLQDQ __m512i _mm512_maskz_unpacklo_epi64( __mmask8 k, __m512i a, __m512i b);</pre>
+		<pre>VPUNPCKLQDQ __m256i _mm256_mask_unpacklo_epi64(__m256i s, __mmask8 k, __m256i a, __m256i b);</pre>
+		<pre>VPUNPCKLQDQ __m256i _mm256_maskz_unpacklo_epi64( __mmask8 k, __m512i a, __m512i b);</pre>
+		<pre>VPUNPCKLQDQ __m128i _mm_mask_unpacklo_epi64(__m128i s, __mmask8 k, __m128i a, __m128i b);</pre>
+		<pre>VPUNPCKLQDQ __m128i _mm_maskz_unpacklo_epi64( __mmask8 k, __m128i a, __m128i b);</pre>
+		<pre>PUNPCKLBW __m64 _mm_unpacklo_pi8 (__m64 m1, __m64 m2)</pre>
+		<pre>(V)PUNPCKLBW __m128i _mm_unpacklo_epi8 (__m128i m1, __m128i m2)</pre>
+		<pre>VPUNPCKLBW __m256i _mm256_unpacklo_epi8 (__m256i m1, __m256i m2)</pre>
+		<pre>PUNPCKLWD __m64 _mm_unpacklo_pi16 (__m64 m1, __m64 m2)</pre>
+		<pre>(V)PUNPCKLWD __m128i _mm_unpacklo_epi16 (__m128i m1, __m128i m2)</pre>
+		<pre>VPUNPCKLWD __m256i _mm256_unpacklo_epi16 (__m256i m1, __m256i m2)</pre>
+		<pre>PUNPCKLDQ __m64 _mm_unpacklo_pi32 (__m64 m1, __m64 m2)</pre>
+		<pre>(V)PUNPCKLDQ __m128i _mm_unpacklo_epi32 (__m128i m1, __m128i m2)</pre>
+		<pre>VPUNPCKLDQ __m256i _mm256_unpacklo_epi32 (__m256i m1, __m256i m2)</pre>
+		<pre>(V)PUNPCKLQDQ __m128i _mm_unpacklo_epi64 (__m128i m1, __m128i m2)</pre>
+		<pre>VPUNPCKLQDQ __m256i _mm256_unpacklo_epi64 (__m256i m1, __m256i m2)</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="numeric-exceptions">数值异常<a class="anchor" href="#numeric-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>非 EVEX 编码指令，请参阅表 2-21，“第 4 类异常条件”。</p>
+		<p>EVEX 编码的 VPUNPCKLDQ/QDQ，请参阅表 2-50，“第 E4NF 类异常条件”。</p>
+		<p>EVEX 编码的 VPUNPCKLBW/WD，请参阅表 2-50，“第 E4NF 类异常条件”中的异常类型 E4NF.nb。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>PEXTRB/PEXTRD/PEXTRQ — 提取字节/双字/四字</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>PEXTRB/PEXTRD/PEXTRQ — 提取字节/双字/四字</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>66 0F 3A 14 /r ib PEXTRB reg/m8, xmm2, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE4_1</td>
+				<td>根据 imm8 指定的源字节偏移量，从 xmm2 中提取一个字节整数值到 reg 或 m8 中。r32 或 r64 的高位清零。</td>
+			</tr>
+			<tr>
+				<td>66 0F 3A 16 /r ib PEXTRD r/m32, xmm2, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE4_1</td>
+				<td>根据 imm8 指定的源双字偏移量，从 xmm2 中提取一个双字整数值到 r/m32 中。</td>
+			</tr>
+			<tr>
+				<td>66 REX.W 0F 3A 16 /r ib PEXTRQ r/m64, xmm2, imm8</td>
+				<td>A</td>
+				<td>V/N.E.</td>
+				<td>SSE4_1</td>
+				<td>根据 imm8 指定的源四字偏移量，从 xmm2 中提取一个四字整数值到 r/m64 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F3A.W0 14 /r ib VPEXTRB reg/m8, xmm2, imm8</td>
+				<td>A</td>
+				<td>V<sup>1</sup>/V</td>
+				<td>AVX</td>
+				<td>根据 imm8 指定的源字节偏移量，从 xmm2 中提取一个字节整数值到 reg 或 m8 中。r64/r32 的高位填充零。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F3A.W0 16 /r ib VPEXTRD r32/m32, xmm2, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>根据 imm8 指定的源双字偏移量，从 xmm2 中提取一个双字整数值到 r32/m32 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F3A.W1 16 /r ib VPEXTRQ r64/m64, xmm2, imm8</td>
+				<td>A</td>
+				<td>V/I<sup>2</sup></td>
+				<td>AVX</td>
+				<td>根据 imm8 指定的源双字偏移量，从 xmm2 中提取一个四字整数值到 r64/m64 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F3A.WIG 14 /r ib VPEXTRB reg/m8, xmm2, imm8</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512BW</td>
+				<td>根据 imm8 指定的源字节偏移量，从 xmm2 中提取一个字节整数值到 reg 或 m8 中。r64/r32 的高位填充零。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F3A.W0 16 /r ib VPEXTRD r32/m32, xmm2, imm8</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512DQ</td>
+				<td>根据 imm8 指定的源双字偏移量，从 xmm2 中提取一个双字整数值到 r32/m32 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F3A.W1 16 /r ib VPEXTRQ r64/m64, xmm2, imm8</td>
+				<td>B</td>
+				<td>V/N.E.<sup>2</sup></td>
+				<td>AVX512DQ</td>
+				<td>根据 imm8 指定的源双字偏移量，从 xmm2 中提取一个四字整数值到 r64/m64 中。</td>
+			</tr>
+		</table>
+		<blockquote>
+			<p>1. 在 64 位模式下，VPEXTRB 忽略 VEX.W1（类似于 PEXTRB 中的传统 REX.W=1 前缀）。</p>
+			<p>2. 在非 64 位模式下，VEX.W/EVEX.W 被忽略；指令的行为如同使用 W0 版本。</p>
+		</blockquote>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:r/m (w)</td>
+				<td>ModRM:reg (r)</td>
+				<td>imm8</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>Tuple1 Scalar</td>
+				<td>ModRM:r/m (w)</td>
+				<td>ModRM:reg (r)</td>
+				<td>imm8</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>根据从 imm8[3:0] 确定的字节/双字/四字偏移量，从源 XMM 寄存器中提取一个字节/双字/四字整数值。目的操作数可以是寄存器或字节/双字/四字内存位置。如果目的操作数是寄存器，则寄存器的高位被零扩展。</p>
+		<p>在传统的非 VEX 编码版本中，如果目的操作数是寄存器，则 PEXTRB/PEXTRD 在 64 位模式下的默认操作数大小为 64 位，最低有效字节/双字数据之上的位被填充为零。PEXTRQ 在非 64 位模式下不可编码，且在 64 位模式下需要 REX.W。</p>
+		<p>注意：在 VEX.128 编码版本中，VEX.vvvv 是保留的且必须为 1111b，VEX.L 必须为 0，否则指令将导致 #UD。在 EVEX.128 编码版本中，EVEX.vvvv 是保留的且必须为 1111b，EVEX.L'L 必须为 0，否则指令将导致 #UD。如果目的操作数是寄存器，则 VPEXTRB/VPEXTRD 在 64 位模式下的默认操作数大小为 64 位，最低有效字节/字/双字数据之上的位被填充为零。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>CASE of
+    PEXTRB: SEL := COUNT[3:0];
+        TEMP := (Src &gt;&gt; SEL*8) AND FFH;
+        IF (DEST = Mem8)
+            THEN
+            Mem8 := TEMP[7:0];
+        ELSE IF (64-Bit Mode and 64-bit register selected)
+            THEN
+                R64[7:0] := TEMP[7:0];
+                r64[63:8] := ZERO_FILL; };
+        ELSE
+                R32[7:0] := TEMP[7:0];
+                r32[31:8] := ZERO_FILL; };
+        FI;
+    PEXTRD:SEL := COUNT[1:0];
+        TEMP := (Src &gt;&gt; SEL*32) AND FFFF_FFFFH;
+        DEST := TEMP;
+    PEXTRQ: SEL := COUNT[0];
+        TEMP := (Src &gt;&gt; SEL*64);
+        DEST := TEMP;
+EASC:
+</pre>
+		<h3 id="vpextrtd-vpextrq">VPEXTRD/VPEXTRQ<a class="anchor" href="#vpextrtd-vpextrq">¶</a></h3>
+		<pre>IF (64-Bit Mode and 64-bit dest operand)
+THEN
+    Src_Offset := imm8[0]
+    r64/m64 := (Src &gt;&gt; Src_Offset * 64)
+ELSE
+    Src_Offset := imm8[1:0]
+    r32/m32 := ((Src &gt;&gt; Src_Offset *32) AND 0FFFFFFFFh);
+FI
+</pre>
+		<h3 id="vpextrb---dest=m8-">VPEXTRB（dest=m8）<a class="anchor" href="#vpextrb---dest=m8-">¶</a></h3>
+		<pre>SRC_Offset := imm8[3:0]
+Mem8 := (Src &gt;&gt; Src_Offset*8)
+</pre>
+		<h3 id="vpextrb---dest=reg-">VPEXTRB（dest=reg）<a class="anchor" href="#vpextrb---dest=reg-">¶</a></h3>
+		<pre>IF (64-Bit Mode )
+THEN
+    SRC_Offset := imm8[3:0]
+    DEST[7:0] := ((Src &gt;&gt; Src_Offset*8) AND 0FFh)
+    DEST[63:8] := ZERO_FILL;
+ELSE
+    SRC_Offset := imm8[3:0];
+    DEST[7:0] := ((Src &gt;&gt; Src_Offset*8) AND 0FFh);
+    DEST[31:8] := ZERO_FILL;
+FI
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>PEXTRB int _mm_extract_epi8 (__m128i src, const int ndx);</pre>
+		<pre>PEXTRD int _mm_extract_epi32 (__m128i src, const int ndx);</pre>
+		<pre>PEXTRQ __int64 _mm_extract_epi64 (__m128i src, const int ndx);</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>非 EVEX 编码指令，请参阅表 2-22，“第 5 类异常条件”。</p>
+		<p>EVEX 编码指令，请参阅表 2-57，“第 E9NF 类异常条件”。</p>
+		<p>此外：</p>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 VEX.L = 1 或 EVEX.L'L &gt; 0。</td>
+			</tr>
+			<tr>
+				<td>如果 VEX.vvvv != 1111B 或 EVEX.vvvv != 1111B。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

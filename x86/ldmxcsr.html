@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>LDMXCSR — 加载 MXCSR 寄存器</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>LDMXCSR — 加载 MXCSR 寄存器</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64/32位模式</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>NP 0F AE /2 LDMXCSR m32</td>
+			<td>M</td>
+			<td>有效/有效</td>
+			<td>SSE</td>
+			<td>从 m32 加载 MXCSR 寄存器。</td>
+		</tr>
+		<tr>
+			<td>VEX.LZ.0F.WIG AE /2 VLDMXCSR m32</td>
+			<td>M</td>
+			<td>有效/有效</td>
+			<td>AVX</td>
+			<td>从 m32 加载 MXCSR 寄存器。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>M</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将源操作数加载到 MXCSR 控制/状态寄存器中。源操作数是一个 32 位内存位置。有关 MXCSR 寄存器及其内容的描述，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷第 10 章中的“MXCSR 控制和状态寄存器”。</p>
+	<p>LDMXCSR 指令通常与 (V)STMXCSR 指令结合使用，后者将 MXCSR 寄存器的内容存储在内存中。</p>
+	<p>复位时默认的 MXCSR 值为 1F80H。</p>
+	<p>如果 (V)LDMXCSR 指令清除了一个 SIMD 浮点异常掩码位并设置了相应的异常标志位，则不会立即产生 SIMD 浮点异常。仅当执行满足以下两个条件的下一条指令时，才会产生该异常：</p>
+	<ul>
+		<li>指令必须操作 XMM 或 YMM 寄存器操作数，</li>
+		<li>指令导致报告该特定的 SIMD 浮点异常。</li>
+	</ul>
+	<p>此指令在非 64 位模式和 64 位模式下的操作相同。</p>
+	<p>如果 VLDMXCSR 用 VEX.L= 1 编码，尝试执行用 VEX.L= 1 编码 of 指令将导致 #UD 异常。</p>
+	<p>注意：在 VEX 编码版本中，VEX.vvvv 是保留的，必须为 1111b，否则指令将产生 #UD 异常。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>MXCSR := m32;
+</pre>
+
+	<h2 id="c-c++-compiler-intrinsic-equivalent">C/C++ 编译器等价内部函数<a class="anchor" href="#c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>_mm_setcsr(unsigned int i)
+</pre>
+
+	<h2 class="exceptions" id="numeric-exceptions">数值异常<a class="anchor" href="#numeric-exceptions">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+	<p>参见表 2-22，“Type 5 类异常条件”，此外：</p>
+	<table>
+		<tr>
+			<td>#GP</td>
+			<td>尝试设置 MXCSR 中的保留位。</td>
+		</tr>
+		<tr>
+			<td>#UD</td>
+			<td>如果 VEX.vvvv ≠ 1111B。</td>
+		</tr>
+	</table>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

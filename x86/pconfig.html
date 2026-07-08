@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>PCONFIG — 平台配置</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>PCONFIG — 平台配置</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F 01 C5 PCONFIG</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>PCONFIG</td>
+				<td>此指令用于执行配置平台特征的功能。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>PCONFIG 指令允许软件配置某些平台特征。它通过多个叶函数支持这些特征，使用 EAX 中的值选择叶函数。</p>
+		<p>根据叶函数的不同，寄存器 RBX、RCX 和 RDX 可用于提供输入信息，或者用于该指令报告输出信息。在 64 位模式之外，地址和操作数为 32 位，在 64 位模式下为 64 位。CS.D 的值不影响操作数大小或地址大小。</p>
+		<p>PCONFIG 的执行可能会因特定于平台的原因而失败。执行失败会设置 ZF 标志并在 EAX 中加载非零失败原因；成功执行会清除 ZF 和 EAX。</p>
+		<p>每个 PCONFIG 叶函数应用于称为 PCONFIG 目标的特定硬件块。仅当处理器支持该目标时，才支持该叶函数。每个目标都与一个数字目标标识符相关联，CPUID 叶 1BH（PCONFIG 信息）枚举了受支持目标的标识符。尝试执行未定义的叶函数，或者应用于不受支持的目标标识符的叶函数，将导致通用保护异常 (#GP)。</p>
+
+		<h2 id="leaf-function-mktme_key_program">叶函数 MKTME_KEY_PROGRAM<a class="anchor" href="#leaf-function-mktme_key_program">¶</a></h2>
+		<p>截至本文撰写时，唯一被定义的 PCONFIG 叶函数用于全内存加密-多密钥 (TME-MK) 的密钥编程。<sup>1</sup> 此叶函数被称为 MKTME_KEY_PROGRAM，它与 TME-MK 目标相关（目标标识符为 1）。通过将值 0 加载到 EAX 中来选择该叶函数。MKTME_KEY_PROGRAM 叶函数使用 EBX（或 RBX）寄存器提供额外的输入信息。</p>
+		<p>软件使用 MKTME_KEY_PROGRAM 叶函数来管理与特定密钥标识符 (KeyID) 相关联的加密密钥。该叶函数使用一个称为 TME-MK 密钥编程结构 (MKTME_KEY_PROGRAM_STRUCT) 的数据结构。软件在 EBX（或 RBX）中提供该结构的地址（作为 DS 段中的偏移量）。该结构的格式如表 4-15 所示。</p>
+		<figure id="tbl-4-15">
+			<table>
+				<tr>
+					<th>字段</th>
+					<th>偏移量 (字节)</th>
+					<th>大小 (字节)</th>
+					<th>注释</th>
+				</tr>
+				<tr>
+					<td>KEYID</td>
+					<td>0</td>
+					<td>2</td>
+					<td>密钥标识符。</td>
+				</tr>
+				<tr>
+					<td>KEYID_CTRL</td>
+					<td>2</td>
+					<td>4</td>
+					<td>KeyID 控制：• Bits 7:0: 密钥编程命令 (COMMAND) • Bits 23:8: 加密算法 (ENC_ALG) • Bits 31:24: 保留，必须为零 (RSVD)</td>
+				</tr>
+				<tr>
+					<td>Ignored</td>
+					<td>6</td>
+					<td>58</td>
+					<td>未使用。</td>
+				</tr>
+				<tr>
+					<td>KEY_FIELD_1</td>
+					<td>64</td>
+					<td>64</td>
+					<td>软件提供的数据密钥或数据密钥的熵。</td>
+				</tr>
+				<tr>
+					<td>KEY_FIELD_2</td>
+					<td>128</td>
+					<td>64</td>
+					<td>软件提供的微调密钥或微调密钥的熵。</td>
+				</tr>
+			</table>
+			<figcaption><a href='pconfig.html#tbl-4-15'>表 4-15</a>. MKTME_KEY_PROGRAM_STRUCT 格式</figcaption>
+		</figure>
+		<blockquote>
+			<p>1. 有关 TME-MK 的更多详细信息，请访问此处：<a href="https://software.intel.com/sites/default/files/managed/a5/16/Multi-Key-Total-Memory-Encryption-Spec.pdf">https://software.intel.com/sites/default/files/managed/a5/16/Multi-Key-Total-Memory-Encryption-Spec.pdf</a></p>
+		</blockquote>
+		<p>下面提供了 MKTME_KEY_PROGRAM_STRUCT 中每个字段的说明：</p>
+		<ul>
+			<li><strong>KEYID: </strong>正在被编程到 MKTME 引擎的密钥标识符 (KeyID)。如果 KeyID 为零，PCONFIG 将导致通用保护异常 (#GP)。KeyID 零始终使用为 TME（全内存加密）配置的当前行为，即使用平台 TME 密钥进行加密或绕过 TME 加密。如果 KeyID 超过在 IA32_TME_CAPABILITY.MK_TME_MAX_KEYS[bits 50:36] 中枚举的最大值，或通过 IA32_TME_ACTIVATE.MK_TME_KEYID_BITS[bits 35:32] 设置配置的最大值，PCONFIG 也会导致 #GP。</li>
+			<li><strong>KEYID_CTRL: </strong>KEYID_CTRL 字段包含两个子字段，软件用其来控制为所选 KeyID 执行的加密：
+				<ul>
+					<li>密钥编程命令 (COMMAND; bits 7:0)。该 8 位字段应包含以下值之一：</li>
+				</ul>
+				<ul>
+					<li>KEYID_SET_KEY_DIRECT (值 0)。使用此命令，软件可以直接编程用于所选 KeyID 的加密密钥。</li>
+					<li>KEYID_SET_KEY_RANDOM (值 1)。使用此命令，软件使 CPU 使用硬件随机数生成器生成并分配用于所选 KeyID 的加密密钥。</li>
+				</ul>
+			</li>
+		</ul>
+		<p>如果使用此命令且随机数生成器的熵不足，PCONFIG 将失败，并通过将值 2 (ENTROPY_ERROR) 加载到 EAX 中来报告失败。</p>
+		<p>因为 PCONFIG 编程的密钥在复位时会被丢弃，且软件无法读取已编程的密钥，所以用此命令编程的密钥是短暂的（ephemeral）。</p>
+		<ul>
+			<li>KEYID_CLEAR_KEY (值 2)。使用此命令，软件指示所选 KeyID 应使用为 TME 配置的当前行为（见上文）。</li>
+			<li>KEYID_NO_ENCRYPT (值 3)。使用此命令，软件指示所选 KeyID 不应使用加密。</li>
+		</ul>
+		<p>如果使用任何其他值，PCONFIG 将导致 #GP。</p>
+		<p>— 加密算法 (ENC_ALG, bits 23:8)。IA32_TME_ACTIVATE MSR（MSR 索引 982H）的 bits 63:48 指示平台支持哪些加密算法。16 位 ENC_ALG 字段应指定 IA32_TME_ACTIVATE 中指示的算法之一。如果 ENC_ALG 没有刚好设置一位，或者如果它设置的位在 IA32_TME_ACTIVATE[63:48] 中未被置位，PCONFIG 将导致 #GP。</p>
+		<ul>
+			<li><strong>KEY_FIELD_1: </strong>此字段的使用取决于所选的密钥编程命令：
+				<ul>
+					<li>如果使用直接密钥编程命令 (KEYID_SET_KEY_DIRECT)，则此字段包含软件提供的数据密钥，供该 KeyID 使用。</li>
+					<li>如果使用随机密钥编程命令 (KEYID_SET_KEY_RANDOM)，则此字段包含软件提供的熵，用于混入 CPU 生成的随机数据密钥中。</li>
+					<li>使用其他密钥编程命令之一时，将忽略此字段。</li>
+				</ul>
+			</li>
+		</ul>
+		<p>软件有责任确保为直接密钥编程选项提供的密钥或为随机密钥编程选项提供的熵不会导致弱密钥。指令中没有显式检查来检测或防止弱密钥。</p>
+		<ul>
+			<li><strong>KEY_FIELD_2: </strong>此字段的使用取决于所选的密钥编程命令：
+				<ul>
+					<li>如果使用直接密钥编程命令 (KEYID_SET_KEY_DIRECT)，则此字段包含软件提供的微调 (tweak) 密钥，供该 KeyID 使用。</li>
+					<li>如果使用随机密钥编程命令 (KEYID_SET_KEY_RANDOM)，则此字段包含软件提供的熵，用于混入 CPU 生成的随机微调密钥中。</li>
+					<li>使用其他密钥编程命令之一时，将忽略此字段。</li>
+				</ul>
+			</li>
+		</ul>
+		<p>软件有责任确保为直接密钥编程选项提供的密钥或为随机密钥编程选项提供的熵不会导致弱密钥。指令中没有显式检查来检测或防止弱密钥。</p>
+		<p>在激活 TME-MK 时，所有 KeyID 均默认为 TME 行为（使用 TME 密钥加密或绕过加密）。软件可以随时决定使用 PCONFIG 指令的 MKTME_KEY_PROGRAM 叶函数来更改 KeyID 的密钥。更改 KeyID 的密钥<strong>不会</strong>改变 TLB 缓存或内存流水线的状态。软件负责采取适当的操作来确保正确的行为。</p>
+		<p>TME-MK 使用的密钥表由平台中的所有逻辑处理器共享。出于这个原因，执行 MKTME_KEY_PROGRAM 叶函数必须在更新之前获得对密钥表的独占访问权。叶函数通过获取锁（在平台中实现）并在执行完成之前保留该锁来做到这一点。如果锁已被使用，叶函数的执行可能无法获取该锁。在这种情况下，叶函数会将失败原因 5 (DEVICE_BUSY) 加载到 EAX 中，指示软件必须重试。发生这种情况时，密钥表不会更新，软件应重试执行 PCONFIG。</p>
+		<blockquote>
+			<p>本手册的较早版本指定 MKTME_KEY_PROGRAM_STRUCT 的字节 63:6 是保留的，如果它们不全为零，PCONFIG 将导致 #GP。情况并非如此。如表 4-15 所示，PCONFIG 忽略这些字节。</p>
+			<p>它们还指定如果每个 64 字节密钥字段的高 48 字节不全为 0，PCONFIG 将导致 #GP。情况并非如此。对于这些字段中的每一个，PCONFIG 使用所选加密算法所需的字节数（例如，AES-XTS 256 为 32 字节）并忽略高字节。</p>
+			<p>它们还指定如果结构指定了不正确的 KeyID、不受支持的密钥编程命令或加密算法的不正确选择，PCONFIG 将完成并在 EAX 中报告失败原因。情况并非如此。如上所述（以及操作部分中），这些条件会导致 #GP。</p>
+		</blockquote>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>(* #UD if PCONFIG is not enumerated or CPL &gt; 0 *)
+IF CPUID.7.0:EDX[18] = 0 OR CPL &gt; 0
+    THEN #UD; FI;
+(* #GP(0) for an unsupported leaf function *)
+IF EAX != 0
+    THEN #GP(0); FI;
+CASE (EAX) (* operation based on selected leaf function *)
+    0 (MKTME_KEY_PROGRAM):
+    (* Confirm that TME-MK is properly enabled by the IA32_TME_ACTIVATE MSR *)
+    (* The MSR must be locked, encryption enabled, and a non-zero number of KeyID bits specified *)
+    IF IA32_TME_ACTIVATE[0] = 0 OR IA32_TME_ACTIVATE[1] = 0 OR IA32_TME_ACTIVATE[35:32] = 0
+            THEN #GP(0); FI;
+    IF DS:RBX is not 256-byte aligned
+        THEN #GP(0); FI;
+    Load TMP_KEY_PROGRAM_STRUCT from 192 bytes at linear address DS:RBX;
+    IF TMP_KEY_PROGRAM_STRUCT.KEYID_CTRL sets any reserved bits
+        THEN #GP(0); FI;
+    (* Check for a valid command *)
+    IF TMP_KEY_PROGRAM_STRUCT. KEYID_CTRL.COMMAND &gt; 3
+        THEN #GP(0); FI;
+    (* Check that the KEYID being operated upon is a valid KEYID *)
+    IF TMP_KEY_PROGRAM_STRUCT.KEYID = 0 OR
+        TMP_KEY_PROGRAM_STRUCT.KEYID &gt; 2^IA32_TME_ACTIVATE.MK_TME_KEYID_BITS – 1 OR
+        TMP_KEY_PROGRAM_STRUCT.KEYID &gt; IA32_TME_CAPABILITY.MK_TME_MAX_KEYS
+            THEN #GP(0); FI;
+    (* Check that only one encryption algorithm is requested for the KeyID and it is one of the activated algorithms *)
+    IF TMP_KEY_PROGRAM_STRUCT.KEYID_CTRL.ENC_ALG does not set exactly one bit OR
+        (TMP_KEY_PROGRAM_STRUCT.KEYID_CTRL.ENC_ALG &amp; IA32_TME_ACTIVATE[63:48]) = 0
+            THEN #GP(0); FI:
+    Attempt to acquire lock to gain exclusive access to platform key table;
+    IF attempt is unsuccessful
+        THEN (* PCONFIG failure *)
+            RFLAGS.ZF := 1;
+            RAX := DEVICE_BUSY;
+                    (* failure reason 5 *)
+            GOTO EXIT;
+    FI;
+    CASE (TMP_KEY_PROGRAM_STRUCT.KEYID_CTRL.COMMAND) OF
+        0 (KEYID_SET_KEY_DIRECT):
+        Update TME-MK table for TMP_KEY_PROGRAM_STRUCT.KEYID as follows:
+            Encrypt with the selected key
+            Use the encryption algorithm selected by TMP_KEY_PROGRAM_STRUCT.KEYID_CTRL.ENC_ALG
+            (* The number of bytes used by the next two lines depends on selected encryption algorithm *)
+            DATA_KEY is TMP_KEY_PROGRAM_STRUCT.KEY_FIELD_1
+            TWEAK_KEY is TMP_KEY_PROGRAM_STRUCT.KEY_FIELD_2
+        BREAK;
+        1 (KEYID_SET_KEY_RANDOM):
+        Load TMP_RND_DATA_KEY with a random key using hardware RNG; (* key size depends on selected encryption algorithm *)
+        IF there was insufficient entropy
+            THEN (* PCONFIG failure *)
+                RFLAGS.ZF := 1;
+                RAX := ENTROPY_ERROR; (* failure reason 2 *)
+                Release lock on platform key table;
+                GOTO EXIT;
+        FI;
+        Load TMP_RND_TWEAK_KEY with a random key using hardware RNG; (* key size depends on selected encryption algorithm *)
+        IF there was insufficient entropy
+            THEN (* PCONFIG failure *)
+                RFLAGS.ZF := 1;
+                RAX := ENTROPY_ERROR; (* failure reason 2 *)
+                Release lock on platform key table;
+                GOTO EXIT;
+        FI;
+        (* Combine software-supplied entropy to the data key and tweak key *)
+        (* The number of bytes used by the next two lines depends on selected encryption algorithm *)
+        TMP_RND_DATA_KEY := TMP_RND_KEY XOR TMP_KEY_PROGRAM_STRUCT.KEY_FIELD_1;
+        TMP_RND_TWEAK_KEY := TMP_RND_TWEAK_KEY XOR TMP_KEY_PROGRAM_STRUCT.KEY_FIELD_2;
+        Update TME-MK table for TMP_KEY_PROGRAM_STRUCT.KEYID as follows:
+            Encrypt with the selected key
+            Use the encryption algorithm selected by TMP_KEY_PROGRAM_STRUCT.KEYID_CTRL.ENC_ALG
+            (* The number of bytes used by the next two lines depends on selected encryption algorithm *)
+            DATA_KEY is TMP_RND_DATA_KEY
+            TWEAK_KEY is TMP_RND_TWEAK_KEY
+        BREAK;
+        2 (KEYID_CLEAR_KEY):
+        Update TME-MK table for TMP_KEY_PROGRAM_STRUCT.KEYID as follows:
+            Encrypt (or not) using the current configuration for TME
+            The specified encryption algorithm and key values are not used.
+        BREAK;
+        3 (KEYID_NO_ENCRYPT):
+        Update TME-MK table for TMP_KEY_PROGRAM_STRUCT.KEYID as follows:
+            Do not encrypt
+            The specified encryption algorithm and key values are not used.
+        BREAK;
+    ESAC;
+    Release lock on platform key table;
+ESAC;
+RAX := 0;
+RFLAGS.ZF := 0;
+EXIT:
+RFLAGS.CF := 0;
+RFLAGS.PF := 0;
+RFLAGS.AF := 0;
+RFLAGS.OF := 0;
+RFLAGS.SF := 0;
+</pre>
+
+		<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="7">#GP(0)</td>
+				<td>如果 EAX 中的输入值编码了不受支持的叶函数。</td>
+			</tr>
+			<tr>
+				<td>如果内存操作数有效地址超出相关段限制。</td>
+			</tr>
+			<tr>
+				<td>MKTME_KEY_PROGRAM 叶函数：</td>
+			</tr>
+			<tr>
+				<td>如果 IA32_TME_ACTIVATE MSR 未锁定。</td>
+			</tr>
+			<tr>
+				<td>如果 IA32_TME_ACTIVATE MSR 中未启用硬件加密和 TME-MK 功能。</td>
+			</tr>
+			<tr>
+				<td>如果内存操作数没有 256 字节对齐。</td>
+			</tr>
+			<tr>
+				<td>如果 MKTME_KEY_PROGRAM_STRUCT 的 KEYID_CTRL 字段中的任何保留位被置位，或者该字段指示了不受支持的 KeyID、密钥编程命令或加密算法。</td>
+			</tr>
+			<tr>
+				<td>#PF(fault-code)</td>
+				<td>如果访问内存操作数时发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td rowspan="3">#UD</td>
+				<td>如果使用了任何 LOCK/REP/操作数大小/VEX 前缀。</td>
+			</tr>
+			<tr>
+				<td>如果当前特权级别不为 0。</td>
+			</tr>
+			<tr>
+				<td>如果 CPUID.7.0:EDX[位 18] = 0</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="6">#GP</td>
+				<td>如果 EAX 中的输入值编码了不受支持的叶函数。</td>
+			</tr>
+			<tr>
+				<td>MKTME_KEY_PROGRAM 叶函数：</td>
+			</tr>
+			<tr>
+				<td>如果 IA32_TME_ACTIVATE MSR 未锁定。</td>
+			</tr>
+			<tr>
+				<td>如果 IA32_TME_ACTIVATE MSR 中未启用硬件加密和 TME-MK 功能。</td>
+			</tr>
+			<tr>
+				<td>如果内存操作数没有 256 字节对齐。</td>
+			</tr>
+			<tr>
+				<td>如果 MKTME_KEY_PROGRAM_STRUCT 的 KEYID_CTRL 字段中的任何保留位被置位，或者该字段指示了不受支持的 KeyID、密钥编程命令或加密算法。</td>
+			</tr>
+			<tr>
+				<td rowspan="3">#UD</td>
+				<td>如果使用了任何 LOCK/REP/操作数大小/VEX 前缀。</td>
+			</tr>
+			<tr>
+				<td>如果当前特权级别不为 0。</td>
+			</tr>
+			<tr>
+				<td>如果 CPUID.7.0:EDX.PCONFIG[位 18] = 0</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>在虚拟-8086 模式下无法识别 PCONFIG 指令。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="7">#GP(0)</td>
+				<td>如果 EAX 中的输入值编码了不受支持的叶函数。</td>
+			</tr>
+			<tr>
+				<td>如果内存操作数是非规范形式地址。</td>
+			</tr>
+			<tr>
+				<td>MKTME_KEY_PROGRAM 叶函数：</td>
+			</tr>
+			<tr>
+				<td>如果 IA32_TME_ACTIVATE MSR 未锁定。</td>
+			</tr>
+			<tr>
+				<td>如果 IA32_TME_ACTIVATE MSR 中未启用硬件加密和 TME-MK 功能。</td>
+			</tr>
+			<tr>
+				<td>如果内存操作数没有 256 字节对齐。</td>
+			</tr>
+			<tr>
+				<td>如果 MKTME_KEY_PROGRAM_STRUCT 的 KEYID_CTRL 字段中的任何保留位被置位，或者该字段指示了不受支持的 KeyID、密钥编程命令或加密算法。</td>
+			</tr>
+			<tr>
+				<td>#PF(fault-code)</td>
+				<td>如果访问内存操作数时发生缺页异常。</td>
+			</tr>
+			<tr>
+				<td rowspan="3">#UD</td>
+				<td>如果使用了任何 LOCK/REP/操作数大小/VEX 前缀。</td>
+			</tr>
+			<tr>
+				<td>如果当前特权级别不为 0。</td>
+			</tr>
+			<tr>
+				<td>如果 CPUID.7.0:EDX.PCONFIG[位 18] = 0。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VRNDSCALEPD — 对打包双精度浮点值进行舍入以保留指定尾数位数</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VRNDSCALEPD — 对打包双精度浮点值进行舍入以保留指定尾数位数</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F3A.W1 09 /r ib VRNDSCALEPD xmm1 {k1}{z}, xmm2/m128/m64bcst, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码控制下，将 xmm2/m128/m64bcst 中的打包双精度浮点值舍入到由 imm8 字段指定的尾数位数。将结果存储在 xmm1 寄存器中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F3A.W1 09 /r ib VRNDSCALEPD ymm1 {k1}{z}, ymm2/m256/m64bcst, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码控制下，将 ymm2/m256/m64bcst 中的打包双精度浮点值舍入到由 imm8 字段指定的尾数位数。将结果存储在 ymm1 寄存器中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F3A.W1 09 /r ib VRNDSCALEPD zmm1 {k1}{z}, zmm2/m512/m64bcst{sae}, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>在写掩码 k1 控制下，将 zmm2/m512/m64bcst 中的打包双精度浮点值舍入到由 imm8 字段指定的尾数位数。将结果存储在 zmm1 寄存器中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>imm8</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>根据立即数操作数中指定的舍入模式对源操作数中的双精度浮点值进行舍入（参见 图 5-29），并将结果存放在目的操作数中。</p>
+		<p>目的操作数（第一操作数）是根据写掩码有条件更新的 ZMM/YMM/XMM 寄存器。源操作数（第二操作数）可以是 ZMM/YMM/XMM 寄存器、512/256/128 位内存位置，或从 64 位内存位置广播的 512/256/128 位向量。</p>
+		<p>舍入过程将输入舍入为整数值，加上 imm8[7:4] 指定的保留在结果中的尾数位数，并将结果作为双精度浮点值返回。</p>
+		<p>需要注意的是，执行此指令时不会引起溢出（尽管源值会被 imm8[7:4] 的值缩放）。</p>
+		<p>立即数操作数还指定了舍入操作的控制字段，定义了三个位字段，如底部的“图 5-29”所示。立即数字节的第 3 位控制处理器对精度异常的行为，第 2 位选择舍入模式控制的来源。第 1:0 位指定一个非粘性（non-sticky）舍入模式值（下方的立即数控制图表列出了舍入模式字段的编码值）。</p>
+		<p>根据立即数操作数发出精度浮点异常信号。如果任何源操作数是 SNaN，则它将被转换为 QNaN。如果 DAZ 设置为 1，则在舍入之前，渐近下溢数将被转换为零。</p>
+		<p>此指令结果的符号会被保留，包括零的符号。</p>
+		<p>VRNDSCALEPD 对每个数据元素操作的公式为：</p>
+		<p>ROUND(x) = 2<sup>-M</sup>*Round_to_INT(x*2<sup>M</sup>, round_ctrl),</p>
+		<p>round_ctrl = imm[3:0];</p>
+		<p>M=imm[7:4];</p>
+		<p>x*2<sup>M</sup> 的运算是在假设指数范围无限的情况下计算的（即永远不会发生溢出）。</p>
+		<p>VRNDSCALEPD 是 VEX 编码的 VROUNDPD 指令的更通用形式。在 VROUNDPD 中，每个元素的操作公式为：</p>
+		<p>ROUND(x) = Round_to_INT(x, round_ctrl),</p>
+		<p>round_ctrl = imm[3:0];</p>
+		<p>注意：EVEX.vvvv 是保留的，必须为 1111b，否则指令将引发 #UD。</p>
+
+		<figure id="fig-5-29">
+			<svg style="width: 618.9840000000002pt; height: 129.671976pt" viewbox="41.06 0.0 520.8200000000002 113.05998">
+				<g xmlns="http://www.w3.org/2000/svg" style="stroke: none; fill: none">
+					<rect height="107.10000000000001" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="43.56" y="0.479979999999955"></rect>
+					<rect height="107.10000000000001" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="558.9" y="0.479979999999955"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="515.82" x="43.56" y="0.0"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="515.82" x="43.56" y="107.58000000000004"></rect>
+					<rect height="13.5" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="465.3" y="27.5399799999999"></rect>
+					<rect height="0.47998" style="fill: rgb(0%, 0%, 0%)" width="373.26" x="92.28" y="40.559999999999945"></rect>
+					<rect height="13.5" style="fill: rgb(0%, 0%, 0%)" width="0.48" x="92.28" y="27.299980000000005"></rect>
+					<rect height="0.23999" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="372.06" y="27.539989999999875"></rect>
+					<rect height="13.26" style="fill: rgb(0%, 0%, 0%)" width="0.48001000000000005" x="372.06" y="27.77997999999991"></rect>
+					<rect height="0.23999" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="278.82" y="27.539989999999875"></rect>
+					<rect height="13.26" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="278.82" y="27.77997999999991"></rect>
+					<path d="M 137.1 61.43997999999999 L 132.9 64.37998000000005" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 138.78 63.89998000000003 L 132.9 64.37998000000005 L 135.42 59.039980000000014" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 159.0 46.19997999999998 L 137.1 61.43997999999999" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 439.92 53.51998000000003 L 443.94 56.69997999999998" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 441.78000000000003 51.17998 L 443.94000000000005 56.69997999999998 L 438.12 55.799980000000005" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 423.06000000000006 40.19997999999998 L 439.9200000000001 53.51998000000003" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<rect height="0.24005" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="326.76" y="28.439930000000004"></rect>
+					<rect height="11.76" style="fill: rgb(0%, 0%, 0%)" width="0.47998" x="326.76" y="28.67998"></rect>
+					<path d="M 349.92 57.059979999999996 L 350.52000000000004 62.15998000000002" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 352.86 56.75998000000004 L 350.52000000000004 62.15998000000002 L 346.98 57.41998000000001" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 348.06 40.67998 L 349.92 57.059979999999996" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 280.14 52.919979999999896 L 275.52 55.19997999999987" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 281.46 55.55997999999988 L 275.52 55.19997999999987 L 278.82 50.27997999999991" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<path d="M 301.97999999999996 42.17997999999989 L 280.14 52.919979999999896" style="fill-rule: nonzero; stroke: rgb(0%, 0%, 0%)"></path>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 7.518pt; fill: #000" textlength="3.509999999999991" x="440.70000000000005" y="23.795979999999957">0</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 7.518000000000029pt; fill: #000" textlength="14.071200000000005" x="62.04000000000008" y="35.97598000000005">imm8</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 7.518000000000029pt; fill: #000" textlength="9.752400000000023" x="297.06" y="37.17597999999998">SPE</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 7.518000000000029pt; fill: #000" textlength="6.786000000000001" x="344.5800000000001" y="37.17597999999998">RS</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 7.518000000000029pt; fill: #000" textlength="59.56619999999998" x="390.6000000000001" y="37.65598">舍入控制重写</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 7.518000000000029pt; fill: #000" textlength="46.021199999999965" x="164.10000000000008" y="37.65598">定点长度</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 7.518000000000029pt; fill: #000" textlength="98.2908000000001" x="223.56" y="62.55597999999998">精度异常抑制: Imm8[3]</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 7.518000000000029pt; fill: #000" textlength="97.96139999999986" x="438.6000000000001" y="65.19597999999996">Imm8[1:0] = 00b : 舍入到最近（偶数）</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 7.518000000000029pt; fill: #000" textlength="57.37379999999985" x="341.58" y="71.49598000000003">舍入选择: Imm8[2]</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 7.518000000000029pt; fill: #000" textlength="108.87119999999982" x="223.56" y="72.39598000000001">Imm8[3] = 0b : 使用 MXCSR 异常掩码</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 7.518000000000029pt; fill: #000" textlength="119.8158" x="81.54000000000008" y="74.67597999999998">Imm8[7:4] : 要保留的定点数</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 7.518000000000029pt; fill: #000" textlength="78.48359999999985" x="438.6000000000001" y="75.03598">Imm8[1:0] = 01b : 向下舍入</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 7.518000000000029pt; fill: #000" textlength="75.62339999999995" x="341.58" y="81.33598000000006">Imm8[2] = 0b : 使用 Imm8[1:0]</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 7.518000000000029pt; fill: #000" textlength="61.77899999999994" x="223.56" y="82.23598000000004">Imm8[3] = 1b : 抑制</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 7.518000000000029pt; fill: #000" textlength="70.73160000000013" x="438.6000000000001" y="84.81597999999997">Imm8[1:0] = 10b : 向上舍入</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 7.518000000000029pt; fill: #000" textlength="67.66859999999991" x="341.58" y="91.1759800000001">Imm8[2] = 1b : 使用 MXCSR</text>
+					<text lengthadjust="spacingAndGlyphs" style="font-size: 7.518000000000029pt; fill: #000" textlength="69.68639999999994" x="438.6000000000001" y="94.65598">Imm8[1:0] = 11b : 截断</text>
+				</g>
+			</svg>
+			<figcaption>图 5-29. VRNDSCALEPD/SD/PS/SS 的 Imm8 控制</figcaption>
+		</figure>
+		<p>输入值的特殊情况处理列在表 5-31 中。</p>
+
+		<figure id="tbl-5-31">
+			<table>
+				<tr>
+					<th></th>
+					<th>返回值</th>
+				</tr>
+				<tr>
+					<td><strong>Src1=±inf</strong></td>
+					<td>Src1</td>
+				</tr>
+				<tr>
+					<td><strong>Src1=±NAN</strong></td>
+					<td>Src1 被转换为 QNAN</td>
+				</tr>
+				<tr>
+					<td><strong>Src1=±0</strong></td>
+					<td>Src1</td>
+				</tr>
+			</table>
+			<figcaption>表 5-31. VRNDSCALEPD/SD/PS/SS 特殊情况</figcaption>
+		</figure>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>RoundToIntegerDP(SRC[63:0], imm8[7:0]) {
+    if (imm8[2] = 1)
+        rounding_direction := MXCSR:RC
+                    ; get round control from MXCSR
+    else
+        rounding_direction := imm8[1:0]
+                    ; get round control from imm8[1:0]
+    FI
+    M := imm8[7:4] ; get the scaling factor
+    case (rounding_direction)
+    00: TMP[63:0] := round_to_nearest_even_integer(2<sup>M</sup>*SRC[63:0])
+    01: TMP[63:0] := round_to_equal_or_smaller_integer(2<sup>M</sup>*SRC[63:0])
+    10: TMP[63:0] := round_to_equal_or_larger_integer(2<sup>M</sup>*SRC[63:0])
+    11: TMP[63:0] := round_to_nearest_smallest_magnitude_integer(2<sup>M</sup>*SRC[63:0])
+    ESAC
+    Dest[63:0] := 2<sup>-M</sup>* TMP[63:0]
+                ; scale down back to 2<sup>-M</sup>
+    if (imm8[3] = 0) Then ; check SPE
+        if (SRC[63:0] != Dest[63:0]) Then
+                    ; check precision lost
+            set_precision()
+                ; set #PE
+        FI;
+    FI;
+    return(Dest[63:0])
+}
+</pre>
+		<h3 id="vrndscalepd--evex-encoded-versions-">VRNDSCALEPD (EVEX 编码版本)<a class="anchor" href="#vrndscalepd--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+IF *src is a memory operand*
+    THEN TMP_SRC := BROADCAST64(SRC, VL, k1)
+    ELSE TMP_SRC := SRC
+FI;
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i] := RoundToIntegerDP(TMP_SRC[i+63:i], imm8[7:0])
+    ELSE
+        IF *merging-masking* ; merging-masking
+            THEN *DEST[i+63:i] remains unchanged*
+            ELSE ; zeroing-masking
+                DEST[i+63:i] := 0
+        FI;
+    FI;
+ENDFOR;
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VRNDSCALEPD __m512d _mm512_roundscale_pd( __m512d a, int imm);
+</pre>
+		<pre>VRNDSCALEPD __m512d _mm512_roundscale_round_pd( __m512d a, int imm, int sae);
+</pre>
+		<pre>VRNDSCALEPD __m512d _mm512_mask_roundscale_pd(__m512d s, __mmask8 k, __m512d a, int imm);
+</pre>
+		<pre>VRNDSCALEPD __m512d _mm512_mask_roundscale_round_pd(__m512d s, __mmask8 k, __m512d a, int imm, int sae);
+</pre>
+		<pre>VRNDSCALEPD __m512d _mm512_maskz_roundscale_pd( __mmask8 k, __m512d a, int imm);
+</pre>
+		<pre>VRNDSCALEPD __m512d _mm512_maskz_roundscale_round_pd( __mmask8 k, __m512d a, int imm, int sae);
+</pre>
+		<pre>VRNDSCALEPD __m256d _mm256_roundscale_pd( __m256d a, int imm);
+</pre>
+		<pre>VRNDSCALEPD __m256d _mm256_mask_roundscale_pd(__m256d s, __mmask8 k, __m256d a, int imm);
+</pre>
+		<pre>VRNDSCALEPD __m256d _mm256_maskz_roundscale_pd( __mmask8 k, __m256d a, int imm);
+</pre>
+		<pre>VRNDSCALEPD __m128d _mm_roundscale_pd( __m128d a, int imm);
+</pre>
+		<pre>VRNDSCALEPD __m128d _mm_mask_roundscale_pd(__m128d s, __mmask8 k, __m128d a, int imm);
+</pre>
+		<pre>VRNDSCALEPD __m128d _mm_maskz_roundscale_pd( __mmask8 k, __m128d a, int imm);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无效, 精度。</p>
+		<p>如果启用了 SPE，则不报告精度异常（无论 MXCSR 异常掩码如何）。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-46，“第 E2 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

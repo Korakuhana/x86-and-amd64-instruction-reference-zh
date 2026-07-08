@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VRANGESD — 从一对标量双精度浮点值计算范围限制</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VRANGESD — 从一对标量双精度浮点值计算范围限制</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.LLIG.66.0F3A.W1 51 /r VRANGESD xmm1 {k1}{z}, xmm2, xmm3/m64{sae}, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512DQ</td>
+				<td>在写掩码的控制下，从 xmm2 和 xmm3/m64 中的 2 个双精度浮点值计算一个 RANGE 操作输出值，并将结果存储到 xmm1 中。Imm8 指定范围操作的比较和符号。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Tuple1 Scalar</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>imm8</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>此指令从第一源操作数（第二操作数）的低四字元素和第二源操作数（第三操作数）的低四字元素中的两个输入双精度浮点值计算范围操作输出。在写掩码 k1 控制下，范围输出被写入目的操作数（第一操作数）的低四字元素中。</p>
+		<p>imm8 字节的 bits 7:4 必须为零。范围操作输出分两部分执行，每部分由 imm8[3:0] 内的一个两位控制字段配置：</p>
+		<ul>
+			<li>Imm8[1:0] 指定初始比较操作为输入值对的最大值、最小值、绝对值最大值或绝对值最小值之一。两个输入值的每次比较都会产生一个中间结果，该结果与符号选择控制 (imm8[3:2]) 结合以决定最终的范围操作输出。</li>
+			<li>Imm8[3:2] 指定范围操作输出的符号为以下之一：来自第一个输入值、来自比较结果、设置或清除。</li>
+		</ul>
+		<p>imm8[1:0] 和 imm8[3:2] 的编码如 <a href="vrangepd.html">图 5-27</a> 所示。</p>
+		<p>目的操作数的 bits 128:63 从第一源操作数的对应元素复制。</p>
+		<p>当一个或多个输入值为 NaN 时，比较操作可能会发出无效异常 (IE) 信号。包含一个或多个 NaN 输入值的详细情况列在 <a href="vrangepd.html#tbl-5-23">表 5-23</a> 中。如果比较引发 IE，则符号选择控制 (imm8[3:2]) 对范围操作输出没有影响；这在 <a href="vrangepd.html#tbl-5-23">表 5-23</a> 中也有指示。</p>
+		<p>当两个输入值都是异号的零时，范围比较操作中的 MIN/MAX 比较操作与指令 VMAXPD/VMINPD 中概念相似的浮点 MIN/MAX 操作略有不同。VRANGEPD/PS/SD/SS 的 MIN/MAX/MIN_ABS/MAX_ABS 操作在幅值为 0、异号输入情况下的详细信息列在 <a href="vrangepd.html#tbl-5-24">表 5-24</a> 中。</p>
+		<p>此外，非零、等幅且异号的输入值执行 MIN_ABS 或 MAX_ABS 比较操作，结果列在 <a href="vrangepd.html#tbl-5-25">表 5-25</a> 中。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>RangeDP(SRC1[63:0], SRC2[63:0], CmpOpCtl[1:0], SignSelCtl[1:0])
+{
+    // Check if SNAN and report IE, see also <a href="vrangepd.html#tbl-5-23">表 5-23</a>
+    IF (SRC1 = SNAN) THEN RETURN (QNAN(SRC1), set IE);
+    IF (SRC2 = SNAN) THEN RETURN (QNAN(SRC2), set IE);
+    Src1.exp := SRC1[62:52];
+    Src1.fraction := SRC1[51:0];
+    IF ((Src1.exp = 0 ) and (Src1.fraction != 0)) THEN// Src1 is a denormal number
+        IF DAZ THEN Src1.fraction := 0;
+        ELSE IF (SRC2 &lt;&gt; QNAN) Set DE; FI;
+    FI;
+    Src2.exp := SRC2[62:52];
+    Src2.fraction := SRC2[51:0];
+    IF ((Src2.exp = 0) and (Src2.fraction !=0 )) THEN// Src2 is a denormal number
+        IF DAZ THEN Src2.fraction := 0;
+        ELSE IF (SRC1 &lt;&gt; QNAN) Set DE; FI;
+    FI;
+    IF (SRC2 = QNAN) THEN{TMP[63:0] := SRC1[63:0]}
+    ELSE IF(SRC1 = QNAN) THEN{TMP[63:0] := SRC2[63:0]}
+    ELSE IF (Both SRC1, SRC2 are magnitude-0 and opposite-signed) TMP[63:0] := from <a href="vrangepd.html#tbl-5-24">表 5-24</a>
+    ELSE IF (Both SRC1, SRC2 are magnitude-equal and opposite-signed and CmpOpCtl[1:0] &gt; 01) TMP[63:0] := from <a href="vrangepd.html#tbl-5-25">表 5-25</a>
+    ELSE
+        Case(CmpOpCtl[1:0])
+        00: TMP[63:0] := (SRC1[63:0] ≤ SRC2[63:0]) ? SRC1[63:0] : SRC2[63:0];
+        01: TMP[63:0] := (SRC1[63:0] ≤ SRC2[63:0]) ? SRC2[63:0] : SRC1[63:0];
+        10: TMP[63:0] := (ABS(SRC1[63:0]) ≤ ABS(SRC2[63:0])) ? SRC1[63:0] : SRC2[63:0];
+        11: TMP[63:0] := (ABS(SRC1[63:0]) ≤ ABS(SRC2[63:0])) ? SRC2[63:0] : SRC1[63:0];
+        ESAC;
+    FI;
+    Case(SignSelCtl[1:0])
+    00: dest := (SRC1[63] &lt;&lt; 63) OR (TMP[62:0]);// Preserve Src1 sign bit
+    01: dest := TMP[63:0];// Preserve sign of compare result
+    10: dest := (0 &lt;&lt; 63) OR (TMP[62:0]);// Zero out sign bit
+    11: dest := (1 &lt;&lt; 63) OR (TMP[62:0]);// Set the sign bit
+    ESAC;
+    RETURN dest[63:0];
+}
+CmpOpCtl[1:0]= imm8[1:0];
+SignSelCtl[1:0]=imm8[3:2];
+</pre>
+		<h3 id="vrangesd">VRANGESD (EVEX 编码版本)<a class="anchor" href="#vrangesd">¶</a></h3>
+		<pre>IF k1[0] OR *no writemask*
+        THEN DEST[63:0] := RangeDP (SRC1[63:0], SRC2[63:0], CmpOpCtl[1:0], SignSelCtl[1:0]);
+    ELSE
+        IF *merging-masking* ; merging-masking
+            THEN *DEST[63:0] remains unchanged*
+            ELSE ; zeroing-masking
+                DEST[63:0] = 0
+        FI;
+FI;
+DEST[127:64] := SRC1[127:64]
+DEST[MAXVL-1:128] := 0
+The following example describes a common usage of this instruction for checking that the input operand is bound-
+ed between ±1023.
+VRANGESD xmm_dst, xmm_src, xmm_1023, 02h;
+Where:
+xmm_dst is the destination operand.
+xmm_src is the input operand to compare against ±1023.
+xmm_1023 is the reference operand, contains the value of 1023.
+IMM=02(imm8[1:0]=’10) selects the Min Absolute value operation with selection of src1.sign.
+In case |xmm_src| &lt; 1023, then its value will be written into xmm_dst. Otherwise, the value stored in xmm_dst
+will get the value of 1023 (received on xmm_1023).
+However, the sign control (imm8[3:2]=’00) instructs to select the sign of SRC1 received from xmm_src. So, even
+in the case of |xmm_src| ≥ 1023, the selected sign of SRC1 is kept.
+Thus, if xmm_src &lt; -1023, the result of VRANGEPD will be the minimal value of -1023while if xmm_src &gt; +1023,
+the result of VRANGE will be the maximal value of +1023.
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VRANGESD __m128d _mm_range_sd ( __m128d a, __m128d b, int imm);
+</pre>
+		<pre>VRANGESD __m128d _mm_range_round_sd ( __m128d a, __m128d b, int imm, int sae);
+</pre>
+		<pre>VRANGESD __m128d _mm_mask_range_sd (__m128d s, __mmask8 k, __m128d a, __m128d b, int imm);
+</pre>
+		<pre>VRANGESD __m128d _mm_mask_range_round_sd (__m128d s, __mmask8 k, __m128d a, __m128d b, int imm, int sae);
+</pre>
+		<pre>VRANGESD __m128d _mm_maskz_range_sd ( __mmask8 k, __m128d a, __m128d b, int imm);
+</pre>
+		<pre>VRANGESD __m128d _mm_maskz_range_round_sd ( __mmask8 k, __m128d a, __m128d b, int imm, int sae);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无效, 渐近下溢 (Denormal)。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-47，“第 E3 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

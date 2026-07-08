@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>PADDUSB/PADDUSW — 使用无符号饱和将打包无符号整数相加</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>PADDUSB/PADDUSW — 使用无符号饱和将打包无符号整数相加</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F DC /r<sup>1</sup> PADDUSB mm, mm/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>MMX</td>
+				<td>将 mm/m64 和 mm 中的打包无符号字节整数相加，并使结果饱和。</td>
+			</tr>
+			<tr>
+				<td>66 0F DC /r PADDUSB xmm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>将 xmm2/m128 和 xmm1 中的打包无符号字节整数相加，并使结果饱和。</td>
+			</tr>
+			<tr>
+				<td>NP 0F DD /r<sup>1</sup> PADDUSW mm, mm/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>MMX</td>
+				<td>将 mm/m64 和 mm 中的打包无符号字整数相加，并使结果饱和。</td>
+			</tr>
+			<tr>
+				<td>66 0F DD /r PADDUSW xmm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>将 xmm2/m128 中的打包无符号字整数加到 xmm1 中，并使结果饱和。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.660F.WIG DC /r VPADDUSB xmm1, xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>将 xmm3/m128 中的打包无符号字节整数加到 xmm2 中，并使结果饱和。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F.WIG DD /r VPADDUSW xmm1, xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>将 xmm3/m128 中的打包无符号字整数加到 xmm2 中，并使结果饱和。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F.WIG DC /r VPADDUSB ymm1, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>将 ymm2 和 ymm3/m256 中的打包无符号字节整数相加，并将饱和后的结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F.WIG DD /r VPADDUSW ymm1, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>将 ymm2 和 ymm3/m256 中的打包无符号字整数相加，并将饱和后的结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.WIG DC /r VPADDUSB xmm1 {k1}{z}, xmm2, xmm3/m128</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>在写掩码 k1 下，将 xmm2 和 xmm3/m128 中的打包无符号字节整数相加，并将饱和后的结果存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.WIG DC /r VPADDUSB ymm1 {k1}{z}, ymm2, ymm3/m256</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>在写掩码 k1 下，将 ymm2 和 ymm3/m256 中的打包无符号字节整数相加，并将饱和后的结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.WIG DC /r VPADDUSB zmm1 {k1}{z}, zmm2, zmm3/m512</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512BW</td>
+				<td>在写掩码 k1 下，将 zmm2 和 zmm3/m512 中的打包无符号字节整数相加，并将饱和后的结果存储在 zmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.WIG DD /r VPADDUSW xmm1 {k1}{z}, xmm2, xmm3/m128</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>在写掩码 k1 下，将 xmm2 和 xmm3/m128 中的打包无符号字整数相加，并将饱和后的结果存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.WIG DD /r VPADDUSW ymm1 {k1}{z}, ymm2, ymm3/m256</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>在写掩码 k1 下，将 ymm2 和 ymm3/m256 中的打包无符号字整数相加，并将饱和后的结果存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.WIG DD /r VPADDUSW zmm1 {k1}{z}, zmm2, zmm3/m512</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512BW</td>
+				<td>在写掩码 k1 下，将 zmm2 和 zmm3/m512 中的打包无符号字整数相加，并将饱和后的结果存储在 zmm1 中。</td>
+			</tr>
+		</table>
+		<blockquote>
+			<p>1. 请参阅 Intel® 64 和 IA-32 架构软件开发人员手册第 2A 卷第 2.5 节“Intel® AVX 和 Intel® SSE 指令异常分类”中的注释，以及第 3B 卷第 23.25.3 节“对 MMX 寄存器操作的传统 SIMD 指令的异常条件”。</p>
+		</blockquote>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (r, w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>C</td>
+				<td>Full Mem</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>对源操作数（第二个操作数）和目的操作数（第一个操作数）的打包无符号整数进行 SIMD 加法，并将打包整数结果存储在目的操作数中。有关 SIMD 操作的图示，请参阅 Intel® 64 和 IA-32 架构软件开发人员手册第 1 卷中的图 9-4。溢出通过无符号饱和处理，如下文所述。</p>
+		<p>(V)PADDUSB 执行第一个源操作数和第二个源操作数的打包无符号字节整数的 SIMD 饱和加法，并将打包整数结果存储在目的操作数中。当单个字节结果超出无符号字节整数的范围（即大于 FFH）时，将饱和值 FFH 写入目的操作数。</p>
+		<p>(V)PADDUSW 执行第一个源操作数和第二个源操作数的打包无符号字整数的 SIMD 饱和加法，并将打包整数结果存储在目的操作数中。当单个字结果超出无符号字整数的范围（即大于 FFFFH）时，将饱和值 FFFFH 写入目的操作数。</p>
+		<p>EVEX 编码版本：第一个源操作数是 ZMM/YMM/XMM 寄存器。第二个源操作数是 ZMM/YMM/XMM 寄存器或 512/256/128 位内存位置。目的操作数是 ZMM/YMM/XMM 寄存器。</p>
+		<p>VEX.256 编码版本：第一个源操作数是 YMM 寄存器。第二个源操作数是 YMM 寄存器或 256 位内存位置。目的操作数是 YMM 寄存器。</p>
+		<p>VEX.128 编码版本：第一个源操作数是 XMM 寄存器。第二个源操作数是 XMM 寄存器或 128 位内存位置。目的操作数是 XMM 寄存器。对应目的寄存器目的操作数的高位（MAXVL-1:128）清零。</p>
+		<p>128位传统 SSE 版本：第一个源操作数是 XMM 寄存器。第二个操作数可以是 XMM 寄存器或 128 位内存位置。目的操作数与第一个源 XMM 寄存器相同，且对应寄存器目的操作数的高位（MAXVL-1:128）保持不变。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="paddusb--with-64-bit-operands-">PADDUSB（使用 64 位操作数）<a class="anchor" href="#paddusb--with-64-bit-operands-">¶</a></h3>
+		<pre>DEST[7:0] := SaturateToUnsignedByte(DEST[7:0] + SRC (7:0] );
+(* Repeat add operation for 2nd through 7th bytes *)
+DEST[63:56] := SaturateToUnsignedByte(DEST[63:56] + SRC[63:56]
+</pre>
+		<h3 id="paddusb--with-128-bit-operands-">PADDUSB（使用 128 位操作数）<a class="anchor" href="#paddusb--with-128-bit-operands-">¶</a></h3>
+		<pre>DEST[7:0] := SaturateToUnsignedByte (DEST[7:0] + SRC[7:0]);
+(* Repeat add operation for 2nd through 14th bytes *)
+DEST[127:120] := SaturateToUnSignedByte (DEST[127:120] + SRC[127:120]);
+</pre>
+		<h3 id="vpaddusb--vex-128-encoded-version-">VPADDUSB（VEX.128 编码版本）<a class="anchor" href="#vpaddusb--vex-128-encoded-version-">¶</a></h3>
+		<pre>DEST[7:0] := SaturateToUnsignedByte (SRC1[7:0] + SRC2[7:0]);
+(* Repeat subtract operation for 2nd through 14th bytes *)
+DEST[127:120] := SaturateToUnsignedByte (SRC1[111:120] + SRC2[127:120]);
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vpaddusb--vex-256-encoded-version-">VPADDUSB（VEX.256 编码版本）<a class="anchor" href="#vpaddusb--vex-256-encoded-version-">¶</a></h3>
+		<pre>DEST[7:0] := SaturateToUnsignedByte (SRC1[7:0] + SRC2[7:0]);
+(* Repeat add operation for 2nd through 31st bytes *)
+DEST[255:248] := SaturateToUnsignedByte (SRC1[255:248] + SRC2[255:248]);
+</pre>
+		<h3 id="paddusw--with-64-bit-operands-">PADDUSW（使用 64 位操作数）<a class="anchor" href="#paddusw--with-64-bit-operands-">¶</a></h3>
+		<pre>DEST[15:0] := SaturateToUnsignedWord(DEST[15:0] + SRC[15:0] );
+(* Repeat add operation for 2nd and 3rd words *)
+DEST[63:48] := SaturateToUnsignedWord(DEST[63:48] + SRC[63:48] );
+</pre>
+		<h3 id="paddusw--with-128-bit-operands-">PADDUSW（使用 128 位操作数）<a class="anchor" href="#paddusw--with-128-bit-operands-">¶</a></h3>
+		<pre>DEST[15:0] := SaturateToUnsignedWord (DEST[15:0] + SRC[15:0]);
+(* Repeat add operation for 2nd through 7th words *)
+DEST[127:112] := SaturateToUnSignedWord (DEST[127:112] + SRC[127:112]);
+</pre>
+		<h3 id="vpaddusw--vex-128-encoded-version-">VPADDUSW（VEX.128 编码版本）<a class="anchor" href="#vpaddusw--vex-128-encoded-version-">¶</a></h3>
+		<pre>DEST[15:0] := SaturateToUnsignedWord (SRC1[15:0] + SRC2[15:0]);
+(* Repeat subtract operation for 2nd through 7th words *)
+DEST[127:112] := SaturateToUnsignedWord (SRC1[127:112] + SRC2[127:112]);
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vpaddusw--vex-256-encoded-version-">VPADDUSW（VEX.256 编码版本）<a class="anchor" href="#vpaddusw--vex-256-encoded-version-">¶</a></h3>
+		<pre>DEST[15:0] := SaturateToUnsignedWord (SRC1[15:0] + SRC2[15:0]);
+(* Repeat add operation for 2nd through 15th words *)
+DEST[255:240] := SaturateToUnsignedWord (SRC1[255:240] + SRC2[255:240])
+</pre>
+		<h3 id="vpaddusb--evex-encoded-versions-">VPADDUSB（EVEX 编码版本）<a class="anchor" href="#vpaddusb--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (16, 128), (32, 256), (64, 512)
+FOR j := 0 TO KL-1
+    i := j * 8
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+7:i] := SaturateToUnsignedByte (SRC1[i+7:i] + SRC2[i+7:i])
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+7:i] remains unchanged*
+                ELSE *zeroing-masking*
+                        ; zeroing-masking
+                    DEST[i+7:i] = 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vpaddusw--evex-encoded-versions-">VPADDUSW（EVEX 编码版本）<a class="anchor" href="#vpaddusw--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (8, 128), (16, 256), (32, 512)
+FOR j := 0 TO KL-1
+    i := j * 16
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i] := SaturateToUnsignedWord (SRC1[i+15:i] + SRC2[i+15:i])
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE *zeroing-masking*
+                        ; zeroing-masking
+                    DEST[i+15:i] = 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalents">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalents">¶</a></h2>
+		<pre>PADDUSB __m64 _mm_adds_pu8(__m64 m1, __m64 m2)</pre>
+		<pre>PADDUSW __m64 _mm_adds_pu16(__m64 m1, __m64 m2)</pre>
+		<pre>(V)PADDUSB __m128i _mm_adds_epu8 ( __m128i a, __m128i b)</pre>
+		<pre>(V)PADDUSW __m128i _mm_adds_epu16 ( __m128i a, __m128i b)</pre>
+		<pre>VPADDUSB __m256i _mm256_adds_epu8 ( __m256i a, __m256i b)</pre>
+		<pre>VPADDUSW __m256i _mm256_adds_epu16 ( __m256i a, __m256i b)</pre>
+		<pre>VPADDUSB __m512i _mm512_adds_epu8 ( __m512i a, __m512i b)</pre>
+		<pre>VPADDUSW __m512i _mm512_adds_epu16 ( __m512i a, __m512i b)</pre>
+		<pre>VPADDUSB __m512i _mm512_mask_adds_epu8 ( __m512i s, __mmask64 m, __m512i a, __m512i b)</pre>
+		<pre>VPADDUSW __m512i _mm512_mask_adds_epu16 ( __m512i s, __mmask32 m, __m512i a, __m512i b)</pre>
+		<pre>VPADDUSB __m512i _mm512_maskz_adds_epu8 (__mmask64 m, __m512i a, __m512i b)</pre>
+		<pre>VPADDUSW __m512i _mm512_maskz_adds_epu16 (__mmask32 m, __m512i a, __m512i b)</pre>
+		<pre>VPADDUSB __m256i _mm256_mask_adds_epu8 (__m256i s, __mmask32 m, __m256i a, __m256i b)</pre>
+		<pre>VPADDUSW __m256i _mm256_mask_adds_epu16 (__m256i s, __mmask16 m, __m256i a, __m256i b)</pre>
+		<pre>VPADDUSB __m256i _mm256_maskz_adds_epu8 (__mmask32 m, __m256i a, __m256i b)</pre>
+		<pre>VPADDUSW __m256i _mm256_maskz_adds_epu16 (__mmask16 m, __m256i a, __m256i b)</pre>
+		<pre>VPADDUSB __m128i _mm_mask_adds_epu8 (__m128i s, __mmask16 m, __m128i a, __m128i b)</pre>
+		<pre>VPADDUSW __m128i _mm_mask_adds_epu16 (__m128i s, __mmask8 m, __m128i a, __m128i b)</pre>
+		<pre>VPADDUSB __m128i _mm_maskz_adds_epu8 (__mmask16 m, __m128i a, __m128i b)</pre>
+		<pre>VPADDUSW __m128i _mm_maskz_adds_epu16 (__mmask8 m, __m128i a, __m128i b)</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="numeric-exceptions">数值异常<a class="anchor" href="#numeric-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>非 EVEX 编码指令，请参阅表 2-21，“第 4 类异常条件”。</p>
+		<p>EVEX 编码指令，请参阅表 2-49 “第 E4 类异常条件” 中的异常类型 E4.nb。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

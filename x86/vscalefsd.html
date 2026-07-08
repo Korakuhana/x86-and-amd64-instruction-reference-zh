@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VSCALEFSD — 用双精度浮点值缩放标量双精度浮点值</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VSCALEFSD — 用双精度浮点值缩放标量双精度浮点值</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.LLIG.66.0F38.W1 2D /r VSCALEFSD xmm1 {k1}{z}, xmm2, xmm3/m64{er}</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>在写掩码 k1 控制下，使用来自 xmm3/m64 的值缩放 xmm2 中的标量双精度浮点值。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Tuple1 Scalar</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>对第一源操作数中的标量双精度浮点值进行浮点缩放：将其乘以 2 的“第二源操作数中双精度浮点值”次幂。</p>
+		<p>此运算的方程式为：</p>
+		<p>xmm1 := xmm2 * 2<sup>floor(xmm3)</sup></p>
+		<p>Floor(xmm3) 表示 ≤ xmm3 的最大整数值。</p>
+		<p>如果结果无法用双精度表示，则发出适当的溢出响应（对于正缩放操作数）或适当的下溢响应（对于负缩放操作数）。溢出和下溢响应取决于舍入模式（适用于符合 IEEE 标准的舍入），以及 MXCSR 中的其他设置（异常掩码位、FTZ 位）和 SAE 位。</p>
+		<p>EVEX 编码版本：第一源操作数是 XMM 寄存器。第二源操作数是 XMM 寄存器或内存位置。目的操作数是根据写掩码 k1 有条件更新的 XMM 寄存器。</p>
+		<p>特殊情况输入值的处理列在 <a href="vscalefpd.html#tbl-5-39">表 5-39</a> 和 <a href="vscalefpd.html#tbl-5-40">表 5-40</a> 中。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>SCALE(SRC1, SRC2)
+{
+    ; Check for denormal operands
+TMP_SRC2 := SRC2
+TMP_SRC1 := SRC1
+IF (SRC2 is denormal AND MXCSR.DAZ) THEN TMP_SRC2=0
+IF (SRC1 is denormal AND MXCSR.DAZ) THEN TMP_SRC1=0
+/* SRC2 is a 64 bits floating-point value */
+DEST[63:0] := TMP_SRC1[63:0] * POW(2, Floor(TMP_SRC2[63:0]))
+}
+</pre>
+
+		<h3 id="vscalefsd--evex-encoded-version-">VSCALEFSD (EVEX 编码版本)<a class="anchor" href="#vscalefsd--evex-encoded-version-">¶</a></h3>
+		<pre>IF (EVEX.b= 1) and SRC2 *is a register*
+    THEN
+        SET_ROUNDING_MODE_FOR_THIS_INSTRUCTION(EVEX.RC);
+    ELSE
+        SET_ROUNDING_MODE_FOR_THIS_INSTRUCTION(MXCSR.RC);
+FI;
+IF k1[0] OR *no writemask*
+    THEN DEST[63:0] := SCALE(SRC1[63:0], SRC2[63:0])
+    ELSE
+        IF *merging-masking* ; merging-masking
+            THEN *DEST[63:0] remains unchanged*
+            ELSE ; zeroing-masking
+                DEST[63:0] := 0
+        FI
+FI;
+DEST[127:64] := SRC1[127:64]
+DEST[MAXVL-1:128] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VSCALEFSD __m128d _mm_scalef_round_sd(__m128d a, __m128d b, int rounding);
+</pre>
+		<pre>VSCALEFSD __m128d _mm_mask_scalef_round_sd(__m128d s, __mmask8 k, __m128d a, __m128d b, int rounding);
+</pre>
+		<pre>VSCALEFSD __m128d _mm_maskz_scalef_round_sd(__mmask8 k, __m128d a, __m128d b, int rounding);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>溢出, 下溢, 无效, 精度, 渐近下溢（针对 Src1）。</p>
+		<p>Src2 不报告渐近下溢异常。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-47，“第 E3 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

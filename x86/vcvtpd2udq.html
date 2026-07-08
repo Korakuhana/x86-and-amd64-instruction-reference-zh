@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VCVTPD2UDQ — 将打包的双精度浮点值转换为打包的无符号双字整数</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VCVTPD2UDQ — 将打包的双精度浮点值转换为打包的无符号双字整数</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.128.0F.W1 79 /r VCVTPD2UDQ xmm1 {k1}{z}, xmm2/m128/m64bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 的控制下，将 xmm2/m128/m64bcst 中的两个打包双精度浮点值转换为 xmm1 中的两个无符号双字整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.0F.W1 79 /r VCVTPD2UDQ xmm1 {k1}{z}, ymm2/m256/m64bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 的控制下，将 ymm2/m256/m64bcst 中的四个打包双精度浮点值转换为 xmm1 中的四个无符号双字整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.0F.W1 79 /r VCVTPD2UDQ ymm1 {k1}{z}, zmm2/m512/m64bcst{er}</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>在写掩码 k1 的控制下，将 zmm2/m512/m64bcst 中的八个打包双精度浮点值转换为 ymm1 中的八个无符号双字整数。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将源操作数（第二个操作数）中的打包双精度浮点值转换为目的操作数（第一个操作数）中的打包无符号双字整数。</p>
+		<p>当转换不精确时，返回的值根据 MXCSR 寄存器中的舍入控制位或嵌入式舍入控制位进行舍入。如果转换后的结果无法在目的格式中表示，则会引发浮点无效异常；如果该异常被屏蔽，则返回整数值 2<sup>w</sup> - 1，其中 w 代表目的格式中的位数。</p>
+		<p>源操作数是 ZMM/YMM/XMM 寄存器、512/256/128 位内存位置，或从 64 位内存位置广播的 512/256/128 位向量。目的操作数是根据写掩码 k1 有条件更新的 ZMM/YMM/XMM 寄存器。对应目的寄存器的高位部分 (MAXVL-1:256) 清零。</p>
+		<p>EVEX.vvvv 保留且必须为 1111b，否则指令会导致 #UD。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vcvtpd2udq--evex-encoded-versions--when-src2-operand-is-a-register">VCVTPD2UDQ（EVEX 编码版本）当源操作数 2 为寄存器时<a class="anchor" href="#vcvtpd2udq--evex-encoded-versions--when-src2-operand-is-a-register">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+IF (VL = 512) AND (EVEX.b = 1)
+    THEN
+        SET_ROUNDING_MODE_FOR_THIS_INSTRUCTION(EVEX.RC);
+    ELSE
+        SET_ROUNDING_MODE_FOR_THIS_INSTRUCTION(MXCSR.RC);
+FI;
+FOR j := 0 TO KL-1
+    i := j * 32
+    k := j * 64
+    IF k1[j] OR *no writemask*
+        THEN
+            DEST[i+31:i] :=
+            Convert_Double_Precision_Floating_Point_To_UInteger(SRC[k+63:k])
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing-masking
+                    DEST[i+31:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL/2] := 0
+</pre>
+
+		<h3 id="vcvtpd2udq--evex-encoded-versions--when-src-operand-is-a-memory-source">VCVTPD2UDQ（EVEX 编码版本）当源操作数为内存源时<a class="anchor" href="#vcvtpd2udq--evex-encoded-versions--when-src-operand-is-a-memory-source">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 32
+    k := j * 64
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1)
+                THEN
+                    DEST[i+31:i] :=
+            Convert_Double_Precision_Floating_Point_To_UInteger(SRC[63:0])
+                ELSE
+                    DEST[i+31:i] :=
+            Convert_Double_Precision_Floating_Point_To_UInteger(SRC[k+63:k])
+            FI;
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE ; zeroing-masking
+                    DEST[i+31:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL/2] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VCVTPD2UDQ __m256i _mm512_cvtpd_epu32( __m512d a);
+</pre>
+		<pre>VCVTPD2UDQ __m256i _mm512_mask_cvtpd_epu32( __m256i s, __mmask8 k, __m512d a);
+</pre>
+		<pre>VCVTPD2UDQ __m256i _mm512_maskz_cvtpd_epu32( __mmask8 k, __m512d a);
+</pre>
+		<pre>VCVTPD2UDQ __m256i _mm512_cvt_roundpd_epu32( __m512d a, int r);
+</pre>
+		<pre>VCVTPD2UDQ __m256i _mm512_mask_cvt_roundpd_epu32( __m256i s, __mmask8 k, __m512d a, int r);
+</pre>
+		<pre>VCVTPD2UDQ __m256i _mm512_maskz_cvt_roundpd_epu32( __mmask8 k, __m512d a, int r);
+</pre>
+		<pre>VCVTPD2UDQ __m128i _mm256_mask_cvtpd_epu32( __m128i s, __mmask8 k, __m256d a);
+</pre>
+		<pre>VCVTPD2UDQ __m128i _mm256_maskz_cvtpd_epu32( __mmask8 k, __m256d a);
+</pre>
+		<pre>VCVTPD2UDQ __m128i _mm_mask_cvtpd_epu32( __m128i s, __mmask8 k, __m128d a);
+</pre>
+		<pre>VCVTPD2UDQ __m128i _mm_maskz_cvtpd_epu32( __mmask8 k, __m128d a);
+</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无效、精度。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>EVEX 编码指令，请参阅表 2-46，“第 E2 类异常条件”。</p>
+		<p>此外：</p>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果 EVEX.vvvv != 1111B。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

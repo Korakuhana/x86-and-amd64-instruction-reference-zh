@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VCVTNEPS2BF16 — 将打包单精度数据转换为打包 BF16 数据</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VCVTNEPS2BF16 — 将打包单精度数据转换为打包 BF16 数据</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.128.F3.0F38.W0 72 /r VCVTNEPS2BF16 xmm1{k1}{z}, xmm2/m128/m32bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512_BF16</td>
+				<td>在写掩码 k1 的控制下，将 xmm2/m128 中的打包单精度数据转换为 xmm1 中的打包 BF16 数据。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.F3.0F38.W0 72 /r VCVTNEPS2BF16 xmm1{k1}{z}, ymm2/m256/m32bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512_BF16</td>
+				<td>在写掩码 k1 的控制下，将 ymm2/m256 中的打包单精度数据转换为 xmm1 中的打包 BF16 数据。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.F3.0F38.W0 72 /r VCVTNEPS2BF16 ymm1{k1}{z}, zmm2/m512/m32bcst</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F AVX512_BF16</td>
+				<td>在写掩码 k1 的控制下，将 zmm2/m512 中的打包单精度数据转换为 ymm1 中的打包 BF16 数据。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将一个包含打包单精度数据的 SIMD 寄存器转换为一个包含打包 BF16 数据的寄存器。</p>
+		<p>此指令使用“舍入到最接近的偶数 (Round to nearest (even))”舍入模式。输出的渐近下溢（反常数）总是被清零（flushed to zero），输入的渐近下溢总是被视为零。不参考也不更新 MXCSR。</p>
+		<p>如指令操作数编码表所示，EVEX.vvvv 字段不用于对操作数进行编码。EVEX.vvvv 保留，必须为 0b1111，否则指令会导致 #UD。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>Define convert_fp32_to_bfloat16(x):
+    IF x is zero or denormal:
+        dest[15] := x[31] // 保持符号位的零（反常数转为零）
+        dest[14:0] := 0
+    ELSE IF x is infinity:
+        dest[15:0] := x[31:16]
+    ELSE IF x is NAN:
+        dest[15:0] := x[31:16] // 截断并置位尾数最高位（MSB）以强制产生 QNAN
+        dest[6] := 1
+    ELSE // 正常数
+        LSB := x[16]
+        rounding_bias := 0x00007FFF + LSB
+        temp[31:0] := x[31:0] + rounding_bias // 整数加法
+        dest[15:0] := temp[31:16]
+    RETURN dest
+</pre>
+
+		<h3 id="vcvtneps2bf16-dest--src">VCVTNEPS2BF16 dest, src<a class="anchor" href="#vcvtneps2bf16-dest--src">¶</a></h3>
+		<pre>VL = (128, 256, 512)
+KL = VL/16
+origdest := dest
+FOR i := 0 to KL/2-1:
+    IF k1[ i ] or *no writemask*:
+        IF src is memory and evex.b == 1:
+            t := src.fp32[0]
+        ELSE:
+            t := src.fp32[ i ]
+        dest.word[i] := convert_fp32_to_bfloat16(t)
+    ELSE IF *zeroing*:
+        dest.word[ i ] := 0
+    ELSE: // 合并掩码，目的元素保持不变
+        dest.word[ i ] := origdest.word[ i ]
+DEST[MAXVL-1:VL/2] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VCVTNEPS2BF16 __m128bh _mm_cvtneps_pbh (__m128);
+</pre>
+		<pre>VCVTNEPS2BF16 __m128bh _mm_mask_cvtneps_pbh (__m128bh, __mmask8, __m128);
+</pre>
+		<pre>VCVTNEPS2BF16 __m128bh _mm_maskz_cvtneps_pbh (__mmask8, __m128);
+</pre>
+		<pre>VCVTNEPS2BF16 __m128bh _mm256_cvtneps_pbh (__m256);
+</pre>
+		<pre>VCVTNEPS2BF16 __m128bh _mm256_mask_cvtneps_pbh (__m128bh, __mmask8, __m256);
+</pre>
+		<pre>VCVTNEPS2BF16 __m128bh _mm256_maskz_cvtneps_pbh (__mmask8, __m256);
+</pre>
+		<pre>VCVTNEPS2BF16 __m256bh _mm512_cvtneps_pbh (__m512);
+</pre>
+		<pre>VCVTNEPS2BF16 __m256bh _mm512_mask_cvtneps_pbh (__m256bh, __mmask16, __m512);
+</pre>
+		<pre>VCVTNEPS2BF16 __m256bh _mm512_maskz_cvtneps_pbh (__mmask16, __m512);
+</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-49，“第 E4 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

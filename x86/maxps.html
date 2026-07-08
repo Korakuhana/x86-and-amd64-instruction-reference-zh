@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>MAXPS — 打包单精度浮点值最大值</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>MAXPS — 打包单精度浮点值最大值</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/En</th>
+			<th>64/32位模式支持</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>NP 0F 5F /r MAXPS xmm1, xmm2/m128</td>
+			<td>A</td>
+			<td>有效/有效</td>
+			<td>SSE</td>
+			<td>返回 xmm1 和 xmm2/mem 之间最大单精度浮点值。</td>
+		</tr>
+		<tr>
+			<td>VEX.128.0F.WIG 5F /r VMAXPS xmm1, xmm2, xmm3/m128</td>
+			<td>B</td>
+			<td>有效/有效</td>
+			<td>AVX</td>
+			<td>返回 xmm2 和 xmm3/mem 之间最大单精度浮点值。</td>
+		</tr>
+		<tr>
+			<td>VEX.256.0F.WIG 5F /r VMAXPS ymm1, ymm2, ymm3/m256</td>
+			<td>B</td>
+			<td>有效/有效</td>
+			<td>AVX</td>
+			<td>返回 ymm2 和 ymm3/mem 之间最大单精度浮点值。</td>
+		</tr>
+		<tr>
+			<td>EVEX.128.0F.W0 5F /r VMAXPS xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst</td>
+			<td>C</td>
+			<td>有效/有效</td>
+			<td>AVX512VL AVX512F</td>
+			<td>返回 xmm2 和 xmm3/m128/m32bcst 之间最大打包单精度浮点值，并根据写掩码 k1 将结果存储在 xmm1 中。</td>
+		</tr>
+		<tr>
+			<td>EVEX.256.0F.W0 5F /r VMAXPS ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst</td>
+			<td>C</td>
+			<td>有效/有效</td>
+			<td>AVX512VL AVX512F</td>
+			<td>返回 ymm2 和 ymm3/m256/m32bcst 之间最大打包单精度浮点值，并根据写掩码 k1 将结果存储在 ymm1 中。</td>
+		</tr>
+		<tr>
+			<td>EVEX.512.0F.W0 5F /r VMAXPS zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst{sae}</td>
+			<td>C</td>
+			<td>有效/有效</td>
+			<td>AVX512F</td>
+			<td>返回 zmm2 和 zmm3/m512/m32bcst 之间最大打包单精度浮点值，并根据写掩码 k1 将结果存储在 zmm1 中。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>元组类型</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>A</td>
+			<td>N/A</td>
+			<td>ModRM:reg (r, w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>B</td>
+			<td>N/A</td>
+			<td>ModRM:reg (w)</td>
+			<td>VEX.vvvv (r)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>C</td>
+			<td>Full</td>
+			<td>ModRM:reg (w)</td>
+			<td>EVEX.vvvv (r)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>对第一个源操作数和第二个源操作数中的打包单精度浮点值执行 SIMD 比较，并将每对值的最大值返回到目的操作数中。</p>
+	<p>如果被比较的值都是 0.0（无论符号如何），则返回第二个操作数（源操作数）中的值。如果第二个操作数中的值是 SNaN，则将 SNaN 原样转发到目的地（即不返回 SNaN 的 QNaN 版本）。</p>
+	<p>如果对于此指令只有一个值是 NaN（SNaN 或 QNaN），则将第二个操作数（源操作数），无论是 NaN 还是有效的浮点值，写入结果中。如果需要返回 NaN 源操作数（来自第一个或第二个操作数），可以通过指令序列来模拟 MAXPS 的操作，例如先进行比较，然后进行 AND、ANDN 和 OR。</p>
+	<p>EVEX 编码版本：第一个源操作数（第二个操作数）是 ZMM/YMM/XMM 寄存器。第二个源操作数可以是 ZMM/YMM/XMM 寄存器、512/256/128 位内存位置，或从 32 位内存位置广播的 512/256/128 位向量。目的操作数是根据写掩码 k1 条件更新的 ZMM/YMM/XMM 寄存器。</p>
+	<p>VEX.256 编码版本：第一个源操作数是 YMM 寄存器。第二个源操作数可以是 YMM 寄存器或 256 位内存位置。目的操作数是 YMM 寄存器。对应 ZMM 寄存器目的操作数的高位 (MAXVL-1:256) 被清零。</p>
+	<p>VEX.128 编码版本：第一个源操作数是 XMM 寄存器。第二个源操作数可以是 XMM 寄存器或 128 位内存位置。目的操作数是 XMM 寄存器。对应 ZMM 寄存器目的操作数的高位 (MAXVL-1:128) 被清零。</p>
+	<p>128 位传统 SSE 版本：第二个源可以是 XMM 寄存器或 128 位内存位置。目的操作数与第一个源 XMM 寄存器相同，并且对应 ZMM 寄存器目的操作数的高位 (MAXVL-1:128) 保持不变。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<pre>MAX(SRC1, SRC2)
+{
+    IF ((SRC1 = 0.0) and (SRC2 = 0.0)) THEN DEST := SRC2;
+        ELSE IF (SRC1 = NaN) THEN DEST := SRC2; FI;
+        ELSE IF (SRC2 = NaN) THEN DEST := SRC2; FI;
+        ELSE IF (SRC1 &gt; SRC2) THEN DEST := SRC1;
+        ELSE DEST := SRC2;
+    FI;
+}
+</pre>
+
+	<h3 id="vmaxps--evex-encoded-versions-">VMAXPS (EVEX Encoded Versions)<a class="anchor" href="#vmaxps--evex-encoded-versions-">¶</a></h3>
+	<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j := 0 TO KL-1
+    i := j * 32
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN
+                    DEST[i+31:i] := MAX(SRC1[i+31:i], SRC2[31:0])
+                ELSE
+                    DEST[i+31:i] := MAX(SRC1[i+31:i], SRC2[i+31:i])
+            FI;
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE DEST[i+31:i] := 0
+                        ; zeroing-masking
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+	<h3 id="vmaxps--vex-256-encoded-version-">VMAXPS (VEX.256 Encoded Version)<a class="anchor" href="#vmaxps--vex-256-encoded-version-">¶</a></h3>
+	<pre>DEST[31:0] := MAX(SRC1[31:0], SRC2[31:0])
+DEST[63:32] := MAX(SRC1[63:32], SRC2[63:32])
+DEST[95:64] := MAX(SRC1[95:64], SRC2[95:64])
+DEST[127:96] := MAX(SRC1[127:96], SRC2[127:96])
+DEST[159:128] := MAX(SRC1[159:128], SRC2[159:128])
+DEST[191:160] := MAX(SRC1[191:160], SRC2[191:160])
+DEST[223:192] := MAX(SRC1[223:192], SRC2[223:192])
+DEST[255:224] := MAX(SRC1[255:224], SRC2[255:224])
+DEST[MAXVL-1:256] := 0
+</pre>
+
+	<h3 id="vmaxps--vex-128-encoded-version-">VMAXPS (VEX.128 Encoded Version)<a class="anchor" href="#vmaxps--vex-128-encoded-version-">¶</a></h3>
+	<pre>DEST[31:0] := MAX(SRC1[31:0], SRC2[31:0])
+DEST[63:32] := MAX(SRC1[63:32], SRC2[63:32])
+DEST[95:64] := MAX(SRC1[95:64], SRC2[95:64])
+DEST[127:96] := MAX(SRC1[127:96], SRC2[127:96])
+DEST[MAXVL-1:128] := 0
+</pre>
+
+	<h3 id="maxps--128-bit-legacy-sse-version-">MAXPS (128-bit Legacy SSE Version)<a class="anchor" href="#maxps--128-bit-legacy-sse-version-">¶</a></h3>
+	<pre>DEST[31:0] := MAX(DEST[31:0], SRC[31:0])
+DEST[63:32] := MAX(DEST[63:32], SRC[63:32])
+DEST[95:64] := MAX(DEST[95:64], SRC[95:64])
+DEST[127:96] := MAX(DEST[127:96], SRC[127:96])
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>VMAXPS __m512 _mm512_max_ps( __m512 a, __m512 b);
+</pre>
+	<pre>VMAXPS __m512 _mm512_mask_max_ps(__m512 s, __mmask16 k, __m512 a, __m512 b);
+</pre>
+	<pre>VMAXPS __m512 _mm512_maskz_max_ps( __mmask16 k, __m512 a, __m512 b);
+</pre>
+	<pre>VMAXPS __m512 _mm512_max_round_ps( __m512 a, __m512 b, int);
+</pre>
+	<pre>VMAXPS __m512 _mm512_mask_max_round_ps(__m512 s, __mmask16 k, __m512 a, __m512 b, int);
+</pre>
+	<pre>VMAXPS __m512 _mm512_maskz_max_round_ps( __mmask16 k, __m512 a, __m512 b, int);
+</pre>
+	<pre>VMAXPS __m256 _mm256_mask_max_ps(__m256 s, __mmask8 k, __m256 a, __m256 b);
+</pre>
+	<pre>VMAXPS __m256 _mm256_maskz_max_ps( __mmask8 k, __m256 a, __m256 b);
+</pre>
+	<pre>VMAXPS __m128 _mm_mask_max_ps(__m128 s, __mmask8 k, __m128 a, __m128 b);
+</pre>
+	<pre>VMAXPS __m128 _mm_maskz_max_ps( __mmask8 k, __m128 a, __m128 b);
+</pre>
+	<pre>VMAXPS __m256 _mm256_max_ps (__m256 a, __m256 b);
+</pre>
+	<pre>MAXPS __m128 _mm_max_ps (__m128 a, __m128 b);
+</pre>
+
+	<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+	<p>无效值（包括 QNaN 源操作数）、非规范化数。</p>
+
+	<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+	<p>非 EVEX 编码指令，参见表 2-19，“Type 2 类异常条件”。</p>
+	<p>EVEX 编码指令，参见表 2-46，“Type E2 类异常条件”。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

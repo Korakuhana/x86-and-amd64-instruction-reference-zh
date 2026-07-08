@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>PMOVSX — 打包符号扩展移动</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>PMOVSX — 打包符号扩展移动</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>66 0f 38 20 /r PMOVSXBW xmm1, xmm2/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE4_1</td>
+				<td>将 xmm2/m64 低 8 字节中的 8 个打包 8 位整数符号扩展为 xmm1 中的 8 个打包 16 位整数。</td>
+			</tr>
+			<tr>
+				<td>66 0f 38 21 /r PMOVSXBD xmm1, xmm2/m32</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE4_1</td>
+				<td>将 xmm2/m32 低 4 字节中的 4 个打包 8 位整数符号扩展为 xmm1 中的 4 个打包 32 位整数。</td>
+			</tr>
+			<tr>
+				<td>66 0f 38 22 /r PMOVSXBQ xmm1, xmm2/m16</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE4_1</td>
+				<td>将 xmm2/m16 低 2 字节中的 2 个打包 8 位整数符号扩展为 xmm1 中的 2 个打包 64 位整数。</td>
+			</tr>
+			<tr>
+				<td>66 0f 38 23/r PMOVSXWD xmm1, xmm2/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE4_1</td>
+				<td>将 xmm2/m64 低 8 字节中的 4 个打包 16 位整数符号扩展为 xmm1 中的 4 个打包 32 位整数。</td>
+			</tr>
+			<tr>
+				<td>66 0f 38 24 /r PMOVSXWQ xmm1, xmm2/m32</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE4_1</td>
+				<td>将 xmm2/m32 低 4 字节中的 2 个打包 16 位整数符号扩展为 xmm1 中的 2 个打包 64 位整数。</td>
+			</tr>
+			<tr>
+				<td>66 0f 38 25 /r PMOVSXDQ xmm1, xmm2/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE4_1</td>
+				<td>将 xmm2/m64 低 8 字节中的 2 个打包 32 位整数符号扩展为 xmm1 中的 2 个打包 64 位整数。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.WIG 20 /r VPMOVSXBW xmm1, xmm2/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>将 xmm2/m64 低 8 字节中的 8 个打包 8 位整数符号扩展为 xmm1 中的 8 个打包 16 位整数。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.WIG 21 /r VPMOVSXBD xmm1, xmm2/m32</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>将 xmm2/m32 低 4 字节中的 4 个打包 8 位整数符号扩展为 xmm1 中的 4 个打包 32 位整数。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.WIG 22 /r VPMOVSXBQ xmm1, xmm2/m16</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>将 xmm2/m16 低 2 字节中的 2 个打包 8 位整数符号扩展为 xmm1 中的 2 个打包 64 位整数。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.WIG 23 /r VPMOVSXWD xmm1, xmm2/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>将 xmm2/m64 低 8 字节中的 4 个打包 16 位整数符号扩展为 xmm1 中的 4 个打包 32 位整数。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.WIG 24 /r VPMOVSXWQ xmm1, xmm2/m32</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>将 xmm2/m32 低 4 字节中的 2 个打包 16 位整数符号扩展为 xmm1 中的 2 个打包 64 位整数。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.WIG 25 /r VPMOVSXDQ xmm1, xmm2/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>将 xmm2/m64 低 8 字节中的 2 个打包 32 位整数符号扩展为 xmm1 中的 2 个打包 64 位整数。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.WIG 20 /r VPMOVSXBW ymm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>将 xmm2/m128 中的 16 个打包 8 位整数符号扩展为 ymm1 中的 16 个打包 16 位整数。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.WIG 21 /r VPMOVSXBD ymm1, xmm2/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>将 xmm2/m64 低 8 字节中的 8 个打包 8 位整数符号扩展为 ymm1 中的 8 个打包 32 位整数。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.WIG 22 /r VPMOVSXBQ ymm1, xmm2/m32</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>将 xmm2/m32 低 4 字节中的 4 个打包 8 位整数符号扩展为 ymm1 中的 4 个打包 64 位整数。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.WIG 23 /r VPMOVSXWD ymm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>将 xmm2/m128 低 16 字节中的 8 个打包 16 位整数符号扩展为 ymm1 中的 8 个打包 32 位整数。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.WIG 24 /r VPMOVSXWQ ymm1, xmm2/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>将 xmm2/m64 低 8 字节中的 4 个打包 16 位整数符号扩展为 ymm1 中的 4 个打包 64 位整数。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.WIG 25 /r VPMOVSXDQ ymm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>将 xmm2/m128 低 16 字节中的 4 个打包 32 位整数符号扩展为 ymm1 中的 4 个打包 64 位整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.WIG 20 /r VPMOVSXBW xmm1 {k1}{z}, xmm2/m64</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>将 xmm2/m64 中的 8 个打包 8 位整数符号扩展为 xmm1 中的 8 个打包 16 位整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.WIG 20 /r VPMOVSXBW ymm1 {k1}{z}, xmm2/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>将 xmm2/m128 中的 16 个打包 8 位整数符号扩展为 ymm1 中的 16 个打包 16 位整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.WIG 20 /r VPMOVSXBW zmm1 {k1}{z}, ymm2/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512BW</td>
+				<td>将 ymm2/m256 中的 32 个打包 8 位整数符号扩展为 zmm1 中的 32 个打包 16 位整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.WIG 21 /r VPMOVSXBD xmm1 {k1}{z}, xmm2/m32</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 下，将 xmm2/m32 低 4 字节中的 4 个打包 8 位整数符号扩展为 xmm1 中的 4 个打包 32 位整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.WIG 21 /r VPMOVSXBD ymm1 {k1}{z}, xmm2/m64</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 下，将 xmm2/m64 低 8 字节中的 8 个打包 8 位整数符号扩展为 ymm1 中的 8 个打包 32 位整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.WIG 21 /r VPMOVSXBD zmm1 {k1}{z}, xmm2/m128</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>在写掩码 k1 下，将 xmm2/m128 低 16 字节中的 16 个打包 8 位整数符号扩展为 zmm1 中的 16 个打包 32 位整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.WIG 22 /r VPMOVSXBQ xmm1 {k1}{z}, xmm2/m16</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 下，将 xmm2/m16 低 2 字节中的 2 个打包 8 位整数符号扩展为 xmm1 中的 2 个打包 64 位整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.WIG 22 /r VPMOVSXBQ ymm1 {k1}{z}, xmm2/m32</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 下，将 xmm2/m32 低 4 字节中的 4 个打包 8 位整数符号扩展为 ymm1 中的 4 个打包 64 位整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.WIG 22 /r VPMOVSXBQ zmm1 {k1}{z}, xmm2/m64</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>在写掩码 k1 下，将 xmm2/m64 低 8 字节中的 8 个打包 8 位整数符号扩展为 zmm1 中的 8 个打包 64 位整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.WIG 23 /r VPMOVSXWD xmm1 {k1}{z}, xmm2/m64</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 下，将 xmm2/m64 低 8 字节中的 4 个打包 16 位整数符号扩展为 xmm1 中的 4 个打包 32 位整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.WIG 23 /r VPMOVSXWD ymm1 {k1}{z}, xmm2/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 下，将 xmm2/m128 低 16 字节中的 8 个打包 16 位整数符号扩展为 ymm1 中的 8 个打包 32 位整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.WIG 23 /r VPMOVSXWD zmm1 {k1}{z}, ymm2/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>在写掩码 k1 下，将 ymm2/m256 低 32 字节中的 16 个打包 16 位整数符号扩展为 zmm1 中的 16 个打包 32 位整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.WIG 24 /r VPMOVSXWQ xmm1 {k1}{z}, xmm2/m32</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 下，将 xmm2/m32 低 4 字节中的 2 个打包 16 位整数符号扩展为 xmm1 中的 2 个打包 64 位整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.WIG 24 /r VPMOVSXWQ ymm1 {k1}{z}, xmm2/m64</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 下，将 xmm2/m64 低 8 字节中的 4 个打包 16 位整数符号扩展为 ymm1 中的 4 个打包 64 位整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.WIG 24 /r VPMOVSXWQ zmm1 {k1}{z}, xmm2/m128</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>在写掩码 k1 下，将 xmm2/m128 低 16 字节中的 8 个打包 16 位整数符号扩展为 zmm1 中的 8 个打包 64 位整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W0 25 /r VPMOVSXDQ xmm1 {k1}{z}, xmm2/m64</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用写掩码 k1，将 xmm2/m64 低 8 字节中的 2 个打包 32 位整数符号扩展为 xmm1 中的 2 个打包 64 位整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W0 25 /r VPMOVSXDQ ymm1 {k1}{z}, xmm2/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用写掩码 k1，将 xmm2/m128 低 16 字节中的 4 个打包 32 位整数符号扩展为 ymm1 中的 4 个打包 64 位整数。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W0 25 /r VPMOVSXDQ zmm1 {k1}{z}, ymm2/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用写掩码 k1，将 ymm2/m256 低 32 字节中的 8 个打包 32 位整数符号扩展为 zmm1 中的 8 个打包 64 位整数。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>Half Mem</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>C</td>
+				<td>Quarter Mem</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>D</td>
+				<td>Eighth Mem</td>
+				<td>ModRM:reg (w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>传统和 VEX 编码版本：源操作数（第二个操作数）低字节中的打包字节、字或双字整数被符号扩展为字、双字或四字整数，并存储在目的操作数中。</p>
+		<p>128位传统 SSE 版本：对应目的寄存器的位（MAXVL-1:128）保持不变。</p>
+		<p>VEX.128 和 EVEX.128 编码版本：对应目的寄存器的位（MAXVL-1:128）清零。</p>
+		<p>VEX.256 和 EVEX.256 编码版本：对应目的寄存器的位（MAXVL-1:256）清零。</p>
+		<p>EVEX 编码版本：从源操作数（第二个操作数）的低字节开始的打包字节、字或双字整数被符号扩展为字、双字或四字整数，并在写掩码下存储到目的操作数中。目的寄存器是 XMM、YMM 或 ZMM 寄存器。</p>
+		<p>注意：VEX.vvvv 和 EVEX.vvvv 已保留，必须为 1111b，否则指令将产生 #UD。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="packed_sign_extend_byte_to_word-dest--src-">Packed_Sign_Extend_BYTE_to_WORD(DEST, SRC)<a class="anchor" href="#packed_sign_extend_byte_to_word-dest--src-">¶</a></h3>
+		<pre>DEST[15:0] := SignExtend(SRC[7:0]);
+DEST[31:16] := SignExtend(SRC[15:8]);
+DEST[47:32] := SignExtend(SRC[23:16]);
+DEST[63:48] := SignExtend(SRC[31:24]);
+DEST[79:64] := SignExtend(SRC[39:32]);
+DEST[95:80] := SignExtend(SRC[47:40]);
+DEST[111:96] := SignExtend(SRC[55:48]);
+DEST[127:112] := SignExtend(SRC[63:56]);
+</pre>
+		<h3 id="packed_sign_extend_byte_to_dword-dest--src-">Packed_Sign_Extend_BYTE_to_DWORD(DEST, SRC)<a class="anchor" href="#packed_sign_extend_byte_to_dword-dest--src-">¶</a></h3>
+		<pre>DEST[31:0] := SignExtend(SRC[7:0]);
+DEST[63:32] := SignExtend(SRC[15:8]);
+DEST[95:64] := SignExtend(SRC[23:16]);
+DEST[127:96] := SignExtend(SRC[31:24]);
+</pre>
+		<h3 id="packed_sign_extend_byte_to_qword-dest--src-">Packed_Sign_Extend_BYTE_to_QWORD(DEST, SRC)<a class="anchor" href="#packed_sign_extend_byte_to_qword-dest--src-">¶</a></h3>
+		<pre>DEST[63:0] := SignExtend(SRC[7:0]);
+DEST[127:64] := SignExtend(SRC[15:8]);
+</pre>
+		<h3 id="packed_sign_extend_word_to_dword-dest--src-">Packed_Sign_Extend_WORD_to_DWORD(DEST, SRC)<a class="anchor" href="#packed_sign_extend_word_to_dword-dest--src-">¶</a></h3>
+		<pre>DEST[31:0] := SignExtend(SRC[15:0]);
+DEST[63:32] := SignExtend(SRC[31:16]);
+DEST[95:64] := SignExtend(SRC[47:32]);
+DEST[127:96] := SignExtend(SRC[63:48]);
+</pre>
+		<h3 id="packed_sign_extend_word_to_qword-dest--src-">Packed_Sign_Extend_WORD_to_QWORD(DEST, SRC)<a class="anchor" href="#packed_sign_extend_word_to_qword-dest--src-">¶</a></h3>
+		<pre>DEST[63:0] := SignExtend(SRC[15:0]);
+DEST[127:64] := SignExtend(SRC[31:16]);
+</pre>
+		<h3 id="packed_sign_extend_dword_to_qword-dest--src-">Packed_Sign_Extend_DWORD_to_QWORD(DEST, SRC)<a class="anchor" href="#packed_sign_extend_dword_to_qword-dest--src-">¶</a></h3>
+		<pre>DEST[63:0] := SignExtend(SRC[31:0]);
+DEST[127:64] := SignExtend(SRC[63:32]);
+</pre>
+		<h3 id="vpmovsxbw--evex-encoded-versions-">VPMOVSXBW（EVEX 编码版本）<a class="anchor" href="#vpmovsxbw--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (8, 128), (16, 256), (32, 512)
+Packed_Sign_Extend_BYTE_to_WORD(TMP_DEST[127:0], SRC[63:0])
+IF VL &gt;= 256
+    Packed_Sign_Extend_BYTE_to_WORD(TMP_DEST[255:128], SRC[127:64])
+FI;
+IF VL &gt;= 512
+    Packed_Sign_Extend_BYTE_to_WORD(TMP_DEST[383:256], SRC[191:128])
+    Packed_Sign_Extend_BYTE_to_WORD(TMP_DEST[511:384], SRC[255:192])
+FI;
+FOR j := 0 TO KL-1
+    i := j * 16
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i] := TEMP_DEST[i+15:i]
+        ELSE
+            IF *merging-masking*
+                        ; merging-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE *zeroing-masking*
+                            ; zeroing-masking
+                    DEST[i+15:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vpmovsxbd--evex-encoded-versions-">VPMOVSXBD（EVEX 编码版本）<a class="anchor" href="#vpmovsxbd--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+Packed_Sign_Extend_BYTE_to_DWORD(TMP_DEST[127:0], SRC[31:0])
+IF VL &gt;= 256
+    Packed_Sign_Extend_BYTE_to_DWORD(TMP_DEST[255:128], SRC[63:32])
+FI;
+IF VL &gt;= 512
+    Packed_Sign_Extend_BYTE_to_DWORD(TMP_DEST[383:256], SRC[95:64])
+    Packed_Sign_Extend_BYTE_to_DWORD(TMP_DEST[511:384], SRC[127:96])
+FI;
+FOR j := 0 TO KL-1
+    i := j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i] := TEMP_DEST[i+31:i]
+        ELSE
+            IF *merging-masking*
+                        ; merging-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE *zeroing-masking*
+                            ; zeroing-masking
+                    DEST[i+31:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vpmovsxbq--evex-encoded-versions-">VPMOVSXBQ（EVEX 编码版本）<a class="anchor" href="#vpmovsxbq--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+Packed_Sign_Extend_BYTE_to_QWORD(TMP_DEST[127:0], SRC[15:0])
+IF VL &gt;= 256
+    Packed_Sign_Extend_BYTE_to_QWORD(TMP_DEST[255:128], SRC[31:16])
+FI;
+IF VL &gt;= 512
+    Packed_Sign_Extend_BYTE_to_QWORD(TMP_DEST[383:256], SRC[47:32])
+    Packed_Sign_Extend_BYTE_to_QWORD(TMP_DEST[511:384], SRC[63:48])
+FI;
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i] := TEMP_DEST[i+63:i]
+        ELSE
+            IF *merging-masking*
+                        ; merging-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing-masking*
+                            ; zeroing-masking
+                    DEST[i+63:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vpmovsxwd--evex-encoded-versions-">VPMOVSXWD（EVEX 编码版本）<a class="anchor" href="#vpmovsxwd--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+Packed_Sign_Extend_WORD_to_DWORD(TMP_DEST[127:0], SRC[63:0])
+IF VL &gt;= 256
+    Packed_Sign_Extend_WORD_to_DWORD(TMP_DEST[255:128], SRC[127:64])
+FI;
+IF VL &gt;= 512
+    Packed_Sign_Extend_WORD_to_DWORD(TMP_DEST[383:256], SRC[191:128])
+    Packed_Sign_Extend_WORD_to_DWORD(TMP_DEST[511:384], SRC[256:192])
+FI;
+FOR j := 0 TO KL-1
+    i := j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i] := TEMP_DEST[i+31:i]
+        ELSE
+            IF *merging-masking*
+                        ; merging-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE *zeroing-masking*
+                            ; zeroing-masking
+                    DEST[i+31:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vpmovsxwq--evex-encoded-versions-">VPMOVSXWQ（EVEX 编码版本）<a class="anchor" href="#vpmovsxwq--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+Packed_Sign_Extend_WORD_to_QWORD(TMP_DEST[127:0], SRC[31:0])
+IF VL &gt;= 256
+    Packed_Sign_Extend_WORD_to_QWORD(TMP_DEST[255:128], SRC[63:32])
+FI;
+IF VL &gt;= 512
+    Packed_Sign_Extend_WORD_to_QWORD(TMP_DEST[383:256], SRC[95:64])
+    Packed_Sign_Extend_WORD_to_QWORD(TMP_DEST[511:384], SRC[127:96])
+FI;
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i] := TEMP_DEST[i+63:i]
+        ELSE
+            IF *merging-masking*
+                        ; merging-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing-masking*
+                            ; zeroing-masking
+                    DEST[i+63:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vpmovsxdq--evex-encoded-versions-">VPMOVSXDQ（EVEX 编码版本）<a class="anchor" href="#vpmovsxdq--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+Packed_Sign_Extend_DWORD_to_QWORD(TEMP_DEST[127:0], SRC[63:0])
+IF VL &gt;= 256
+    Packed_Sign_Extend_DWORD_to_QWORD(TEMP_DEST[255:128], SRC[127:64])
+FI;
+IF VL &gt;= 512
+    Packed_Sign_Extend_DWORD_to_QWORD(TEMP_DEST[383:256], SRC[191:128])
+    Packed_Sign_Extend_DWORD_to_QWORD(TEMP_DEST[511:384], SRC[255:192])
+FI;
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i] := TEMP_DEST[i+63:i]
+        ELSE
+            IF *merging-masking*
+                        ; merging-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing-masking*
+                            ; zeroing-masking
+                    DEST[i+63:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vpmovsxbw--vex-256-encoded-version-">VPMOVSXBW（VEX.256 编码版本）<a class="anchor" href="#vpmovsxbw--vex-256-encoded-version-">¶</a></h3>
+		<pre>Packed_Sign_Extend_BYTE_to_WORD(DEST[127:0], SRC[63:0])
+Packed_Sign_Extend_BYTE_to_WORD(DEST[255:128], SRC[127:64])
+DEST[MAXVL-1:256] := 0
+</pre>
+		<h3 id="vpmovsxbd--vex-256-encoded-version-">VPMOVSXBD（VEX.256 编码版本）<a class="anchor" href="#vpmovsxbd--vex-256-encoded-version-">¶</a></h3>
+		<pre>Packed_Sign_Extend_BYTE_to_DWORD(DEST[127:0], SRC[31:0])
+Packed_Sign_Extend_BYTE_to_DWORD(DEST[255:128], SRC[63:32])
+DEST[MAXVL-1:256] := 0
+</pre>
+		<h3 id="vpmovsxbq--vex-256-encoded-version-">VPMOVSXBQ（VEX.256 编码版本）<a class="anchor" href="#vpmovsxbq--vex-256-encoded-version-">¶</a></h3>
+		<pre>Packed_Sign_Extend_BYTE_to_QWORD(DEST[127:0], SRC[15:0])
+Packed_Sign_Extend_BYTE_to_QWORD(DEST[255:128], SRC[31:16])
+DEST[MAXVL-1:256] := 0
+</pre>
+		<h3 id="vpmovsxwd--vex-256-encoded-version-">VPMOVSXWD（VEX.256 编码版本）<a class="anchor" href="#vpmovsxwd--vex-256-encoded-version-">¶</a></h3>
+		<pre>Packed_Sign_Extend_WORD_to_DWORD(DEST[127:0], SRC[63:0])
+Packed_Sign_Extend_WORD_to_DWORD(DEST[255:128], SRC[127:64])
+DEST[MAXVL-1:256] := 0
+</pre>
+		<h3 id="vpmovsxwq--vex-256-encoded-version-">VPMOVSXWQ（VEX.256 编码版本）<a class="anchor" href="#vpmovsxwq--vex-256-encoded-version-">¶</a></h3>
+		<pre>Packed_Sign_Extend_WORD_to_QWORD(DEST[127:0], SRC[31:0])
+Packed_Sign_Extend_WORD_to_QWORD(DEST[255:128], SRC[63:32])
+DEST[MAXVL-1:256] := 0
+</pre>
+		<h3 id="vpmovsxdq--vex-256-encoded-version-">VPMOVSXDQ（VEX.256 编码版本）<a class="anchor" href="#vpmovsxdq--vex-256-encoded-version-">¶</a></h3>
+		<pre>Packed_Sign_Extend_DWORD_to_QWORD(DEST[127:0], SRC[63:0])
+Packed_Sign_Extend_DWORD_to_QWORD(DEST[255:128], SRC[127:64])
+DEST[MAXVL-1:256] := 0
+</pre>
+		<h3 id="vpmovsxbw--vex-128-encoded-version-">VPMOVSXBW（VEX.128 编码版本）<a class="anchor" href="#vpmovsxbw--vex-128-encoded-version-">¶</a></h3>
+		<pre>Packed_Sign_Extend_BYTE_to_WORDDEST[127:0], SRC[127:0]()
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vpmovsxbd--vex-128-encoded-version-">VPMOVSXBD（VEX.128 编码版本）<a class="anchor" href="#vpmovsxbd--vex-128-encoded-version-">¶</a></h3>
+		<pre>Packed_Sign_Extend_BYTE_to_DWORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vpmovsxbq--vex-128-encoded-version-">VPMOVSXBQ（VEX.128 编码版本）<a class="anchor" href="#vpmovsxbq--vex-128-encoded-version-">¶</a></h3>
+		<pre>Packed_Sign_Extend_BYTE_to_QWORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vpmovsxwd--vex-128-encoded-version-">VPMOVSXWD（VEX.128 编码版本）<a class="anchor" href="#vpmovsxwd--vex-128-encoded-version-">¶</a></h3>
+		<pre>Packed_Sign_Extend_WORD_to_DWORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vpmovsxwq--vex-128-encoded-version-">VPMOVSXWQ（VEX.128 编码版本）<a class="anchor" href="#vpmovsxwq--vex-128-encoded-version-">¶</a></h3>
+		<pre>Packed_Sign_Extend_WORD_to_QWORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vpmovsxdq--vex-128-encoded-version-">VPMOVSXDQ（VEX.128 编码版本）<a class="anchor" href="#vpmovsxdq--vex-128-encoded-version-">¶</a></h3>
+		<pre>Packed_Sign_Extend_DWORD_to_QWORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="pmovsxbw">PMOVSXBW<a class="anchor" href="#pmovsxbw">¶</a></h3>
+		<pre>Packed_Sign_Extend_BYTE_to_WORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+		<h3 id="pmovsxbd">PMOVSXBD<a class="anchor" href="#pmovsxbd">¶</a></h3>
+		<pre>Packed_Sign_Extend_BYTE_to_DWORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+		<h3 id="pmovsxbq">PMOVSXBQ<a class="anchor" href="#pmovsxbq">¶</a></h3>
+		<pre>Packed_Sign_Extend_BYTE_to_QWORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+		<h3 id="pmovsxwd">PMOVSXWD<a class="anchor" href="#pmovsxwd">¶</a></h3>
+		<pre>Packed_Sign_Extend_WORD_to_DWORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+		<h3 id="pmovsxwq">PMOVSXWQ<a class="anchor" href="#pmovsxwq">¶</a></h3>
+		<pre>Packed_Sign_Extend_WORD_to_QWORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+		<h3 id="pmovsxdq">PMOVSXDQ<a class="anchor" href="#pmovsxdq">¶</a></h3>
+		<pre>Packed_Sign_Extend_DWORD_to_QWORD(DEST[127:0], SRC[127:0])
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VPMOVSXBW __m512i _mm512_cvtepi8_epi16(__m512i a);</pre>
+		<pre>VPMOVSXBW __m512i _mm512_mask_cvtepi8_epi16(__m512i a, __mmask32 k, __m512i b);</pre>
+		<pre>VPMOVSXBW __m512i _mm512_maskz_cvtepi8_epi16( __mmask32 k, __m512i b);</pre>
+		<pre>VPMOVSXBD __m512i _mm512_cvtepi8_epi32(__m512i a);</pre>
+		<pre>VPMOVSXBD __m512i _mm512_mask_cvtepi8_epi32(__m512i a, __mmask16 k, __m512i b);</pre>
+		<pre>VPMOVSXBD __m512i _mm512_maskz_cvtepi8_epi32( __mmask16 k, __m512i b);</pre>
+		<pre>VPMOVSXBQ __m512i _mm512_cvtepi8_epi64(__m512i a);</pre>
+		<pre>VPMOVSXBQ __m512i _mm512_mask_cvtepi8_epi64(__m512i a, __mmask8 k, __m512i b);</pre>
+		<pre>VPMOVSXBQ __m512i _mm512_maskz_cvtepi8_epi64( __mmask8 k, __m512i a);</pre>
+		<pre>VPMOVSXDQ __m512i _mm512_cvtepi32_epi64(__m512i a);</pre>
+		<pre>VPMOVSXDQ __m512i _mm512_mask_cvtepi32_epi64(__m512i a, __mmask8 k, __m512i b);</pre>
+		<pre>VPMOVSXDQ __m512i _mm512_maskz_cvtepi32_epi64( __mmask8 k, __m512i a);</pre>
+		<pre>VPMOVSXWD __m512i _mm512_cvtepi16_epi32(__m512i a);</pre>
+		<pre>VPMOVSXWD __m512i _mm512_mask_cvtepi16_epi32(__m512i a, __mmask16 k, __m512i b);</pre>
+		<pre>VPMOVSXWD __m512i _mm512_maskz_cvtepi16_epi32(__mmask16 k, __m512i a);</pre>
+		<pre>VPMOVSXWQ __m512i _mm512_cvtepi16_epi64(__m512i a);</pre>
+		<pre>VPMOVSXWQ __m512i _mm512_mask_cvtepi16_epi64(__m512i a, __mmask8 k, __m512i b);</pre>
+		<pre>VPMOVSXWQ __m512i _mm512_maskz_cvtepi16_epi64( __mmask8 k, __m512i a);</pre>
+		<pre>VPMOVSXBW __m256i _mm256_cvtepi8_epi16(__m256i a);</pre>
+		<pre>VPMOVSXBW __m256i _mm256_mask_cvtepi8_epi16(__m256i a, __mmask16 k, __m256i b);</pre>
+		<pre>VPMOVSXBW __m256i _mm256_maskz_cvtepi8_epi16( __mmask16 k, __m256i b);</pre>
+		<pre>VPMOVSXBD __m256i _mm256_cvtepi8_epi32(__m256i a);</pre>
+		<pre>VPMOVSXBD __m256i _mm256_mask_cvtepi8_epi32(__m256i a, __mmask8 k, __m256i b);</pre>
+		<pre>VPMOVSXBD __m256i _mm256_maskz_cvtepi8_epi32( __mmask8 k, __m256i b);</pre>
+		<pre>VPMOVSXBQ __m256i _mm256_cvtepi8_epi64(__m256i a);</pre>
+		<pre>VPMOVSXBQ __m256i _mm256_mask_cvtepi8_epi64(__m256i a, __mmask8 k, __m256i b);</pre>
+		<pre>VPMOVSXBQ __m256i _mm256_maskz_cvtepi8_epi64( __mmask8 k, __m256i a);</pre>
+		<pre>VPMOVSXDQ __m256i _mm256_cvtepi32_epi64(__m256i a);</pre>
+		<pre>VPMOVSXDQ __m256i _mm256_mask_cvtepi32_epi64(__m256i a, __mmask8 k, __m256i b);</pre>
+		<pre>VPMOVSXDQ __m256i _mm256_maskz_cvtepi32_epi64( __mmask8 k, __m256i a);</pre>
+		<pre>VPMOVSXWD __m256i _mm256_cvtepi16_epi32(__m256i a);</pre>
+		<pre>VPMOVSXWD __m256i _mm256_mask_cvtepi16_epi32(__m256i a, __mmask16 k, __m256i b);</pre>
+		<pre>VPMOVSXWD __m256i _mm256_maskz_cvtepi16_epi32(__mmask16 k, __m256i a);</pre>
+		<pre>VPMOVSXWQ __m256i _mm256_cvtepi16_epi64(__m256i a);</pre>
+		<pre>VPMOVSXWQ __m256i _mm256_mask_cvtepi16_epi64(__m256i a, __mmask8 k, __m256i b);</pre>
+		<pre>VPMOVSXWQ __m256i _mm256_maskz_cvtepi16_epi64( __mmask8 k, __m256i a);</pre>
+		<pre>VPMOVSXBW __m128i _mm_mask_cvtepi8_epi16(__m128i a, __mmask8 k, __m128i b);</pre>
+		<pre>VPMOVSXBW __m128i _mm_maskz_cvtepi8_epi16( __mmask8 k, __m128i b);</pre>
+		<pre>VPMOVSXBD __m128i _mm_mask_cvtepi8_epi32(__m128i a, __mmask8 k, __m128i b);</pre>
+		<pre>VPMOVSXBD __m128i _mm_maskz_cvtepi8_epi32( __mmask8 k, __m128i b);</pre>
+		<pre>VPMOVSXBQ __m128i _mm_mask_cvtepi8_epi64(__m128i a, __mmask8 k, __m128i b);</pre>
+		<pre>VPMOVSXBQ __m128i _mm_maskz_cvtepi8_epi64( __mmask8 k, __m128i a);</pre>
+		<pre>VPMOVSXDQ __m128i _mm_mask_cvtepi32_epi64(__m128i a, __mmask8 k, __m128i b);</pre>
+		<pre>VPMOVSXDQ __m128i _mm_maskz_cvtepi32_epi64( __mmask8 k, __m128i a);</pre>
+		<pre>VPMOVSXWD __m128i _mm_mask_cvtepi16_epi32(__m128i a, __mmask16 k, __m128i b);</pre>
+		<pre>VPMOVSXWD __m128i _mm_maskz_cvtepi16_epi32(__mmask16 k, __m128i a);</pre>
+		<pre>VPMOVSXWQ __m128i _mm_mask_cvtepi16_epi64(__m128i a, __mmask8 k, __m128i b);</pre>
+		<pre>VPMOVSXWQ __m128i _mm_maskz_cvtepi16_epi64( __mmask8 k, __m128i a);</pre>
+		<pre>PMOVSXBW __m128i _mm_ cvtepi8_epi16 ( __m128i a);</pre>
+		<pre>PMOVSXBD __m128i _mm_ cvtepi8_epi32 ( __m128i a);</pre>
+		<pre>PMOVSXBQ __m128i _mm_ cvtepi8_epi64 ( __m128i a);</pre>
+		<pre>PMOVSXWD __m128i _mm_ cvtepi16_epi32 ( __m128i a);</pre>
+		<pre>PMOVSXWQ __m128i _mm_ cvtepi16_epi64 ( __m128i a);</pre>
+		<pre>PMOVSXDQ __m128i _mm_ cvtepi32_epi64 ( __m128i a);</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>非 EVEX 编码指令，请参阅表 2-22，“第 5 类异常条件”。</p>
+		<p>EVEX 编码指令，请参阅表 2-51，“第 E5 类异常条件”。</p>
+		<p>此外：</p>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果 VEX.vvvv != 1111B，或 EVEX.vvvv != 1111B。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

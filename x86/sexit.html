@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>GETSEC[SEXIT] — 退出度量环境</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>GETSEC[SEXIT] — 退出度量环境</h1>
+
+		<table>
+			<tr>
+				<th>操作码</th>
+				<th>指令</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F 37 (EAX=5)</td>
+				<td>GETSEC[SEXIT]</td>
+				<td>退出度量环境。</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>GETSEC[SEXIT] 指令发起退出由 GETSEC[SENTER] 建立的度量环境。在执行时将 EAX 设置为 5 来选择 GETSEC 的 SEXIT 叶函数。该指令叶函数向平台中的所有逻辑处理器发送消息，以发出退出度量环境的信号。</p>
+		<p>处理器对执行 GETSEC[SEXIT] 指令强制执行一些限制：</p>
+		<ul>
+			<li>除非处理器处于保护模式 (CR0.PE = 1) 且 CPL = 0 且 EFLAGS.VM = 0，否则不允许执行。</li>
+			<li>处理器必须处于由先前的 GETSEC[SENTER] 指令启动的度量环境中，但不能仍处于已认证代码执行模式。</li>
+			<li>为了避免模式之间潜在的互操作性冲突，如果处理器当前处于 SMM 或 VMX 操作中，则不允许执行此指令。</li>
+			<li>为了确保一致地处理 SIPI 消息，执行 GETSEC[SEXIT] 指令的处理器还必须被指定为寄存器位 IA32_APIC_BASE.BSP（第 8 位）所定义的 BSP（自举处理器）。</li>
+		</ul>
+		<p>如果不遵守上述条件，将导致处理器发出通用保护违规信号。</p>
+		<p>该指令启动一个将会合 RLP 与 ILP 同步的序列。然后，它清除指示处理器正在度量环境中运行的内部处理器标志。</p>
+		<p>作为对表示会合完成的消息的响应，所有 RLP 均使用在识别出 GETSEC[SEXIT] 时将要执行的指令重新开始执行。这适用于所有处理器状态，但以下情况除外：</p>
+		<ul>
+			<li>如果某个 RLP 执行了 HLT 并且在 GETSEC[SEXIT] 发起消息时处于此挂起（halt）状态，则在挂起状态下恢复执行。</li>
+			<li>如果某个 RLP 正在执行 MWAIT，则由 GETSEC[SEXIT] 发起的消息会导致退出 MWAIT 状态，并落入下一条指令。</li>
+			<li>如果某个 RLP 正在执行字符串指令的中间迭代，则处理器在识别出由 GETSEC[SEXIT] 发起的消息的位置恢复执行该字符串指令。</li>
+			<li>如果某个 RLP 仍处于 SENTER 休眠状态（从未被 GETSEC[WAKEUP] 唤醒），则在首先清除自举处理器指示标志 (IA32_APIC_BASE.BSP) 和任何挂起的 SIPI 状态后，它将被送至等待-SIPI（wait-for-SIPI）状态。在这种情况下，此类 RLP 被初始化为与使用 INIT# 引脚进行软复位一致的架构状态。</li>
+		</ul>
+		<p>在完成 GETSEC[SEXIT] 操作之前，ILP 和任何活动的 RLP 均解除对外部事件信号 INIT#、A20M、NMI# 和 SMI# 的响应屏蔽。该解除屏蔽是无条件执行的，以识别在 GETSEC[SENTER] 之后被屏蔽的引脚事件。A20M 的状态被解除屏蔽，因为在度量环境处于活动状态时无法识别 A20M 引脚。</p>
+		<p>成功退出度量环境后，ILP 会重新锁定支持 Intel® TXT 芯片组的私有配置空间。GETSEC[SEXIT] 不会影响任何 PCR 的内容。</p>
+		<p>在 ILP 完成 GETSEC[SEXIT] 时，执行将转到下一条指令。由于此指令不修改 EFLAGS 和调试寄存器状态，因此如果先前启用了挂起的陷阱条件，则可以自由发出信号。</p>
+
+		<h2 id="operation-in-a-uni-processor-platform">单处理器平台中的操作<a class="anchor" href="#operation-in-a-uni-processor-platform">¶</a></h2>
+		<p><strong>GETSEC[SEXIT]（仅限 ILP）：</strong></p>
+		<p>IF (CR4.SMXE=0)</p>
+		<p>THEN #UD;</p>
+		<p>ELSE IF (in VMX non-root operation)</p>
+		<p>THEN VM Exit (reason=”GETSEC instruction”);</p>
+		<p>ELSE IF (GETSEC leaf unsupported)</p>
+		<p>THEN #UD;</p>
+		<p>ELSE IF ((in VMX root operation) or</p>
+		<p>(CR0.PE=0) or (CPL&gt;0) or (EFLAGS.VM=1) or</p>
+		<p>(IA32_APIC_BASE.BSP=0) or</p>
+		<p>(TXT chipset not present) or</p>
+		<p>(SENTERFLAG=0) or (ACMODEFLAG=1) or (IN_SMM=1))</p>
+		<p>THEN #GP(0);</p>
+		<p>SignalTXTMsg(SEXIT);</p>
+		<p>DO</p>
+		<p>WHILE (no SignalSEXIT message);</p>
+		<p><strong>TXT_SEXIT_MSG_EVENT (ILP &amp; RLP):</strong></p>
+		<p>Mask and clear SignalSEXIT event;</p>
+		<p>Clear MONITOR FSM;</p>
+		<p>Unmask SignalSENTER event;</p>
+		<p>IF (in VMX operation)</p>
+		<p>THEN TXT-SHUTDOWN(#IllegalEvent);</p>
+		<p>SignalTXTMsg(SEXITAck);</p>
+		<p>IF (logical processor is not ILP)</p>
+		<p>THEN GOTO RLP_SEXIT_ROUTINE;</p>
+		<p>(* ILP 等待所有逻辑处理器发出 ACK *)</p>
+		<p>DO</p>
+		<p>DONE := READ(LT.STS);</p>
+		<p>WHILE (NOT DONE);</p>
+		<p>SignalTXTMsg(SEXITContinue);</p>
+		<p>SignalTXTMsg(ClosePrivate);</p>
+		<p>SENTERFLAG := 0;</p>
+		<p>Unmask SMI, INIT, A20M, and NMI external pin events;</p>
+		<p>END;</p>
+		<p><strong>RLP_SEXIT_ROUTINE（仅限 RLP）：</strong></p>
+		<p>Wait for SignalSEXITContinue message;</p>
+		<p>Unmask SMI, INIT, A20M, and NMI external pin events;</p>
+		<p>IF (prior execution state = HLT)</p>
+		<p>THEN reenter HLT state;</p>
+		<p>IF (prior execution state = SENTER sleep)</p>
+		<p>THEN</p>
+		<p>IA32_APIC_BASE.BSP := 0;</p>
+		<p>Clear pending SIPI state;</p>
+		<p>Call INIT_PROCESSOR_STATE;</p>
+		<p>Unmask SIPI event;</p>
+		<p>GOTO WAIT-FOR-SIPI;</p>
+		<p>FI;</p>
+		<p>END;</p>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>ILP：无。</p>
+		<p>RLP：对于返回等待-SIPI 状态的 RLP，所有标志都被修改，否则无。</p>
+
+		<h2 id="use-of-prefixes">前缀的使用<a class="anchor" href="#use-of-prefixes">¶</a></h2>
+		<p>LOCK 导致 #UD。</p>
+		<p>REP* 导致 #UD（包括 REPNE/REPNZ 和 REP/REPE/REPZ）。</p>
+		<p>操作数大小导致 #UD。</p>
+		<p>不允许使用 NP 66/F2/F3 前缀。</p>
+		<p>段重写被忽略。</p>
+		<p>地址大小被忽略。</p>
+		<p>REX 被忽略。</p>
+
+		<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 CR4.SMXE = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 GETSEC[SEXIT] 未报告支持 GETSEC[SEXIT]。</td>
+			</tr>
+			<tr>
+				<td rowspan="6">#GP(0)</td>
+				<td>如果 CR0.PE = 0 或 CPL &gt; 0 或 EFLAGS.VM = 1。</td>
+			</tr>
+			<tr>
+				<td>如果处于 VMX 根操作中。</td>
+			</tr>
+			<tr>
+				<td>如果发起处理器未通过 MSR 位 IA32_APIC_BASE.BSP 指定。</td>
+			</tr>
+			<tr>
+				<td>如果不存在支持 Intel® TXT 的芯片组。</td>
+			</tr>
+			<tr>
+				<td>如果保护分区尚未激活或处理器已处于已认证代码模式。</td>
+			</tr>
+			<tr>
+				<td>如果处理器处于 SMM 中。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 CR4.SMXE = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 GETSEC[SEXIT] 未报告支持 GETSEC[SEXIT]。</td>
+			</tr>
+			<tr>
+				<td>#GP(0)</td>
+				<td>GETSEC[SEXIT] 在实地址模式下无法识别。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 CR4.SMXE = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 GETSEC[SEXIT] 未报告支持 GETSEC[SEXIT]。</td>
+			</tr>
+			<tr>
+				<td>#GP(0)</td>
+				<td>GETSEC[SEXIT] 在虚拟-8086 模式下无法识别。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>所有保护模式异常均适用。</p>
+
+		<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<p>所有保护模式异常均适用。</p>
+		<table>
+			<tr>
+				<td>#GP</td>
+				<td>如果 AC 代码模块不在低于 2^32 - 1 的物理地址中。</td>
+			</tr>
+		</table>
+
+		<h2 id="vm-exit-condition">VM-Exit 条件<a class="anchor" href="#vm-exit-condition">¶</a></h2>
+		<p>原因 (GETSEC) 如果处于 VMX 非根操作中。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VEXTRACTF128/VEXTRACTF32x4/VEXTRACTF64x2/VEXTRACTF32x8/VEXTRACTF64x4 — 提取打包浮点值</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VEXTRACTF128/VEXTRACTF32x4/VEXTRACTF64x2/VEXTRACTF32x8/VEXTRACTF64x4 — 提取打包浮点值</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F3A.W0 19 /r ib VEXTRACTF128 xmm1/m128, ymm2, imm8</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>从 ymm2 提取 128 位打包浮点值并将结果存储在 xmm1/m128 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F3A.W0 19 /r ib VEXTRACTF32X4 xmm1/m128 {k1}{z}, ymm2, imm8</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>在写掩码 k1 的控制下，从 ymm2 提取 128 位打包单精度浮点值并将结果存储在 xmm1/m128 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F3A.W0 19 /r ib VEXTRACTF32x4 xmm1/m128 {k1}{z}, zmm2, imm8</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>在写掩码 k1 的控制下，从 zmm2 提取 128 位打包单精度浮点值并将结果存储在 xmm1/m128 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F3A.W1 19 /r ib VEXTRACTF64X2 xmm1/m128 {k1}{z}, ymm2, imm8</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512DQ</td>
+				<td>在写掩码 k1 的控制下，从 ymm2 提取 128 位打包双精度浮点值并将结果存储在 xmm1/m128 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F3A.W1 19 /r ib VEXTRACTF64X2 xmm1/m128 {k1}{z}, zmm2, imm8</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512DQ</td>
+				<td>在写掩码 k1 的控制下，从 zmm2 提取 128 位打包双精度浮点值并将结果存储在 xmm1/m128 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F3A.W0 1B /r ib VEXTRACTF32X8 ymm1/m256 {k1}{z}, zmm2, imm8</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512DQ</td>
+				<td>在写掩码 k1 的控制下，从 zmm2 提取 256 位打包单精度浮点值并将结果存储在 ymm1/m256 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F3A.W1 1B /r ib VEXTRACTF64x4 ymm1/m256 {k1}{z}, zmm2, imm8</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>在写掩码 k1 的控制下，从 zmm2 提取 256 位打包双精度浮点值并将结果存储在 ymm1/m256 中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:r/m (w)</td>
+				<td>ModRM:reg (r)</td>
+				<td>imm8</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>Tuple2</td>
+				<td>ModRM:r/m (w)</td>
+				<td>ModRM:reg (r)</td>
+				<td>imm8</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>C</td>
+				<td>Tuple4</td>
+				<td>ModRM:r/m (w)</td>
+				<td>ModRM:reg (r)</td>
+				<td>imm8</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>D</td>
+				<td>Tuple8</td>
+				<td>ModRM:r/m (w)</td>
+				<td>ModRM:reg (r)</td>
+				<td>imm8</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>VEXTRACTF128/VEXTRACTF32x4 和 VEXTRACTF64x2 从源操作数（第二个操作数）中提取 128 位单精度浮点值，并存储到目的操作数（第一个操作数）的低 128 位中。128 位数据提取发生在由作为乘数的 imm8[0]（256 位）或 imm8[1:0] 指定的 128 位粒度偏移处。目的操作数可以是向量寄存器或 128 位内存位置。</p>
+		<p>VEXTRACTF32x4：目的操作数的低 128 位根据写掩码以 32 位粒度更新。</p>
+		<p>VEXTRACTF32x8 和 VEXTRACTF64x4 从源操作数（第二个操作数）中提取 256 位双精度浮点值，并存储到目的操作数（第一个操作数）的低 256 位中。256 位数据提取发生在由作为乘数的 imm8[0]（256 位）或 imm8[0] 指定的 256 位粒度偏移处。目的操作数可以是向量寄存器或 256 位内存位置。</p>
+		<p>VEXTRACTF64x4：目的操作数的低 256 位根据写掩码以 64 位粒度更新。</p>
+		<p>VEX.vvvv 和 EVEX.vvvv 保留且必须为 1111b，否则指令将产生 #UD。</p>
+		<p>立即数的高 6 位被忽略。</p>
+		<p>如果 VEXTRACTF128 使用 VEX.L= 0 编码，尝试执行使用 VEX.L= 0 编码的指令将导致 #UD 异常。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vextractf32x4--evex-encoded-versions--when-destination-is-a-register">VEXTRACTF32x4 (EVEX 编码版本) 当目的操作数为寄存器时<a class="anchor" href="#vextractf32x4--evex-encoded-versions--when-destination-is-a-register">¶</a></h3>
+		<pre>VL = 256, 512
+IF VL = 256
+    CASE (imm8[0]) OF
+        0: TMP_DEST[127:0] := SRC1[127:0]
+        1: TMP_DEST[127:0] := SRC1[255:128]
+    ESAC.
+FI;
+IF VL = 512
+    CASE (imm8[1:0]) OF
+        00: TMP_DEST[127:0] := SRC1[127:0]
+        01: TMP_DEST[127:0] := SRC1[255:128]
+        10: TMP_DEST[127:0] := SRC1[383:256]
+        11: TMP_DEST[127:0] := SRC1[511:384]
+    ESAC.
+FI;
+FOR j := 0 TO 3
+    i := j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i] := TMP_DEST[i+31:i]
+        ELSE
+            IF *merging-masking*
+                        ; merging-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE *zeroing-masking*
+                            ; zeroing-masking
+                    DEST[i+31:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:128] := 0
+</pre>
+
+		<h3 id="vextractf32x4--evex-encoded-versions--when-destination-is-memory">VEXTRACTF32x4 (EVEX 编码版本) 当目的操作数为内存时<a class="anchor" href="#vextractf32x4--evex-encoded-versions--when-destination-is-memory">¶</a></h3>
+		<pre>VL = 256, 512
+IF VL = 256
+    CASE (imm8[0]) OF
+        0: TMP_DEST[127:0] := SRC1[127:0]
+        1: TMP_DEST[127:0] := SRC1[255:128]
+    ESAC.
+FI;
+IF VL = 512
+    CASE (imm8[1:0]) OF
+        00: TMP_DEST[127:0] := SRC1[127:0]
+        01: TMP_DEST[127:0] := SRC1[255:128]
+        10: TMP_DEST[127:0] := SRC1[383:256]
+        11: TMP_DEST[127:0] := SRC1[511:384]
+    ESAC.
+FI;
+FOR j := 0 TO 3
+    i := j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i] := TMP_DEST[i+31:i]
+        ELSE *DEST[i+31:i] remains unchanged* ; merging-masking
+    FI;
+ENDFOR
+</pre>
+
+		<h3 id="vextractf64x2--evex-encoded-versions--when-destination-is-a-register">VEXTRACTF64x2 (EVEX 编码版本) 当目的操作数为寄存器时<a class="anchor" href="#vextractf64x2--evex-encoded-versions--when-destination-is-a-register">¶</a></h3>
+		<pre>VL = 256, 512
+IF VL = 256
+    CASE (imm8[0]) OF
+        0: TMP_DEST[127:0] := SRC1[127:0]
+        1: TMP_DEST[127:0] := SRC1[255:128]
+    ESAC.
+FI;
+IF VL = 512
+    CASE (imm8[1:0]) OF
+        00: TMP_DEST[127:0] := SRC1[127:0]
+        01: TMP_DEST[127:0] := SRC1[255:128]
+        10: TMP_DEST[127:0] := SRC1[383:256]
+        11: TMP_DEST[127:0] := SRC1[511:384]
+    ESAC.
+FI;
+FOR j := 0 TO 1
+    i := j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i] := TMP_DEST[i+63:i]
+        ELSE
+            IF *merging-masking*
+                        ; merging-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing-masking*
+                            ; zeroing-masking
+                    DEST[i+63:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:128] := 0
+</pre>
+
+		<h3 id="vextractf64x2--evex-encoded-versions--when-destination-is-memory">VEXTRACTF64x2 (EVEX 编码版本) 当目的操作数为内存时<a class="anchor" href="#vextractf64x2--evex-encoded-versions--when-destination-is-memory">¶</a></h3>
+		<pre>VL = 256, 512
+IF VL = 256
+    CASE (imm8[0]) OF
+        0: TMP_DEST[127:0] := SRC1[127:0]
+        1: TMP_DEST[127:0] := SRC1[255:128]
+    ESAC.
+FI;
+IF VL = 512
+    CASE (imm8[1:0]) OF
+        00: TMP_DEST[127:0] := SRC1[127:0]
+        01: TMP_DEST[127:0] := SRC1[255:128]
+        10: TMP_DEST[127:0] := SRC1[383:256]
+        11: TMP_DEST[127:0] := SRC1[511:384]
+    ESAC.
+FI;
+FOR j := 0 TO 1
+    i := j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i] := TMP_DEST[i+63:i]
+        ELSE *DEST[i+63:i] remains unchanged*
+            ; merging-masking
+    FI;
+ENDFOR
+</pre>
+
+		<h3 id="vextractf32x8--evex-u1-512-encoded-version--when-destination-is-a-register">VEXTRACTF32x8 (EVEX.U1.512 编码版本) 当目的操作数为寄存器时<a class="anchor" href="#vextractf32x8--evex-u1-512-encoded-version--when-destination-is-a-register">¶</a></h3>
+		<pre>VL = 512
+CASE (imm8[0]) OF
+    0: TMP_DEST[255:0] := SRC1[255:0]
+    1: TMP_DEST[255:0] := SRC1[511:256]
+ESAC.
+FOR j := 0 TO 7
+    i := j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i] := TMP_DEST[i+31:i]
+        ELSE
+            IF *merging-masking*
+                        ; merging-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE *zeroing-masking*
+                            ; zeroing-masking
+                    DEST[i+31:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:256] := 0
+</pre>
+
+		<h3 id="vextractf32x8--evex-u1-512-encoded-version--when-destination-is-memory">VEXTRACTF32x8 (EVEX.U1.512 编码版本) 当目的操作数为内存时<a class="anchor" href="#vextractf32x8--evex-u1-512-encoded-version--when-destination-is-memory">¶</a></h3>
+		<pre>CASE (imm8[0]) OF
+    0: TMP_DEST[255:0] := SRC1[255:0]
+    1: TMP_DEST[255:0] := SRC1[511:256]
+ESAC.
+FOR j := 0 TO 7
+    i := j * 32
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+31:i] := TMP_DEST[i+31:i]
+        ELSE *DEST[i+31:i] remains unchanged*
+            ; merging-masking
+    FI;
+ENDFOR
+</pre>
+
+		<h3 id="vextractf64x4--evex-512-encoded-version--when-destination-is-a-register">VEXTRACTF64x4 (EVEX.512 编码版本) 当目的操作数为寄存器时<a class="anchor" href="#vextractf64x4--evex-512-encoded-version--when-destination-is-a-register">¶</a></h3>
+		<pre>VL = 512
+CASE (imm8[0]) OF
+    0: TMP_DEST[255:0] := SRC1[255:0]
+    1: TMP_DEST[255:0] := SRC1[511:256]
+ESAC.
+FOR j := 0 TO 3
+    i := j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i] := TMP_DEST[i+63:i]
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing-masking*
+                        ; zeroing-masking
+                    DEST[i+63:i] := 0
+            FI
+    FI;
+ENDFOR
+DEST[MAXVL-1:256] := 0
+</pre>
+
+		<h3 id="vextractf64x4--evex-512-encoded-version--when-destination-is-memory">VEXTRACTF64x4 (EVEX.512 编码版本) 当目的操作数为内存时<a class="anchor" href="#vextractf64x4--evex-512-encoded-version--when-destination-is-memory">¶</a></h3>
+		<pre>CASE (imm8[0]) OF
+    0: TMP_DEST[255:0] := SRC1[255:0]
+    1: TMP_DEST[255:0] := SRC1[511:256]
+ESAC.
+FOR j := 0 TO 3
+    i := j * 64
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+63:i] := TMP_DEST[i+63:i]
+        ELSE ; merging-masking
+            *DEST[i+63:i] remains unchanged*
+    FI;
+ENDFOR
+</pre>
+
+		<h3 id="vextractf128--memory-destination-form-">VEXTRACTF128 (内存目的形式)<a class="anchor" href="#vextractf128--memory-destination-form-">¶</a></h3>
+		<pre>CASE (imm8[0]) OF
+    0: DEST[127:0] := SRC1[127:0]
+    1: DEST[127:0] := SRC1[255:128]
+ESAC.
+</pre>
+
+		<h3 id="vextractf128--register-destination-form-">VEXTRACTF128 (寄存器目的形式)<a class="anchor" href="#vextractf128--register-destination-form-">¶</a></h3>
+		<pre>CASE (imm8[0]) OF
+    0: DEST[127:0] := SRC1[127:0]
+    1: DEST[127:0] := SRC1[255:128]
+ESAC.
+DEST[MAXVL-1:128] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VEXTRACTF32x4 __m128 _mm512_extractf32x4_ps(__m512 a, const int nidx);
+</pre>
+		<pre>VEXTRACTF32x4 __m128 _mm512_mask_extractf32x4_ps(__m128 s, __mmask8 k, __m512 a, const int nidx);
+</pre>
+		<pre>VEXTRACTF32x4 __m128 _mm512_maskz_extractf32x4_ps( __mmask8 k, __m512 a, const int nidx);
+</pre>
+		<pre>VEXTRACTF32x4 __m128 _mm256_extractf32x4_ps(__m256 a, const int nidx);
+</pre>
+		<pre>VEXTRACTF32x4 __m128 _mm256_mask_extractf32x4_ps(__m128 s, __mmask8 k, __m256 a, const int nidx);
+</pre>
+		<pre>VEXTRACTF32x4 __m128 _mm256_maskz_extractf32x4_ps( __mmask8 k, __m256 a, const int nidx);
+</pre>
+		<pre>VEXTRACTF32x8 __m256 _mm512_extractf32x8_ps(__m512 a, const int nidx);
+</pre>
+		<pre>VEXTRACTF32x8 __m256 _mm512_mask_extractf32x8_ps(__m256 s, __mmask8 k, __m512 a, const int nidx);
+</pre>
+		<pre>VEXTRACTF32x8 __m256 _mm512_maskz_extractf32x8_ps( __mmask8 k, __m512 a, const int nidx);
+</pre>
+		<pre>VEXTRACTF64x2 __m128d _mm512_extractf64x2_pd(__m512d a, const int nidx);
+</pre>
+		<pre>VEXTRACTF64x2 __m128d _mm512_mask_extractf64x2_pd(__m128d s, __mmask8 k, __m512d a, const int nidx);
+</pre>
+		<pre>VEXTRACTF64x2 __m128d _mm512_maskz_extractf64x2_pd( __mmask8 k, __m512d a, const int nidx);
+</pre>
+		<pre>VEXTRACTF64x2 __m128d _mm256_extractf64x2_pd(__m256d a, const int nidx);
+</pre>
+		<pre>VEXTRACTF64x2 __m128d _mm256_mask_extractf64x2_pd(__m128d s, __mmask8 k, __m256d a, const int nidx);
+</pre>
+		<pre>VEXTRACTF64x2 __m128d _mm256_maskz_extractf64x2_pd( __mmask8 k, __m256d a, const int nidx);
+</pre>
+		<pre>VEXTRACTF64x4 __m256d _mm512_extractf64x4_pd( __m512d a, const int nidx);
+</pre>
+		<pre>VEXTRACTF64x4 __m256d _mm512_mask_extractf64x4_pd(__m256d s, __mmask8 k, __m512d a, const int nidx);
+</pre>
+		<pre>VEXTRACTF64x4 __m256d _mm512_maskz_extractf64x4_pd( __mmask8 k, __m512d a, const int nidx);
+</pre>
+		<pre>VEXTRACTF128 __m128 _mm256_extractf128_ps (__m256 a, int offset);
+</pre>
+		<pre>VEXTRACTF128 __m128d _mm256_extractf128_pd (__m256d a, int offset);
+</pre>
+		<pre>VEXTRACTF128 __m128i_mm256_extractf128_si256(__m256i a, int offset);
+</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>VEX 编码指令，请参阅表 2-23，“第 6 类异常条件”。</p>
+		<p>EVEX 编码指令，请参阅表 2-54，“第 E6NF 类异常条件”。</p>
+		<p>此外：</p>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>如果 VEX.L = 0。</td>
+			</tr>
+			<tr>
+				<td>#UD</td>
+				<td>如果 VEX.vvvv != 1111B 或 EVEX.vvvv != 1111B。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

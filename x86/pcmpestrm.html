@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>PCMPESTRM — 比较打包显式长度字符串，返回掩码</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>PCMPESTRM — 比较打包显式长度字符串，返回掩码</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>66 0F 3A 60 /r imm8 PCMPESTRM xmm1, xmm2/m128, imm8</td>
+				<td>RMI</td>
+				<td>V/V</td>
+				<td>SSE4_2</td>
+				<td>对显式长度的字符串数据进行打包比较，生成一个掩码，并将结果存储在 XMM0 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F3A 60 /r ib VPCMPESTRM xmm1, xmm2/m128, imm8</td>
+				<td>RMI</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>对显式长度的字符串数据进行打包比较，生成一个掩码，并将结果存储在 XMM0 中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>RMI</td>
+				<td>ModRM:reg (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>imm8</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>此指令根据 imm8 控制字节中的编码值（请参阅第 4.1 节，“PCMPESTRI / PCMPESTRM / PCMPISTRI / PCMPISTRM 的 imm8 控制字节操作”）比较来自两个字符串片段的数据，并生成存储到 XMM0 的掩码。</p>
+		<p>每个字符串片段由两个值表示。第一个值是 xmm（对于第二个操作数，可能是 m128），包含字符串的数据元素（字节或字数据）。第二个值存储在输入长度寄存器中。输入长度寄存器是 EAX/RAX（针对 xmm1）或 EDX/RDX（针对 xmm2/m128）。该长度表示对应 xmm/m128 数据中有效的字节/字数。</p>
+		<p>每个输入的长度被解释为长度寄存器中值的绝对值。当长度寄存器中的值大于 16 (8) 或小于 -16 (-8) 时，根据 imm8[bit3] 的值，绝对值计算饱和到 16（对于字节）和 8（对于字）。</p>
+		<p>根据 imm8 位字段 of 编码值（见第 4.1 节）执行比较和聚合操作。如 imm8[6] 所定义，接着将 IntRes2 存储到 XMM0 的最低有效位（零扩展到 128 位），或者展开成字节/字掩码然后存储到 XMM0 中。</p>
+		<p>注意，写入算术标志位的方式是非标准的，以便提供最相关的信息：</p>
+		<p>CFlag – 如果 IntRes2 等于零则重置，否则置位</p>
+		<p>ZFlag – 如果 EDX 的绝对值 &lt; 16 (8) 则置位，否则重置</p>
+		<p>SFlag – 如果 EAX 的绝对值 &lt; 16 (8) 则置位，否则重置</p>
+		<p>OFlag – IntRes2[0]</p>
+		<p>AFlag – 重置</p>
+		<p>PFlag – 重置</p>
+		<p>注意：在 VEX.128 编码版本中，XMM0 的位（MAXVL-1:128）清零。VEX.vvvv 是保留的，必须为 1111b，VEX.L 必须为 0，否则指令将导致 #UD。</p>
+
+		<h2 id="effective-operand-size">有效操作数大小<a class="anchor" href="#effective-operand-size">¶</a></h2>
+		<table>
+			<tr>
+				<th>操作模式/大小</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>长度 1</th>
+				<th>长度 2</th>
+				<th>结果</th>
+			</tr>
+			<tr>
+				<td>16 位</td>
+				<td>xmm</td>
+				<td>xmm/m128</td>
+				<td>EAX</td>
+				<td>EDX</td>
+				<td>XMM0</td>
+			</tr>
+			<tr>
+				<td>32 位</td>
+				<td>xmm</td>
+				<td>xmm/m128</td>
+				<td>EAX</td>
+				<td>EDX</td>
+				<td>XMM0</td>
+			</tr>
+			<tr>
+				<td>64 位</td>
+				<td>xmm</td>
+				<td>xmm/m128</td>
+				<td>EAX</td>
+				<td>EDX</td>
+				<td>XMM0</td>
+			</tr>
+			<tr>
+				<td>64 位 + REX.W</td>
+				<td>xmm</td>
+				<td>xmm/m128</td>
+				<td>RAX</td>
+				<td>RDX</td>
+				<td>XMM0</td>
+			</tr>
+		</table>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent-for-returning-mask">用于返回掩码的 Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent-for-returning-mask">¶</a></h2>
+		<p>__m128i _mm_cmpestrm (__m128i a, int la, __m128i b, int lb, const int mode);</p>
+		<h2 id="intel-c-c++-compiler-intrinsics-for-reading-eflag-results">用于读取 EFlag 结果的 Intel C/C++ 编译器内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsics-for-reading-eflag-results">¶</a></h2>
+		<p>int _mm_cmpestra (__m128i a, int la, __m128i b, int lb, const int mode);</p>
+		<p>int _mm_cmpestrc (__m128i a, int la, __m128i b, int lb, const int mode);</p>
+		<p>int _mm_cmpestro (__m128i a, int la, __m128i b, int lb, const int mode);</p>
+		<p>int _mm_cmpestrs (__m128i a, int la, __m128i b, int lb, const int mode);</p>
+		<p>int _mm_cmpestrz (__m128i a, int la, __m128i b, int lb, const int mode);</p>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-21，“第 4 类异常条件”，此外，如果内存操作数未对齐到 16 字节边界，此指令不会导致 #GP，并且：</p>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 VEX.L = 1。</td>
+			</tr>
+			<tr>
+				<td>如果 VEX.vvvv ≠ 1111B。</td>
+			</tr>
+		</table>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>GETSEC[SENTER] — 进入度量环境</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>GETSEC[SENTER] — 进入度量环境</h1>
+
+		<table>
+			<tr>
+				<th>操作码</th>
+				<th>指令</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F 37 (EAX=4)</td>
+				<td>GETSEC[SENTER]</td>
+				<td>启动一个度量环境。EBX 保存 SINIT 已认证代码模块的物理基地址。ECX 保存 SINIT 已认证代码模块的大小（字节）。EDX 控制度量环境启动所支持的功能级别。</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>GETSEC[SENTER] 指令启动度量环境的加载，并将发起逻辑处理器 (ILP) 置于已认证代码执行模式。在执行时将 EAX 设置为 4 来选择 GETSEC 的 SENTER 叶函数。在 EBX 中指定要加载和认证的 AC 模块的物理基地址。在 ECX 中指定该模块的大小（字节）。EDX 控制度量环境启动所支持的功能级别。要启用保护环境启动的全部功能，必须将 EDX 初始化为零。</p>
+		<p>已认证代码基地址和大小参数（以字节为单位）分别通过 EBX 和 ECX 传递给 GETSEC[SENTER] 指令。ILP 根据 GETSEC[ENTERACCS] 中 AC 模块地址的规则评估这些寄存器的内容。AC 模块执行遵循由 GETSEC[ENTERACCS] 设置的相同规则。</p>
+		<p>启动软件必须在执行 GETSEC[SENTER] 指令之前确保 TPM.ACCESS_0.activeLocality 位被清除。</p>
+		<p>处理器对执行 GETSEC[SENTER] 指令强制执行一些限制：</p>
+		<ul>
+			<li>除非处理器处于保护模式或 CPL = 0 且 EFLAGS.VM = 0 的 IA-32e 模式，否则不允许执行。</li>
+			<li>处理器缓存必须可用，且不能通过 CR0.CD 和 NW 位禁用。</li>
+			<li>为强制实施与使用中断 16 进行数值异常报告的操作一致性，必须设置 CR0.NE。</li>
+			<li>必须存在支持 Intel TXT 的芯片组，这在复位后通过采样上电配置特征字段传递给处理器。</li>
+			<li>处理器不能处于已认证代码执行模式或已处于度量环境中（如先前由 GETSEC[ENTERACCS] 或 GETSEC[SENTER] 指令启动的）。</li>
+			<li>为了避免模式之间潜在的可操作性冲突，如果处理器当前处于 SMM 或 VMX 操作中，则不允许执行此指令。</li>
+			<li>为了确保一致地处理 SIPI 消息，执行 GETSEC[SENTER] 指令的处理器还必须被指定为 IA32_APIC_BASE.BSP（第 8 位）所定义的 BSP（自举处理器）。</li>
+			<li>EDX 必须初始化为处理器可支持的设置。除非通过 GETSEC[PARAMETERS] 叶函数枚举报告其他情况，否则仅支持零值。</li>
+		</ul>
+		<p>如果不遵守上述条件，将导致处理器发出通用保护违规信号。</p>
+		<p>此指令叶函数通过为平台中的所有逻辑处理器启动会合（rendezvous）序列来开始启动度量环境。会合序列包括发起逻辑处理器发送消息（通过执行 GETSEC[SENTER]），而其他响应逻辑处理器 (RLP) 确认该消息，从而使 RLP 与 ILP 同步。</p>
+		<p>作为对表示会合完成的消息的响应，RLP 清除自举处理器指示标志 (IA32_APIC_BASE.BSP) 并进入 SENTER 休眠状态。在此休眠状态下，RLP 进入空闲处理器状态，同时等待系统执行程序建立度量环境后被激活。处于 SENTER 休眠状态的 RLP 只能由度量环境中的 GETSEC 叶函数 WAKEUP 激活。</p>
+		<p>度量环境的成功启动导致发起逻辑处理器进入已认证代码执行模式。在到达此点之前，ILP 在内部执行以下步骤：</p>
+		<ul>
+			<li>禁止处理器响应外部事件：INIT、A20M、NMI 和 SMI。</li>
+			<li>确定并检查要由 ILP 执行的已认证代码模块的位置和大小。</li>
+			<li>检查是否存在支持 Intel® TXT 的芯片组。</li>
+			<li>验证当前电源管理配置是可接受的。</li>
+			<li>广播一条消息，以启用保护内存和 I/O 免受其他处理器代理活动影响的功能。</li>
+			<li>将指定的 AC 模块加载到已认证代码执行区域中。</li>
+			<li>将已认证代码执行区域的内容隔离，使其免受外部代理的进一步状态修改。</li>
+			<li>对 AC 模块进行认证。</li>
+			<li>使用已认证代码模块的哈希值更新可信平台模块 (TPM)。</li>
+			<li>根据已认证代码模块头信息初始化处理器状态。</li>
+			<li>解锁支持 Intel® TXT 芯片组的私有配置寄存器空间和 TPM 位置 3（locality 3）空间。</li>
+			<li>在定义的入口点开始执行已认证代码模块。</li>
+		</ul>
+		<p>作为对处理器硬件正常运行的完整性检查，执行 GETSEC[SENTER] 还将检查所有机器检查状态寄存器（由 MSR IA32_MCi_STATUS 报告）的内容，以寻找任何有效的不可纠正错误条件。此外，全局机器检查状态寄存器 IA32_MCG_STATUS 的 MCIP位必须清除，且 IERR 处理器封装引脚（或其等价物）必须未断言，表示当前没有正在进行的机器检查异常处理。这些检查执行两次：一次由 ILP 在向 RLP 广播会合消息之前进行，另一次作为 RLP 对确认会合消息的响应。在第一个检查点，如果机器检查状态寄存器中存在任何未处理的有效不可纠正机器检查错误条件，将导致 ILP 发出通用保护违规信号。如果该错误条件在第二个检查点存在，将导致相应的逻辑处理器发出更严重的 TXT 关机（TXT-shutdown）信号，错误码为 12。</p>
+		<p>在执行目标代码模块的加载和认证之前，处理器还会检查当前电压和总线频率比编码是否对应于处理器支持的已知良好值。将 MSR IA32_PERF_STATUS 的值与处理器支持的最大运行目标设置、系统复位设置或热监视器运行目标进行比较。如果当前设置不符合这些标准中的任何一个，则 SENTER 函数将尝试以处理器特定的方式更改电压和总线比选择控制。该调整可能针对热监视器、最小（如果不同）或最大运行目标，具体取决于处理器。</p>
+		<p>这意味着 BIOS 配置的一些热运行目标参数可能会被 SENTER 覆盖。度量环境软件可能需要负责恢复这些被认为是安全的、但不一定被 SENTER 识别的设置。如果发现超出范围的设置且无法进行调整，则处理器将中止度量启动。这可能是因为芯片组控制这些值，或者处理器上未启用控制能力。在这种情况下，外部软件有责任在执行 SENTER 之前，将芯片组电压 ID 和/或总线比选择设置编程为处理器识别的已知良好值。</p>
+		<blockquote>
+			<p>对于移动处理器，可以根据热监视器运行目标进行调整。对于四核处理器，SENTER 调整机制可能导致更保守但非统一的电压设置，具体取决于每个核心的 pre-SENTER 设置。</p>
+		</blockquote>
+		<p>ILP 和 RLP 屏蔽对外部信号 INIT#、A20M、NMI# 和 SMI# 的断言响应。这种屏蔽控制的目的是防止暴露给现有的外部事件处理程序，直到安置了受保护的处理程序来直接处理这些事件。屏蔽的外部引脚事件可以通过 GETSEC[EXITAC]、GETSEC[SEXIT]、GETSEC[SMCTRL] 或针对特定的 VMX 相关操作（例如 VM 进入或 VMXOFF 指令）有条件或无条件地解除屏蔽（有关更多详细信息，请参阅各自的 GETSEC 叶函数以及《Intel® 64 和 IA-32 架构软件开发人员手册》第 3C 卷）。A20M 引脚的状态被屏蔽并在内部强制为未断言状态，因此无法识别外部断言。由 GETSEC[SENTER] 设置的 A20M 屏蔽仅在通过 GETSEC[SEXIT] 指令撤销度量环境或处理器复位后才会解除。INTR 通过简单地清除 EFLAGS.IF 位来屏蔽。控制处理器对 INTR 响应的责任属于系统软件，这需要通过适当管理 EFLAGS 来实现。</p>
+		<p>为了防止其他（逻辑）处理器干扰在已认证代码执行模式下运行 of ILP，来自其他处理器代理的内存（不包括隐式写回事务）和 I/O 活动将被阻止。当 ILP 进入已认证代码执行模式时，该保护启动。仅允许从 ILP 发起的内存和 I/O 事务继续进行。执行 GETSEC[EXITAC] 退出已认证代码执行模式。内存和 I/O 活动的保护将一直有效，直到 ILP 执行 GETSEC[EXITAC]。</p>
+		<p>一旦已认证代码模块被加载到已认证代码执行区域，它就会受到保护，免受外部总线窥探的进一步修改。此外，还要求已认证代码模块地址范围的内存类型为 WB（在执行该指令之前通过初始化 MTRR 设定）。如果未满足此条件，则是对安全性的违反，处理器将强制进行 TXT 系统复位（在向芯片组 LT.ERRORCODE 寄存器写入错误码之后）。该操作被称为 Intel® TXT 复位条件。当认为通过传统异常报告机制发出错误信号不可靠时，会执行此复位。</p>
+		<p>为了符合指定内存类型的 MTRR MSR 的最小粒度，以 4096 字节为粒度的块向处理器分配已认证代码 RAM (ACRAM)。如果 ECX 中指定的 AC 模块大小不是 4096 的倍数，则处理器将分配直到下一个 4096 字节边界，以作为具有不确定数据的 ACRAM 进行映射。该填充（pad）区域对于已认证代码模块作为外部内存是不可见的，也不能取决于用于填充该填充区域的数据值。</p>
+		<p>一旦 ILP 成功完成认证，计算出的哈希值将存储在平台的可信存储设施中。支持以下可信存储设施：</p>
+		<ul>
+			<li>如果平台寄存器 FTM_INTERFACE_ID.[位 3:0] = 0，则在隐式复位后，计算出的哈希值将存储在平台的 TPM 的 PCR17 中。PCR17 是用于保存由 GETSEC[SENTER] 加载并随后执行的已认证代码模块计算出的哈希值的专用寄存器。在此过程中，动态 PCR 18-22 将被复位，以便后续软件可以将其用于代码 and 数据模块的注册。</li>
+			<li>如果平台寄存器 FTM_INTERFACE_ID.[位 3:0] = 1，则使用类似于向 TPM 的 PCR17 写入的修改协议，将计算出的哈希值存储在固件可信模块 (FTM) 中。</li>
+		</ul>
+		<p>成功执行 SENTER 后，PCR17（如果未启用 FTM）或 FTM（如果已启用）包含 AC 代码的度量值以及 SENTER 启动参数。</p>
+		<p>成功完成认证后，将解锁支持 Intel® TXT 芯片组的私有配置空间，以便已认证代码模块和度量环境软件能够访问这一通常受限的芯片组状态。支持 Intel® TXT 芯片组的私有配置空间稍后可以通过软件写入芯片组 LT.CMD.CLOSE-PRIVATE 寄存器来锁定，也可以使用 GETSEC[SEXIT] 指令无条件锁定。</p>
+		<p>SENTER 叶函数还会根据已认证代码模块头部保存的内容，为 ILP 初始化某些处理器架构状态。由于已认证代码模块是可重定位的，所有地址引用均相对于通过 EBX 传入的基地址。ILP 的 GDTR 基址值被初始化为 EBX + [GDTBasePtr]，GDTR 界限被设置为 [GDTLimit]。CS 选择子被初始化为 AC 模块头字段 SegSel 中保存的值，而 DS、SS 和 ES 选择子被初始化为 CS+8。段描述符字段被隐式初始化，其 BASE=0、limit=FFFFFh、G=1、D=1、P=1、S=1，对于 DS、SS 和 ES 为读/写/已访问，而对于 CS 为执行/读/已访问。对于 ILP，已认证代码模块中的执行在 EIP 设置为 EBX + [EntryPoint] 时开始。用于初始化处理器状态的 AC 模块定义字段要进行一致性检查，如果失败将导致 TXT 关机条件。</p>
+		<p>表 7-6 总结了成功完成 GETSEC[SENTER] 后 ILP 和 RLP 的处理器状态初始化。对于 ILP 和 RLP，在进入度量环境时分页均被禁用。ILP 有责任建立一个可信的分页环境，并进行适当的映射，以满足在启动度量环境期间建立的保护要求。直到 ILP 执行 GETSEC[WAKEUP] 函数发出后续唤醒信号之前，RLP 的状态初始化才算完成。</p>
+
+		<figure id="tbl-7-6">
+			<table>
+				<tr>
+					<th>寄存器状态</th>
+					<th>GETSEC[SENTER] 之后的 ILP</th>
+					<th>GETSEC[WAKEUP] 之后的 RLP</th>
+				</tr>
+				<tr>
+					<td>CR0</td>
+					<td>PG←0, AM←0, WP←0; 其他保持不变</td>
+					<td>PG←0, CD←0, NW←0, AM←0, WP←0; PE←1, NE←1</td>
+				</tr>
+				<tr>
+					<td>CR4</td>
+					<td>00004000H</td>
+					<td>00004000H</td>
+				</tr>
+				<tr>
+					<td>EFLAGS</td>
+					<td>00000002H</td>
+					<td>00000002H</td>
+				</tr>
+				<tr>
+					<td>IA32_EFER</td>
+					<td>0H</td>
+					<td>0</td>
+				</tr>
+				<tr>
+					<td>EIP</td>
+					<td>[来自 MLE 头的 EntryPoint<sup>1</sup>]</td>
+					<td>[LT.MLE.JOIN + 12]</td>
+				</tr>
+				<tr>
+					<td>EBX</td>
+					<td>保持不变 [SINIT.BASE]</td>
+					<td>保持不变</td>
+				</tr>
+				<tr>
+					<td>EDX</td>
+					<td>SENTER 控制标志</td>
+					<td>保持不变</td>
+				</tr>
+				<tr>
+					<td>EBP</td>
+					<td>SINIT.BASE</td>
+					<td>保持不变</td>
+				</tr>
+				<tr>
+					<td>CS</td>
+					<td>Sel=[SINIT SegSel], base=0, limit=FFFFFh, G=1, D=1, AR=9BH</td>
+					<td>Sel = [LT.MLE.JOIN + 8], base = 0, limit = FFFFFH, G = 1, D = 1, AR = 9BH</td>
+				</tr>
+				<tr>
+					<td>DS, ES, SS</td>
+					<td>Sel=[SINIT SegSel] +8, base=0, limit=FFFFFh, G=1, D=1, AR=93H</td>
+					<td>Sel = [LT.MLE.JOIN + 8] +8, base = 0, limit = FFFFFH, G = 1, D = 1, AR = 93H</td>
+				</tr>
+				<tr>
+					<td>GDTR</td>
+					<td>Base= SINIT.base (EBX) + [SINIT.GDTBasePtr], Limit=[SINIT.GDTLimit]</td>
+					<td>Base = [LT.MLE.JOIN + 4], Limit = [LT.MLE.JOIN]</td>
+				</tr>
+				<tr>
+					<td>DR7</td>
+					<td>00000400H</td>
+					<td>00000400H</td>
+				</tr>
+				<tr>
+					<td>IA32_DEBUGCTL</td>
+					<td>0H</td>
+					<td>0H</td>
+				</tr>
+				<tr>
+					<td>性能计数器和计数器控制寄存器</td>
+					<td>0H</td>
+					<td>0H</td>
+				</tr>
+				<tr>
+					<td>IA32_MISC_ENABLE</td>
+					<td>见表 7-5</td>
+					<td>见表 7-5</td>
+				</tr>
+				<tr>
+					<td>IA32_SMM_MONITOR _CTL</td>
+					<td>Bit 2←0</td>
+					<td>Bit 2←0</td>
+				</tr>
+			</table>
+			<figcaption>表 7-6. GETSEC[SENTER] 和 GETSEC[WAKEUP] 之后的寄存器状态初始化</figcaption>
+		</figure>
+		<blockquote>
+			<p>1. 有关 MLE 头格式，请参阅《Intel® 可信执行技术度量启动环境编程指南》。</p>
+			<p>未被 GETSEC[SENTER] 初始化的分段相关处理器状态在使用前需要进行适当的初始化。由于已经建立了新的 GDT 上下文，FS、GS、TR 和 LDTR 中保存的段选择子值的先前状态可能不再有效。在度量环境启动之后、处理异常或外部中断 INTR 和 NMI 之前，IDTR 还需要重新加载新的 IDT 上下文。在此期间，程序员必须注意不要执行 INT n 指令或任何其他会导致产生异常或陷阱信号的条件。</p>
+			<p>调试异常和陷阱相关的信号发送也是作为执行 GETSEC[SENTER] 的一部分被禁用的。这是通过清除 DR7、EFLAGS 中的 TF 以及 MSR IA32_DEBUGCTL 来实现的，如表 7-6 中所定义。一旦在 SENTER 之后正确地重新初始化了支持的异常处理程序、描述符表和调试寄存器，就可以重新启用它们。此外，对于 ILP 和 RLP，任何挂起的单步陷阱条件都将在 SENTER 完成时被清除。</p>
+			<p>性能相关的计数器和计数器控制寄存器是作为 ILP 和 RLP 上执行 SENTER 的一部分被清除的。这意味着在执行 SENTER 时任何活动的性能计数器都将被禁用。要重新激活处理器性能计数器，必须重新初始化并重新启用该状态。</p>
+			<p>由于在执行 SENTER 处理时，CR4 中的 MCE 以及所有其他状态位（SMXE 除外）都被清除，因此发生的任何启用的机器检查错误条件都将导致处理器执行 TXT 关机操作。这同样适用于处于 SENTER 休眠状态的 RLP。对于每个逻辑处理器，必须重新建立包含有效机器检查异常处理程序的 CR4.MCE，否则在此类条件下将无法避免 TXT 关机。</p>
+		</blockquote>
+		<p>作为由 SENTER 初始化的处理器状态的一部分，ILP 和 RLP 的 MSR IA32_EFER 也会被无条件清除。由于在进入已认证代码执行模式时分页被禁用，因此如果希望在已认证代码执行模式下运行时启用 IA-32e mode，将必须重新建立新的分页环境。</p>
+		<p>杂项特性控制 MSR (IA32_MISC_ENABLE) 是作为度量环境启动的一部分进行初始化的。保留了此 MSR 的某些位，因为保留这些位可能对于维护先前建立的平台设置非常重要。参见表 7-5 的提要。其余位被清除，目的是为已认证代码模块的执行建立一个更一致的环境。初始化该 MSR 的影响包括，由 MONITOR 指令建立的任何先前条件都将被清除。</p>
+		<p><strong>MSR IA32_FEATURE_CONTROL MSR 的影响</strong></p>
+		<p>IA32_FEATURE_CONTROL MSR 的位 15:8 影响 GETSEC[SENTER] 的执行。这些位由两个字段组成：</p>
+		<ul>
+			<li>位 15：执行 SENTER 的全局启用控制。</li>
+			<li>位 14:8：参数控制字段，提供根据相应的 EDX 参数位 6:0 中指定的功能级别来限定 SENTER 执行的能力。</li>
+		</ul>
+		<p>IA32_FEATURE_CONTROL MSR 中这些字段的布局如表 7-1 所示。</p>
+		<p>在执行 GETSEC[SENTER] 之前，必须设置 IA32_FEATURE_CONTROL MSR 的锁定（lock）位，以确认要使用的设置。一旦设置了锁定位，只有上电复位条件才会清除此 MSR。必须在平台初始化时根据预期用途配置 IA32_FEATURE_CONTROL MSR。请注意，此 MSR 仅在启用 SMX 或 VMX 的处理器上可用。否则，IA32_FEATURE_CONTROL 被视为保留。</p>
+		<p>《Intel® 可信执行技术度量启动环境编程指南》提供了关于在 Intel TXT 平台中启动的度量环境软件编程的额外细节和要求。</p>
+
+		<h2 id="operation-in-a-uni-processor-platform">单处理器平台中的操作<a class="anchor" href="#operation-in-a-uni-processor-platform">¶</a></h2>
+		<p><strong>GETSEC[SENTER]（仅限 ILP）：</strong></p>
+		<p>IF (CR4.SMXE=0)</p>
+		<p>THEN #UD;</p>
+		<p>ELSE IF (in VMX non-root operation)</p>
+		<p>THEN VM Exit (reason=”GETSEC instruction”);</p>
+		<p>ELSE IF (GETSEC leaf unsupported)</p>
+		<p>THEN #UD;</p>
+		<p>ELSE IF ((in VMX root operation) or</p>
+		<p>(CR0.PE=0) or (CR0.CD=1) or (CR0.NW=1) or (CR0.NE=0) or</p>
+		<p>(CPL&gt;0) or (EFLAGS.VM=1) or</p>
+		<p>(IA32_APIC_BASE.BSP=0) or (TXT chipset not present) or</p>
+		<p>(SENTERFLAG=1) or (ACMODEFLAG=1) or (IN_SMM=1) or</p>
+		<p>(TPM interface is not present) or</p>
+		<p>(EDX ≠ (SENTER_EDX_support_mask &amp; EDX)) or</p>
+		<p>(IA32_FEATURE_CONTROL[0]=0) or (IA32_FEATURE_CONTROL[15]=0) or</p>
+		<p>((IA32_FEATURE_CONTROL[14:8] &amp; EDX[6:0]) ≠ EDX[6:0]))</p>
+		<p>THEN #GP(0);</p>
+		<p>IF (GETSEC[PARAMETERS].Parameter_Type = 5, MCA_Handling (bit 6) = 0)</p>
+		<p>FOR I = 0 to IA32_MCG_CAP.COUNT-1 DO</p>
+		<p>IF IA32_MC[I]_STATUS = uncorrectable error</p>
+		<p>THEN #GP(0);</p>
+		<p>FI;</p>
+		<p>OD;</p>
+		<p>FI;</p>
+		<p>IF (IA32_MCG_STATUS.MCIP=1) or (IERR pin is asserted)</p>
+		<p>THEN #GP(0);</p>
+		<p>ACBASE := EBX;</p>
+		<p>ACSIZE := ECX;</p>
+		<p>IF (((ACBASE MOD 4096) ≠ 0) or ((ACSIZE MOD 64) ≠ 0 ) or (ACSIZE &lt; minimum</p>
+		<p>module size) or (ACSIZE &gt; AC RAM capacity) or ((ACBASE+ACSIZE) &gt; (2^32 -1)))</p>
+		<p>THEN #GP(0);</p>
+		<p>Mask SMI, INIT, A20M, and NMI external pin events;</p>
+		<p>SignalTXTMsg(SENTER);</p>
+		<p>DO</p>
+		<p>WHILE (no SignalSENTER message);</p>
+		<p><strong>TXT_SENTER__MSG_EVENT (ILP &amp; RLP):</strong></p>
+		<p>Mask and clear SignalSENTER event;</p>
+		<p>Unmask SignalSEXIT event;</p>
+		<p>IF (in VMX operation)</p>
+		<p>THEN TXT-SHUTDOWN(#IllegalEvent);</p>
+		<p>FOR I = 0 to IA32_MCG_CAP.COUNT-1 DO</p>
+		<p>IF IA32_MC[I]_STATUS = uncorrectable error</p>
+		<p>THEN TXT-SHUTDOWN(#UnrecovMCError);</p>
+		<p>FI;</p>
+		<p>OD;</p>
+		<p>IF (IA32_MCG_STATUS.MCIP=1) or (IERR pin is asserted)</p>
+		<p>THEN TXT-SHUTDOWN(#UnrecovMCError);</p>
+		<p>IF (Voltage or bus ratio status are NOT at a known good state)</p>
+		<p>THEN IF (Voltage select and bus ratio are internally adjustable)</p>
+		<p>THEN</p>
+		<p>Make product-specific adjustment on operating parameters;</p>
+		<p>ELSE</p>
+		<p>TXT-SHUTDOWN(#IIlegalVIDBRatio);</p>
+		<p>FI;</p>
+		<p>IA32_MISC_ENABLE := (IA32_MISC_ENABLE &amp; MASK_CONST*)</p>
+		<p>(* MASK_CONST 的十六进制值可能会因处理器实现而异 *)</p>
+		<p>A20M := 0;</p>
+		<p>IA32_DEBUGCTL := 0;</p>
+		<p>Invalidate processor TLB(s);</p>
+		<p>Drain outgoing transactions;</p>
+		<p>Clear performance monitor counters and control;</p>
+		<p>SENTERFLAG := 1;</p>
+		<p>SignalTXTMsg(SENTERAck);</p>
+		<p>IF (logical processor is not ILP)</p>
+		<p>THEN GOTO RLP_SENTER_ROUTINE;</p>
+		<p>(* ILP 等待所有逻辑处理器发出 ACK *)</p>
+		<p>DO</p>
+		<p>DONE := TXT.READ(LT.STS);</p>
+		<p>WHILE (not DONE);</p>
+		<p>SignalTXTMsg(SENTERContinue);</p>
+		<p>SignalTXTMsg(ProcessorHold);</p>
+		<p>FOR I=ACBASE to ACBASE+ACSIZE-1 DO</p>
+		<p>ACRAM[I-ACBASE].ADDR := I;</p>
+		<p>ACRAM[I-ACBASE].DATA := LOAD(I);</p>
+		<p>OD;</p>
+		<p>IF (ACRAM memory type ≠ WB)</p>
+		<p>THEN TXT-SHUTDOWN(#BadACMMType);</p>
+		<p>IF (AC module header version is not supported) OR (ACRAM[ModuleType] ≠ 2)</p>
+		<p>THEN TXT-SHUTDOWN(#UnsupportedACM);</p>
+		<p>KEY := GETKEY(ACRAM, ACBASE);</p>
+		<p>KEYHASH := HASH(KEY);</p>
+		<p>CSKEYHASH := LT.READ(LT.PUBLIC.KEY);</p>
+		<p>IF (KEYHASH ≠ CSKEYHASH)</p>
+		<p>THEN TXT-SHUTDOWN(#AuthenticateFail);</p>
+		<p>SIGNATURE := DECRYPT(ACRAM, ACBASE, KEY);</p>
+		<p>(* SIGNATURE_LEN_CONST 的值是具体实现特定的 *)</p>
+		<p>FOR I=0 to SIGNATURE_LEN_CONST - 1 DO</p>
+		<p>ACRAM[SCRATCH.I] := SIGNATURE[I];</p>
+		<p>COMPUTEDSIGNATURE := HASH(ACRAM, ACBASE, ACSIZE);</p>
+		<p>FOR I=0 to SIGNATURE_LEN_CONST - 1 DO</p>
+		<p>ACRAM[SCRATCH.SIGNATURE_LEN_CONST+I] := COMPUTEDSIGNATURE[I];</p>
+		<p>IF (SIGNATURE ≠ COMPUTEDSIGNATURE)</p>
+		<p>THEN TXT-SHUTDOWN(#AuthenticateFail);</p>
+		<p>ACMCONTROL := ACRAM[CodeControl];</p>
+		<p>IF ((ACMCONTROL.0 = 0) and (ACMCONTROL.1 = 1) and (snoop hit to modified line detected on ACRAM load))</p>
+		<p>THEN TXT-SHUTDOWN(#UnexpectedHITM);</p>
+		<p>IF (ACMCONTROL reserved bits are set)</p>
+		<p>THEN TXT-SHUTDOWN(#BadACMFormat);</p>
+		<p>IF ((ACRAM[GDTBasePtr] &lt; (ACRAM[HeaderLen] * 4 + Scratch_size)) OR</p>
+		<p>((ACRAM[GDTBasePtr] + ACRAM[GDTLimit]) &gt;= ACSIZE))</p>
+		<p>THEN TXT-SHUTDOWN(#BadACMFormat);</p>
+		<p>IF ((ACMCONTROL.0 = 1) and (ACMCONTROL.1 = 1) and (snoop hit to modified</p>
+		<p>line detected on ACRAM load))</p>
+		<p>THEN ACEntryPoint := ACBASE+ACRAM[ErrorEntryPoint];</p>
+		<p>ELSE</p>
+		<p>ACEntryPoint := ACBASE+ACRAM[EntryPoint];</p>
+		<p>IF ((ACEntryPoint &gt;= ACSIZE) or (ACEntryPoint &lt; (ACRAM[HeaderLen] * 4 + Scratch_size)))</p>
+		<p>THEN TXT-SHUTDOWN(#BadACMFormat);</p>
+		<p>IF ((ACRAM[SegSel] &gt; (ACRAM[GDTLimit] - 15)) or (ACRAM[SegSel] &lt; 8))</p>
+		<p>THEN TXT-SHUTDOWN(#BadACMFormat);</p>
+		<p>IF ((ACRAM[SegSel].TI=1) or (ACRAM[SegSel].RPL≠0))</p>
+		<p>THEN TXT-SHUTDOWN(#BadACMFormat);</p>
+		<p>IF (FTM_INTERFACE_ID.[3:0] = 1 ) (* 已启用备用 FTM 接口 *)</p>
+		<p>THEN (* TPM_LOC_CTRL_4 位于 0FED44008H，TMP_DATA_BUFFER_4 位于 0FED44080H *)</p>
+		<p>WRITE(TPM_LOC_CTRL_4) := 01H; (* 修改的 HASH.START 协议 *)</p>
+		<p>(* 写入固件存储 *)</p>
+		<p>WRITE(TPM_DATA_BUFFER_4) := SIGNATURE_LEN_CONST + 4;</p>
+		<p>FOR I=0 to SIGNATURE_LEN_CONST - 1 DO</p>
+		<p>WRITE(TPM_DATA_BUFFER_4 + 2 + I ) := ACRAM[SCRATCH.I];</p>
+		<p>WRITE(TPM_DATA_BUFFER_4 + 2 + SIGNATURE_LEN_CONST) := EDX;</p>
+		<p>WRITE(FTM.LOC_CTRL) := 06H; (* 结合了 HASH.DATA 和 HASH.END 的修改协议 *)</p>
+		<p>ELSE IF (FTM_INTERFACE_ID.[3:0] = 0 ) (* 使用标准 TPM 接口 *)</p>
+		<p>ACRAM[SCRATCH.SIGNATURE_LEN_CONST] := EDX;</p>
+		<p>WRITE(TPM.HASH.START) := 0;</p>
+		<p>FOR I=0 to SIGNATURE_LEN_CONST + 3 DO</p>
+		<p>WRITE(TPM.HASH.DATA) := ACRAM[SCRATCH.I];</p>
+		<p>WRITE(TPM.HASH.END) := 0;</p>
+		<p>ACMODEFLAG := 1;</p>
+		<p>CR0.[PG.AM.WP] := 0;</p>
+		<p>CR4 := 00004000h;</p>
+		<p>EFLAGS := 00000002h;</p>
+		<p>IA32_EFER := 0;</p>
+		<p>EBP := ACBASE;</p>
+		<p>GDTR.BASE := ACBASE+ACRAM[GDTBasePtr];</p>
+		<p>GDTR.LIMIT := ACRAM[GDTLimit];</p>
+		<p>CS.SEL := ACRAM[SegSel];</p>
+		<p>CS.BASE := 0;</p>
+		<p>CS.LIMIT := FFFFFh;</p>
+		<p>CS.G := 1;</p>
+		<p>CS.D := 1;</p>
+		<p>CS.AR := 9Bh;</p>
+		<p>DS.SEL := ACRAM[SegSel]+8;</p>
+		<p>DS.BASE := 0;</p>
+		<p>DS.LIMIT := FFFFFh;</p>
+		<p>DS.G := 1;</p>
+		<p>DS.D := 1;</p>
+		<p>DS.AR := 93h;</p>
+		<p>SS := DS;</p>
+		<p>ES := DS;</p>
+		<p>DR7 := 00000400h;</p>
+		<p>IA32_DEBUGCTL := 0;</p>
+		<p>SignalTXTMsg(UnlockSMRAM);</p>
+		<p>SignalTXTMsg(OpenPrivate);</p>
+		<p>SignalTXTMsg(OpenLocality3);</p>
+		<p>EIP := ACEntryPoint;</p>
+		<p>END;</p>
+		<p><strong>RLP_SENTER_ROUTINE:（仅限 RLP）</strong></p>
+		<p>Mask SMI, INIT, A20M, and NMI external pin events</p>
+		<p>Unmask SignalWAKEUP event;</p>
+		<p>Wait for SignalSENTERContinue message;</p>
+		<p>IA32_APIC_BASE.BSP := 0;</p>
+		<p>GOTO SENTER sleep state;</p>
+		<p>END;</p>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>所有标志位都被清除。</p>
+
+		<h2 id="use-of-prefixes">前缀的使用<a class="anchor" href="#use-of-prefixes">¶</a></h2>
+		<p>LOCK 导致 #UD。</p>
+		<p>REP* 导致 #UD（包括 REPNE/REPNZ 和 REP/REPE/REPZ）。</p>
+		<p>操作数大小导致 #UD。</p>
+		<p>不允许使用 NP 66/F2/F3 前缀。</p>
+		<p>段重写被忽略。</p>
+		<p>地址大小被忽略。</p>
+		<p>REX 被忽略。</p>
+
+		<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 CR4.SMXE = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 GETSEC[CAPABILITIES] 未报告支持 GETSEC[SENTER]。</td>
+			</tr>
+			<tr>
+				<td rowspan="11">#GP(0)</td>
+				<td>如果 CR0.CD=1 或 CR0.NW=1 或 CR0.NE=0 或 CR0.PE=0 或 CPL&gt;0 或 EFLAGS.VM=1。</td>
+			</tr>
+			<tr>
+				<td>如果处于 VMX 根操作中。</td>
+			</tr>
+			<tr>
+				<td>如果发起处理器未通过 MSR 位 IA32_APIC_BASE.BSP 被指定为自举处理器。</td>
+			</tr>
+			<tr>
+				<td>如果不存在支持 Intel® TXT 的芯片组。</td>
+			</tr>
+			<tr>
+				<td>如果未检测到支持 Intel® TXT 芯片组的 TPM 接口。</td>
+			</tr>
+			<tr>
+				<td>如果保护分区已经激活或处理器已处于已认证代码模式下。</td>
+			</tr>
+			<tr>
+				<td>如果处理器处于 SMM 中。</td>
+			</tr>
+			<tr>
+				<td>如果 IA32_MC[I]_STATUS 中记录了有效的不可纠正机器检查错误。</td>
+			</tr>
+			<tr>
+				<td>如果已认证代码基址不在 4096 字节边界上。</td>
+			</tr>
+			<tr>
+				<td>如果已认证代码大小 &gt; 处理器已认证代码执行区域存储容量。</td>
+			</tr>
+			<tr>
+				<td>如果已认证代码大小不是 64 的倍数。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 CR4.SMXE = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 GETSEC[CAPABILITIES] 未报告支持 GETSEC[SENTER]。</td>
+			</tr>
+			<tr>
+				<td>#GP(0)</td>
+				<td>GETSEC[SENTER] 在实地址模式下无法识别。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 CR4.SMXE = 0。</td>
+			</tr>
+			<tr>
+				<td>如果 GETSEC[CAPABILITIES] 未报告支持 GETSEC[SENTER]。</td>
+			</tr>
+			<tr>
+				<td>#GP(0)</td>
+				<td>GETSEC[SENTER] 在虚拟-8086 模式下无法识别。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>所有保护模式异常均适用。</p>
+		<table>
+			<tr>
+				<td>#GP</td>
+				<td>如果 AC 代码模块不在低于 2^32 - 1 的物理地址中。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<p>所有保护模式异常均适用。</p>
+		<table>
+			<tr>
+				<td>#GP</td>
+				<td>如果 AC 代码模块不在低于 2^32 - 1 的物理地址中。</td>
+			</tr>
+		</table>
+
+		<h2 id="vm-exit-condition">VM-Exit 条件<a class="anchor" href="#vm-exit-condition">¶</a></h2>
+		<p>原因 (GETSEC) 如果处于 VMX 非根操作中。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

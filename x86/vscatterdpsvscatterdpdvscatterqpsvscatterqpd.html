@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VSCATTERDPS/VSCATTERDPD/VSCATTERQPS/VSCATTERQPD — 使用有符号双字和四字索引离散存储打包单精度、打包双精度浮点值</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VSCATTERDPS/VSCATTERDPD/VSCATTERQPS/VSCATTERQPD — 使用有符号双字和四字索引离散存储打包单精度、打包双精度浮点值</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W0 A2 /vsib VSCATTERDPS vm32x {k1}, xmm1</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用有符号双字索引，在写掩码 k1 控制下，将单精度浮点值离散存储到内存中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W0 A2 /vsib VSCATTERDPS vm32y {k1}, ymm1</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用有符号双字索引，在写掩码 k1 控制下，将单精度浮点值离散存储到内存中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W0 A2 /vsib VSCATTERDPS vm32z {k1}, zmm1</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用有符号双字索引，在写掩码 k1 控制下，将单精度浮点值离散存储到内存中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W1 A2 /vsib VSCATTERDPD vm32x {k1}, xmm1</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用有符号双字索引，在写掩码 k1 控制下，将双精度浮点值离散存储到内存中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W1 A2 /vsib VSCATTERDPD vm32x {k1}, ymm1</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用有符号双字索引，在写掩码 k1 控制下，将双精度浮点值离散存储到内存中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W1 A2 /vsib VSCATTERDPD vm32y {k1}, zmm1</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用有符号双字索引，在写掩码 k1 控制下，将双精度浮点值离散存储到内存中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W0 A3 /vsib VSCATTERQPS vm64x {k1}, xmm1</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用有符号四字索引，在写掩码 k1 控制下，将单精度浮点值离散存储到内存中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W0 A3 /vsib VSCATTERQPS vm64y {k1}, xmm1</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用有符号四字索引，在写掩码 k1 控制下，将单精度浮点值离散存储到内存中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W0 A3 /vsib VSCATTERQPS vm64z {k1}, ymm1</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用有符号四字索引，在写掩码 k1 控制下，将单精度浮点值离散存储到内存中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W1 A3 /vsib VSCATTERQPD vm64x {k1}, xmm1</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用有符号四字索引，在写掩码 k1 控制下，将双精度浮点值离散存储到内存中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W1 A3 /vsib VSCATTERQPD vm64y {k1}, ymm1</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用有符号四字索引，在写掩码 k1 控制下，将双精度浮点值离散存储到内存中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W1 A3 /vsib VSCATTERQPD vm64z {k1}, zmm1</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用有符号四字索引，在写掩码 k1 控制下，将双精度浮点值离散存储到内存中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Tuple1 Scalar</td>
+				<td>BaseReg (R): VSIB:base, VectorReg(R): VSIB:index</td>
+				<td>ModRM:reg (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>根据缩放比例 SCALE，将双字/四字向量 zmm1 中的最多 16 个元素（或 8 个元素）存储到基地址 BASE_ADDR 和索引向量 VINDEX 指向的内存位置。这些元素通过 VSIB 指定（即索引寄存器是保存打包索引的向量寄存器）。仅当元素对应的掩码位为 1 时，才会执行存储。除非触发异常，否则该指令会将整个掩码寄存器清零。</p>
+		<p>如果至少有一个元素已经被离散存储（即如果异常是由掩码位设置为 1 的最右侧元素之外的元素触发的），该指令可能会被异常挂起。当这种情况发生时，目的寄存器和掩码寄存器 (k1) 会被部分更新。如果任何陷阱或中断从已离散存储的元素挂起，它们将代替异常被递交；在这种情况下，EFLAG.RF 设置为 1，这样当指令继续执行时，不会重新触发指令断点。</p>
+		<p>请注意：</p>
+		<ul>
+			<li>仅对重叠的向量索引的写入能保证彼此之间的顺序（从源寄存器的 LSB 到 MSB）。请注意，这还包括部分重叠的向量索引。不重叠的写入可以以任何顺序发生。与其他指令的内存排序遵循 Intel-64 内存排序模型。请注意，这不包括映射到相同物理地址位置的非重叠索引。</li>
+			<li>如果两个或多个目的索引完全重叠，“较早的”写入可能会被跳过。</li>
+			<li>故障按自右向左的方式递交。也就是说，如果一个元素触发了故障并被递交，则所有更靠近目的 zmm 的 LSB 的元素都会被完成（且不会触发故障）。更靠近 MSB 的单个元素可能完成，也可能不完成。如果一个特定元素触发了多个故障，它们会按照常规顺序递交。</li>
+			<li>元素可以以任何顺序被离散存储，但故障必须按照自右向左的顺序递交；因此，故障元素左侧的元素可能在故障递交之前就已被存储。此指令的特定实现是可重复的——在给定相同的输入值和架构状态下，故障元素左侧的同一组元素将被存储。</li>
+			<li>此指令不执行 AC 检查，因此永远不会产生 AC 故障。</li>
+			<li>在 16 位有效地址下无效，将触发 #UD 故障。</li>
+			<li>如果此指令覆写了自身然后发生故障，则在故障递交之前可能只有一部分元素被完成（如上所述）。如果故障处理程序完成并尝试重新执行此指令，将执行新的指令，并且离散存储不会完成。</li>
+		</ul>
+		<p>请注意，在此指令中强制要求存在 VSIB 字节。因此，如果 ModRM.rm 不等于 100b，指令将触发 #UD 故障。</p>
+		<p>此指令具有特殊的 disp8*N and 对齐规则。N 被认为是单个向量元素的大小。</p>
+		<p>比例索引表示所需的位数可能多于处理器使用的地址位数（例如，在 32 位模式下，如果比例大于 1）。在这种情况下，超出地址位数的最高有效位会被忽略。</p>
+		<p>如果指定了 k0 掩码寄存器，指令将触发 #UD 故障。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>BASE_ADDR 代表内存操作数基地址（通用寄存器）；可能不存在
+VINDEX 代表内存操作数索引向量（ZMM 寄存器）
+SCALE 代表内存操作数比例因子（1, 2, 4 或 8）
+DISP 是可选的 1 字节或 4 字节偏移量
+</pre>
+
+		<h3 id="vscatterdps--evex-encoded-versions-">VSCATTERDPS (EVEX 编码版本)<a class="anchor" href="#vscatterdps--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL)= (4, 128), (8, 256), (16, 512)
+FOR j := 0 TO KL-1
+    i := j * 32
+    IF k1[j] OR *no writemask*
+        THEN MEM[BASE_ADDR +SignExtend(VINDEX[i+31:i]) * SCALE + DISP] :=
+            SRC[i+31:i]
+            k1[j] := 0
+    FI;
+ENDFOR
+k1[MAX_KL-1:KL] := 0
+</pre>
+
+		<h3 id="vscatterdpd--evex-encoded-versions-">VSCATTERDPD (EVEX 编码版本)<a class="anchor" href="#vscatterdpd--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL)= (2, 128), (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 64
+    k := j * 32
+    IF k1[j] OR *no writemask*
+        THEN MEM[BASE_ADDR +SignExtend(VINDEX[k+31:k]) * SCALE + DISP] :=
+            SRC[i+63:i]
+            k1[j] := 0
+    FI;
+ENDFOR
+k1[MAX_KL-1:KL] := 0
+</pre>
+
+		<h3 id="vscatterqps--evex-encoded-versions-">VSCATTERQPS (EVEX 编码版本)<a class="anchor" href="#vscatterqps--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL)= (2, 128), (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 32
+    k := j * 64
+    IF k1[j] OR *no writemask*
+        THEN MEM[BASE_ADDR + (VINDEX[k+63:k]) * SCALE + DISP] :=
+            SRC[i+31:i]
+            k1[j] := 0
+    FI;
+ENDFOR
+k1[MAX_KL-1:KL] := 0
+</pre>
+
+		<h3 id="vscatterqpd--evex-encoded-versions-">VSCATTERQPD (EVEX 编码版本)<a class="anchor" href="#vscatterqpd--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL)= (2, 128), (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k1[j] OR *no writemask*
+        THEN MEM[BASE_ADDR + (VINDEX[i+63:i]) * SCALE + DISP] :=
+            SRC[i+63:i]
+            k1[j] := 0
+    FI;
+ENDFOR
+k1[MAX_KL-1:KL] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VSCATTERDPD void _mm512_i32scatter_pd(void * base, __m256i vdx, __m512d a, int scale);
+</pre>
+		<pre>VSCATTERDPD void _mm512_mask_i32scatter_pd(void * base, __mmask8 k, __m256i vdx, __m512d a, int scale);
+</pre>
+		<pre>VSCATTERDPS void _mm512_i32scatter_ps(void * base, __m512i vdx, __m512 a, int scale);
+</pre>
+		<pre>VSCATTERDPS void _mm512_mask_i32scatter_ps(void * base, __mmask16 k, __m512i vdx, __m512 a, int scale);
+</pre>
+		<pre>VSCATTERQPD void _mm512_i64scatter_pd(void * base, __m512i vdx, __m512d a, int scale);
+</pre>
+		<pre>VSCATTERQPD void _mm512_mask_i64scatter_pd(void * base, __mmask8 k, __m512i vdx, __m512d a, int scale);
+</pre>
+		<pre>VSCATTERQPS void _mm512_i64scatter_ps(void * base, __m512i vdx, __m256 a, int scale);
+</pre>
+		<pre>VSCATTERQPS void _mm512_mask_i64scatter_ps(void * base, __mmask8 k, __m512i vdx, __m256 a, int scale);
+</pre>
+		<pre>VSCATTERDPD void _mm256_i32scatter_pd(void * base, __m128i vdx, __m256d a, int scale);
+</pre>
+		<pre>VSCATTERDPD void _mm256_mask_i32scatter_pd(void * base, __mmask8 k, __m128i vdx, __m256d a, int scale);
+</pre>
+		<pre>VSCATTERDPS void _mm256_i32scatter_ps(void * base, __m256i vdx, __m256 a, int scale);
+</pre>
+		<pre>VSCATTERDPS void _mm256_mask_i32scatter_ps(void * base, __mmask8 k, __m256i vdx, __m256 a, int scale);
+</pre>
+		<pre>VSCATTERQPD void _mm256_i64scatter_pd(void * base, __m256i vdx, __m256d a, int scale);
+</pre>
+		<pre>VSCATTERQPD void _mm256_mask_i64scatter_pd(void * base, __mmask8 k, __m256i vdx, __m256d a, int scale);
+</pre>
+		<pre>VSCATTERQPS void _mm256_i64scatter_ps(void * base, __m256i vdx, __m128 a, int scale);
+</pre>
+		<pre>VSCATTERQPS void _mm256_mask_i64scatter_ps(void * base, __mmask8 k, __m256i vdx, __m128 a, int scale);
+</pre>
+		<pre>VSCATTERDPD void _mm_i32scatter_pd(void * base, __m128i vdx, __m128d a, int scale);
+</pre>
+		<pre>VSCATTERDPD void _mm_mask_i32scatter_pd(void * base, __mmask8 k, __m128i vdx, __m128d a, int scale);
+</pre>
+		<pre>VSCATTERDPS void _mm_i32scatter_ps(void * base, __m128i vdx, __m128 a, int scale);
+</pre>
+		<pre>VSCATTERDPS void _mm_mask_i32scatter_ps(void * base, __mmask8 k, __m128i vdx, __m128 a, int scale);
+</pre>
+		<pre>VSCATTERQPD void _mm_i64scatter_pd(void * base, __m128i vdx, __m128d a, int scale);
+</pre>
+		<pre>VSCATTERQPD void _mm_mask_i64scatter_pd(void * base, __mmask8 k, __m128i vdx, __m128d a, int scale);
+</pre>
+		<pre>VSCATTERQPS void _mm_i64scatter_ps(void * base, __m128i vdx, __m128 a, int scale);
+</pre>
+		<pre>VSCATTERQPS void _mm_mask_i64scatter_ps(void * base, __mmask8 k, __m128i vdx, __m128 a, int scale);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无效, 溢出, 下溢, 精度, 渐近下溢。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>请参阅表 2-61，“第 E12 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

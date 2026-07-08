@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VPSRAVW/VPSRAVD/VPSRAVQ — 可变位算术右移</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VPSRAVW/VPSRAVD/VPSRAVQ — 可变位算术右移</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F38.W0 46 /r VPSRAVD xmm1, xmm2, xmm3/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>向右移位 xmm2 中的双字，移位数由 xmm3/m128 中的对应元素指定，同时移入符号位。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F38.W0 46 /r VPSRAVD ymm1, ymm2, ymm3/m256</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>向右移位 ymm2 中的双字，移位数由 ymm3/m256 中的对应元素指定，同时移入符号位。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W1 11 /r VPSRAVW xmm1 {k1}{z}, xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>使用写掩码 k1，向右移位 xmm2 中的字，移位数由 xmm3/m128 中的对应元素指定，同时移入符号位。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W1 11 /r VPSRAVW ymm1 {k1}{z}, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>使用写掩码 k1，向右移位 ymm2 中的字，移位数由 ymm3/m256 中的对应元素指定，同时移入符号位。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W1 11 /r VPSRAVW zmm1 {k1}{z}, zmm2, zmm3/m512</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX512BW</td>
+				<td>使用写掩码 k1，向右移位 zmm2 中的字，移位数由 zmm3/m512 中的对应元素指定，同时移入符号位。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W0 46 /r VPSRAVD xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用写掩码 k1，向右移位 xmm2 中的双字，移位数由 xmm3/m128/m32bcst 中的对应元素指定，同时移入符号位。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W0 46 /r VPSRAVD ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用写掩码 k1，向右移位 ymm2 中的双字，移位数由 ymm3/m256/m32bcst 中的对应元素指定，同时移入符号位。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W0 46 /r VPSRAVD zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用写掩码 k1，向右移位 zmm2 中的双字，移位数由 zmm3/m512/m32bcst 中的对应元素指定，同时移入符号位。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F38.W1 46 /r VPSRAVQ xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用写掩码 k1，向右移位 xmm2 中的四字，移位数由 xmm3/m128/m64bcst 中的对应元素指定，同时移入符号位。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F38.W1 46 /r VPSRAVQ ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用写掩码 k1，向右移位 ymm2 中的四字，移位数由 ymm3/m256/m64bcst 中的对应元素指定，同时移入符号位。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F38.W1 46 /r VPSRAVQ zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用写掩码 k1，向右移位 zmm2 中的四字，移位数由 zmm3/m512/m64bcst 中的对应元素指定，同时移入符号位。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>Full Mem</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>C</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将第一源操作数（第二操作数）中各个数据元素（字/双字/四字）中的位，向右移位第二源操作数（第三操作数）中各个相应数据元素指定的计数移位数。随着数据元素中的位向右移位，空出的高位被设置为最高有效位（符号扩展）。</p>
+		<p>计数移位数分别在第二源操作数的每个数据元素中指定。如果第二源操作数对应数据元素中指定的无符号整数值大于 15（对于字）、31（对于双字）或 63（对于四字），则目的数据元素将被填充为源操作数对应元素的符号位。</p>
+		<p>VEX.128 编码版本：目的和第一源操作数是 XMM 寄存器。计数操作数可以是 XMM 寄存器或 128 位内存位置。对应目的寄存器的 bits (MAXVL-1:128) 清零。</p>
+		<p>VEX.256 编码版本：目的和第一源操作数是 YMM 寄存器。计数操作数可以是 YMM 寄存器或 256 位内存。对应目的寄存器的 bits (MAXVL-1:256) 清零。</p>
+		<p>EVEX.512/256/128 编码的 VPSRAVD/W：目的和第一源操作数是 ZMM/YMM/XMM 寄存器。计数操作数可以是 ZMM/YMM/XMM 寄存器、512/256/128 位内存位置，或从 32/64 位内存位置广播的 512/256/128 位向量。目的操作数在写掩码 k1 的控制下有条件地更新。</p>
+		<p>EVEX.512/256/128 编码的 VPSRAVQ：目的和第一源操作数是 ZMM/YMM/XMM 寄存器。计数操作数可以是 ZMM/YMM/XMM 寄存器或 512/256/128 位内存位置。目的操作数在写掩码 k1 的控制下有条件地更新。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="vpsravw--evex-encoded-version-">VPSRAVW (EVEX 编码版本)<a class="anchor" href="#vpsravw--evex-encoded-version-">¶</a></h3>
+		<pre>(KL, VL) = (8, 128), (16, 256), (32, 512)
+FOR j := 0 TO KL-1
+    i := j * 16
+    IF k1[j] OR *no writemask*
+        THEN
+            COUNT := SRC2[i+3:i]
+            IF COUNT &lt; 16
+                THEN DEST[i+15:i] := SignExtend(SRC1[i+15:i] &gt;&gt; COUNT)
+                ELSE
+                    FOR k := 0 TO 15
+                        DEST[i+k] := SRC1[i+15]
+                    ENDFOR;
+            FI
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE ; zeroing-masking
+                    DEST[i+15:i] := 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL-1:VL] := 0;
+</pre>
+		<h3 id="vpsravd--vex-128-version-">VPSRAVD (VEX.128 版本)<a class="anchor" href="#vpsravd--vex-128-version-">¶</a></h3>
+		<pre>COUNT_0 := SRC2[31 : 0]
+    (* Repeat Each COUNT_i for the 2nd through 4th dwords of SRC2*)
+COUNT_3 := SRC2[127 : 96];
+DEST[31:0] := SignExtend(SRC1[31:0] &gt;&gt; COUNT_0);
+    (* Repeat shift operation for 2nd through 4th dwords *)
+DEST[127:96] := SignExtend(SRC1[127:96] &gt;&gt; COUNT_3);
+DEST[MAXVL-1:128] := 0;
+</pre>
+		<h3 id="vpsravd--vex-256-version-">VPSRAVD (VEX.256 版本)<a class="anchor" href="#vpsravd--vex-256-version-">¶</a></h3>
+		<pre>COUNT_0 := SRC2[31 : 0];
+    (* Repeat Each COUNT_i for the 2nd through 8th dwords of SRC2*)
+COUNT_7 := SRC2[255 : 224];
+DEST[31:0] := SignExtend(SRC1[31:0] &gt;&gt; COUNT_0);
+    (* Repeat shift operation for 2nd through 7th dwords *)
+DEST[255:224] := SignExtend(SRC1[255:224] &gt;&gt; COUNT_7);
+DEST[MAXVL-1:256] := 0;
+</pre>
+		<h3 id="vpsravd--evex-encoded-version-">VPSRAVD (EVEX 编码版本)<a class="anchor" href="#vpsravd--evex-encoded-version-">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j := 0 TO KL-1
+    i := j * 32
+    IF k1[j] OR *no writemask* THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN
+                    COUNT := SRC2[4:0]
+                    IF COUNT &lt; 32
+                        THEN DEST[i+31:i] := SignExtend(SRC1[i+31:i] &gt;&gt; COUNT)
+                        ELSE
+                            FOR k := 0 TO 31
+                                DEST[i+k] := SRC1[i+31]
+                            ENDFOR;
+                    FI
+                ELSE
+                    COUNT := SRC2[i+4:i]
+                    IF COUNT &lt; 32
+                        THEN DEST[i+31:i] := SignExtend(SRC1[i+31:i] &gt;&gt; COUNT)
+                        ELSE
+                            FOR k := 0 TO 31
+                                DEST[i+k] := SRC1[i+31]
+                            ENDFOR;
+                    FI
+            FI;
+    ELSE
+        IF *merging-masking*
+                                    ; merging-masking
+            THEN *DEST[31:0] remains unchanged*
+            ELSE
+                                    ; zeroing-masking
+                DEST[31:0] := 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL-1:VL] := 0;
+</pre>
+		<h3 id="vpsravq--evex-encoded-version-">VPSRAVQ (EVEX 编码版本)<a class="anchor" href="#vpsravq--evex-encoded-version-">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k1[j] OR *no writemask* THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN
+                    COUNT := SRC2[5:0]
+                    IF COUNT &lt; 64
+                        THEN DEST[i+63:i] := SignExtend(SRC1[i+63:i] &gt;&gt; COUNT)
+                        ELSE
+                            FOR k := 0 TO 63
+                                DEST[i+k] := SRC1[i+63]
+                            ENDFOR;
+                    FI
+                ELSE
+                    COUNT := SRC2[i+5:i]
+                    IF COUNT &lt; 64
+                        THEN DEST[i+63:i] := SignExtend(SRC1[i+63:i] &gt;&gt; COUNT)
+                        ELSE
+                            FOR k := 0 TO 63
+                                DEST[i+k] := SRC1[i+63]
+                            ENDFOR;
+                    FI
+            FI;
+    ELSE
+        IF *merging-masking*
+            THEN *DEST[63:0] remains unchanged*
+            ELSE ; zeroing-masking
+                DEST[63:0] := 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL-1:VL] := 0;
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VPSRAVD __m512i _mm512_srav_epi32(__m512i a, __m512i cnt);
+</pre>
+		<pre>VPSRAVD __m512i _mm512_mask_srav_epi32(__m512i s, __mmask16 m, __m512i a, __m512i cnt);
+</pre>
+		<pre>VPSRAVD __m512i _mm512_maskz_srav_epi32(__mmask16 m, __m512i a, __m512i cnt);
+</pre>
+		<pre>VPSRAVD __m256i _mm256_srav_epi32(__m256i a, __m256i cnt);
+</pre>
+		<pre>VPSRAVD __m256i _mm256_mask_srav_epi32(__m256i s, __mmask8 m, __m256i a, __m256i cnt);
+</pre>
+		<pre>VPSRAVD __m256i _mm256_maskz_srav_epi32(__mmask8 m, __m256i a, __m256i cnt);
+</pre>
+		<pre>VPSRAVD __m128i _mm_srav_epi32(__m128i a, __m128i cnt);
+</pre>
+		<pre>VPSRAVD __m128i _mm_mask_srav_epi32(__m128i s, __mmask8 m, __m128i a, __m128i cnt);
+</pre>
+		<pre>VPSRAVD __m128i _mm_maskz_srav_epi32(__mmask8 m, __m128i a, __m128i cnt);
+</pre>
+		<pre>VPSRAVQ __m512i _mm512_srav_epi64(__m512i a, __m512i cnt);
+</pre>
+		<pre>VPSRAVQ __m512i _mm512_mask_srav_epi64(__m512i s, __mmask8 m, __m512i a, __m512i cnt);
+</pre>
+		<pre>VPSRAVQ __m512i _mm512_maskz_srav_epi64( __mmask8 m, __m512i a, __m512i cnt);
+</pre>
+		<pre>VPSRAVQ __m256i _mm256_srav_epi64(__m256i a, __m256i cnt);
+</pre>
+		<pre>VPSRAVQ __m256i _mm256_mask_srav_epi64(__m256i s, __mmask8 m, __m256i a, __m256i cnt);
+</pre>
+		<pre>VPSRAVQ __m256i _mm256_maskz_srav_epi64( __mmask8 m, __m256i a, __m256i cnt);
+</pre>
+		<pre>VPSRAVQ __m128i _mm_srav_epi64(__m128i a, __m128i cnt);
+</pre>
+		<pre>VPSRAVQ __m128i _mm_mask_srav_epi64(__m128i s, __mmask8 m, __m128i a, __m128i cnt);
+</pre>
+		<pre>VPSRAVQ __m128i _mm_maskz_srav_epi64( __mmask8 m, __m128i a, __m128i cnt);
+</pre>
+		<pre>VPSRAVW __m512i _mm512_srav_epi16(__m512i a, __m512i cnt);
+</pre>
+		<pre>VPSRAVW __m512i _mm512_mask_srav_epi16(__m512i s, __mmask32 m, __m512i a, __m512i cnt);
+</pre>
+		<pre>VPSRAVW __m512i _mm512_maskz_srav_epi16(__mmask32 m, __m512i a, __m512i cnt);
+</pre>
+		<pre>VPSRAVW __m256i _mm256_srav_epi16(__m256i a, __m256i cnt);
+</pre>
+		<pre>VPSRAVW __m256i _mm256_mask_srav_epi16(__m256i s, __mmask16 m, __m256i a, __m256i cnt);
+</pre>
+		<pre>VPSRAVW __m256i _mm256_maskz_srav_epi16(__mmask16 m, __m256i a, __m256i cnt);
+</pre>
+		<pre>VPSRAVW __m128i _mm_srav_epi16(__m128i a, __m128i cnt);
+</pre>
+		<pre>VPSRAVW __m128i _mm_mask_srav_epi16(__m128i s, __mmask8 m, __m128i a, __m128i cnt);
+</pre>
+		<pre>VPSRAVW __m128i _mm_maskz_srav_epi32(__mmask8 m, __m128i a, __m128i cnt);
+</pre>
+		<pre>VPSRAVD __m256i _mm256_srav_epi32 (__m256i m, __m256i count)
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>非 EVEX 编码指令，请参阅表 2-21，“第 4 类异常条件”。</p>
+		<p>EVEX 编码指令，请参阅表 2-49，“第 E4 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

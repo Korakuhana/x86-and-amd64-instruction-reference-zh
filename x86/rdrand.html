@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>RDRAND — 读取随机数</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>RDRAND — 读取随机数</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NFx 0F C7 /6 RDRAND r16</td>
+				<td>M</td>
+				<td>V/V</td>
+				<td>RDRAND</td>
+				<td>读取 16 位随机数并存储在目的寄存器中。</td>
+			</tr>
+			<tr>
+				<td>NFx 0F C7 /6 RDRAND r32</td>
+				<td>M</td>
+				<td>V/V</td>
+				<td>RDRAND</td>
+				<td>读取 32 位随机数并存储在目的寄存器中。</td>
+			</tr>
+			<tr>
+				<td>NFx REX.W + 0F C7 /6 RDRAND r64</td>
+				<td>M</td>
+				<td>V/I</td>
+				<td>RDRAND</td>
+				<td>读取 64 位随机数并存储在目的寄存器中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>M</td>
+				<td>ModRM:r/m (w)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>加载硬件生成的随机值并将其存储在目的寄存器中。随机值的大小由目的寄存器大小和工作模式确定。进位标志 (CF) 指示在执行指令时随机值是否可用。CF=1 表示目的操作数中的数据有效。否则 CF=0，目的操作数中的数据将在指定宽度内返回为零。在任何一种情况下，所有其他标志均被强制置为 0。软件必须检查 CF=1 的状态以确定是否返回了有效的随机值，否则需要循环并重试执行 RDRAND（请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷第 7.3.17 节“随机数生成器指令”）。</p>
+		<p>此指令在所有特权级下均可用。</p>
+		<p>在 64 位模式下，该指令的默认操作数大小为 32 位。使用 REX.B 形式的 REX 前缀允许访问其他寄存器（R8-R15）。使用 REX.W 形式的 REX 前缀将操作提升为 64 位操作数。请参阅本节开头的汇总图表以获取编码数据和限制。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>IF HW_RND_GEN.ready = 1
+    THEN
+        CASE of
+            操作数大小为 64: DEST[63:0] := HW_RND_GEN.data;
+            操作数大小为 32: DEST[31:0] := HW_RND_GEN.data;
+            操作数大小为 16: DEST[15:0] := HW_RND_GEN.data;
+        ESAC
+        CF := 1;
+    ELSE
+        CASE of
+            操作数大小为 64: DEST[63:0] := 0;
+            操作数大小为 32: DEST[31:0] := 0;
+            操作数大小为 16: DEST[15:0] := 0;
+        ESAC
+        CF := 0;
+FI
+OF, SF, ZF, AF, PF := 0;
+</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>根据结果设置 CF 标志（请参阅上文的“操作”部分）。OF、SF、ZF、AF 和 PF 标志设置为 0。</p>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>RDRAND int _rdrand16_step( unsigned short * );</pre>
+		<pre>RDRAND int _rdrand32_step( unsigned int * );</pre>
+		<pre>RDRAND int _rdrand64_step( unsigned __int64 *);</pre>
+
+		<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+			<tr>
+				<td>如果 CPUID.01H:ECX.RDRAND[位 30] = 0。</td>
+			</tr>
+		</table>
+
+		<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<p>与保护模式下的异常相同。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

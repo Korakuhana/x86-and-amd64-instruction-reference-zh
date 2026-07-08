@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="../style.css">
+	<title>MOVQ — 移动四字</title>
+</head>
+<body>
+	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+	<h1>MOVQ — 移动四字</h1>
+
+	<table>
+		<tr>
+			<th>操作码/指令</th>
+			<th>Op/ En</th>
+			<th>64/32位模式</th>
+			<th>CPUID 特征标志</th>
+			<th>描述</th>
+		</tr>
+		<tr>
+			<td>NP 0F 6F /r MOVQ mm, mm/m64</td>
+			<td>A</td>
+			<td>有效/有效</td>
+			<td>MMX</td>
+			<td>将四字从 mm/m64 移动到 mm。</td>
+		</tr>
+		<tr>
+			<td>NP 0F 7F /r MOVQ mm/m64, mm</td>
+			<td>B</td>
+			<td>有效/有效</td>
+			<td>MMX</td>
+			<td>将四字从 mm 移动到 mm/m64。</td>
+		</tr>
+		<tr>
+			<td>F3 0F 7E /r MOVQ xmm1, xmm2/m64</td>
+			<td>A</td>
+			<td>有效/有效</td>
+			<td>SSE2</td>
+			<td>将四字从 xmm2/mem64 移动到 xmm1。</td>
+		</tr>
+		<tr>
+			<td>VEX.128.F3.0F.WIG 7E /r VMOVQ xmm1, xmm2/m64</td>
+			<td>A</td>
+			<td>有效/有效</td>
+			<td>AVX</td>
+			<td>将四字从 xmm2 移动到 xmm1。</td>
+		</tr>
+		<tr>
+			<td>EVEX.128.F3.0F.W1 7E /r VMOVQ xmm1, xmm2/m64</td>
+			<td>C</td>
+			<td>有效/有效</td>
+			<td>AVX512F</td>
+			<td>将四字从 xmm2/m64 移动到 xmm1。</td>
+		</tr>
+		<tr>
+			<td>66 0F D6 /r MOVQ xmm2/m64, xmm1</td>
+			<td>B</td>
+			<td>有效/有效</td>
+			<td>SSE2</td>
+			<td>将四字从 xmm1 移动到 xmm2/mem64。</td>
+		</tr>
+		<tr>
+			<td>VEX.128.66.0F.WIG D6 /r VMOVQ xmm1/m64, xmm2</td>
+			<td>B</td>
+			<td>有效/有效</td>
+			<td>AVX</td>
+			<td>将四字从 xmm2 寄存器移动到 xmm1/m64。</td>
+		</tr>
+		<tr>
+			<td>EVEX.128.66.0F.W1 D6 /r VMOVQ xmm1/m64, xmm2</td>
+			<td>D</td>
+			<td>有效/有效</td>
+			<td>AVX512F</td>
+			<td>将四字从 xmm2 寄存器移动到 xmm1/m64。</td>
+		</tr>
+	</table>
+
+	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+	<table>
+		<tr>
+			<th>Op/En</th>
+			<th>元组类型</th>
+			<th>操作数 1</th>
+			<th>操作数 2</th>
+			<th>操作数 3</th>
+			<th>操作数 4</th>
+		</tr>
+		<tr>
+			<td>A</td>
+			<td>N/A</td>
+			<td>ModRM:reg (w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>B</td>
+			<td>N/A</td>
+			<td>ModRM:r/m (w)</td>
+			<td>ModRM:reg (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>C</td>
+			<td>Tuple1 Scalar</td>
+			<td>ModRM:reg (w)</td>
+			<td>ModRM:r/m (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+		<tr>
+			<td>D</td>
+			<td>Tuple1 Scalar</td>
+			<td>ModRM:r/m (w)</td>
+			<td>ModRM:reg (r)</td>
+			<td>N/A</td>
+			<td>N/A</td>
+		</tr>
+	</table>
+
+	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+	<p>将四字从源操作数（第二个操作数）复制到目的操作数（第一个操作数）。源操作数和目的操作数可以是 MMX 技术寄存器、XMM 寄存器或 64 位内存位置。此指令可用于在两个 MMX 技术寄存器之间，或在 MMX 技术寄存器与 64 位内存位置之间移动四字；或者在两个 XMM 寄存器之间，或在 XMM 寄存器与 64 位内存位置之间移动数据。该指令不能用于在内存位置之间传送数据。</p>
+	<p>当源操作数是 XMM 寄存器时，移动低四字；当目的操作数是 XMM 寄存器时，该四字存储到寄存器的低四字中，并且高四字被清零。</p>
+	<p>在 64 位模式下且如果不使用 VEX/EVEX 编码，以 REX.R 形式使用 REX 前缀允许此指令访问其他寄存器 (XMM8-XMM15)。</p>
+	<p>注意：VEX.vvvv 和 EVEX.vvvv 是保留的，必须为 1111b，否则指令将产生 #UD 异常。</p>
+	<p>如果 VMOVQ 用 VEX.L= 1 编码，尝试执行用 VEX.L= 1 编码的指令将导致 #UD 异常。</p>
+
+	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+	<h3 id="movq-instruction-when-operating-on-mmx-technology-registers-and-memory-locations">MOVQ Instruction When Operating on MMX Technology Registers and Memory Locations<a class="anchor" href="#movq-instruction-when-operating-on-mmx-technology-registers-and-memory-locations">¶</a></h3>
+	<pre>DEST := SRC;
+</pre>
+
+	<h3 id="movq-instruction-when-source-and-destination-operands-are-xmm-registers">MOVQ Instruction When Source and Destination Operands are XMM Registers<a class="anchor" href="#movq-instruction-when-source-and-destination-operands-are-xmm-registers">¶</a></h3>
+	<pre>DEST[63:0] := SRC[63:0];
+DEST[127:64] := 0000000000000000H;
+</pre>
+
+	<h3 id="movq-instruction-when-source-operand-is-xmm-register-and-destination">MOVQ Instruction When Source Operand is XMM Register and Destination<a class="anchor" href="#movq-instruction-when-source-operand-is-xmm-register-and-destination">¶</a></h3>
+	<pre>operand is memory location:
+    DEST := SRC[63:0];
+</pre>
+
+	<h3 id="movq-instruction-when-source-operand-is-memory-location-and-destination">MOVQ Instruction When Source Operand is Memory Location and Destination<a class="anchor" href="#movq-instruction-when-source-operand-is-memory-location-and-destination">¶</a></h3>
+	<pre>operand is XMM register:
+    DEST[63:0] := SRC;
+    DEST[127:64] := 0000000000000000H;
+</pre>
+
+	<h3 id="vmovq--vex-128-f3-0f-7e--with-xmm-register-source-and-destination">VMOVQ (VEX.128.F3.0F 7E) With XMM Register Source and Destination<a class="anchor" href="#vmovq--vex-128-f3-0f-7e--with-xmm-register-source-and-destination">¶</a></h3>
+	<pre>DEST[63:0] := SRC[63:0]
+DEST[MAXVL-1:64] := 0
+</pre>
+
+	<h3 id="vmovq--vex-128-66-0f-d6--with-xmm-register-source-and-destination">VMOVQ (VEX.128.66.0F D6) With XMM Register Source and Destination<a class="anchor" href="#vmovq--vex-128-66-0f-d6--with-xmm-register-source-and-destination">¶</a></h3>
+	<pre>DEST[63:0] := SRC[63:0]
+DEST[MAXVL-1:64] := 0
+</pre>
+
+	<h3 id="vmovq--7e---evex-encoded-version--with-xmm-register-source-and-destination">VMOVQ (7E - EVEX Encoded Version) With XMM Register Source and Destination<a class="anchor" href="#vmovq--7e---evex-encoded-version--with-xmm-register-source-and-destination">¶</a></h3>
+	<pre>DEST[63:0] := SRC[63:0]
+DEST[MAXVL-1:64] := 0
+</pre>
+
+	<h3 id="vmovq--d6---evex-encoded-version--with-xmm-register-source-and-destination">VMOVQ (D6 - EVEX Encoded Version) With XMM Register Source and Destination<a class="anchor" href="#vmovq--d6---evex-encoded-version--with-xmm-register-source-and-destination">¶</a></h3>
+	<pre>DEST[63:0] := SRC[63:0]
+DEST[MAXVL-1:64] := 0
+</pre>
+
+	<h3 id="vmovq--7e--with-memory-source">VMOVQ (7E) With Memory Source<a class="anchor" href="#vmovq--7e--with-memory-source">¶</a></h3>
+	<pre>DEST[63:0] := SRC[63:0]
+DEST[MAXVL-1:64] := 0
+</pre>
+
+	<h3 id="vmovq--7e---evex-encoded-version--with-memory-source">VMOVQ (7E - EVEX Encoded Version) With Memory Source<a class="anchor" href="#vmovq--7e---evex-encoded-version--with-memory-source">¶</a></h3>
+	<pre>DEST[63:0] := SRC[63:0]
+DEST[:MAXVL-1:64] := 0
+</pre>
+
+	<h3 id="vmovq--d6--with-memory-dest">VMOVQ (D6) With Memory DEST<a class="anchor" href="#vmovq--d6--with-memory-dest">¶</a></h3>
+	<pre>DEST[63:0] := SRC2[63:0]
+</pre>
+
+	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+	<p>无。</p>
+
+	<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+	<pre>VMOVQ __m128i _mm_loadu_si64( void * s);
+</pre>
+	<pre>VMOVQ void _mm_storeu_si64( void * d, __m128i s);
+</pre>
+	<pre>MOVQ m128i _mm_move_epi64(__m128i a)
+</pre>
+
+	<h2 id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+	<p>无。</p>
+
+	<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+	<p>参见《Intel® 64 和 IA-32 架构软件开发人员手册》第 3B 卷中的表 23-8，“不带 FP 异常的传统 SIMD/MMX 指令的异常条件”。</p>
+
+	<footer>
+		<p>
+			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
+		</p>
+	</footer>
+</body>
+</html>

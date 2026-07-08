@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VFMADDRND231PD — 带有舍入控制的打包双精度浮点值融合乘加</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VFMADDRND231PD — 带有舍入控制的打包双精度浮点值融合乘加</h1>
+
+		<table>
+			<tr>
+				<td>操作码/指令/模式支持/CPUID 特征标志/描述 VEX.DDS.128.66.0F3A.W1 B8 /r /ib V/V FMA 将 xmm1 和 xmm2/mem 中的打包双精度浮点值相乘，与 xmm0 相加，并将结果放入 xmm0。VFMADDRND231PD xmm0, xmm1, xmm2/m128, imm8 VEX.DDS.256.66.0F3A.W1 B8 /r /ib V/V FMA 将 ymm1 和 ymm2/mem 中的打包双精度浮点值相乘，与 ymm0 相加，并将结果放入 ymm0。VFMADDRND231PD ymm0, ymm1, ymm2/m256, imm8</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>将来自第二个源操作数的两个或四个打包双精度浮点值与第三个源操作数中的两个或四个打包双精度浮点值相乘，将无限精度中间结果与第一个源操作数中的两个或四个打包双精度浮点值相加，执行舍入并将结果的两个或四个打包双精度浮点值存储到目的操作数（第一个源操作数）中。</p>
+		<p>立即数字节定义了几个控制舍入、DAZ、FTZ 和异常抑制的位字段（请参阅表 5-3）。如果名为 MS1（MXCSR.RC 覆盖）的立即数位被设置，则可以绕过 MXCSR.RC 中指定的舍入模式。同样，如果名为 MS2（MXCSR.FTZ/DAZ 覆盖）的立即数位被设置，也可以绕过 MXCSR.FTZ 和 MXCSR.DAZ。在 SAE（抑制所有异常）位被设置（即 imm8[3] = 1）的情况下，MXCSR 中的状态标志不会更新，也不会引发 SIMD 浮点异常。当没有设置 SAE 位（即 imm8[3] = 0）时，则根据 MXCSR 报告 SIMD 浮点异常。如果任何结果操作数是 SNaN，则它将被转换为 QNaN。</p>
+		<p>VEX.256 编码版本：目的操作数（也是第一个源操作数）是 YMM 寄存器，并在 reg_field 中编码。第二个源操作数是 YMM 寄存器，并在 VEX.vvvv 中编码。第三个源操作数是 YMM 寄存器或 256 位内存位置，并在 rm_field 中编码。</p>
+		<p>VEX.128 编码版本：目的操作数（也是第一个源操作数）是 XMM 寄存器，并在 reg_field 中编码。第二个源操作数是 XMM 寄存器，并在 VEX.vvvv 中编码。第三个源操作数是 XMM 寄存器或 128 位内存位置，并在 rm_field 中编码。YMM 目的寄存器的高 128 位被清零。</p>
+
+		<figure id="tbl-5-3">
+			<table>
+				<tr>
+					<td>位</td>
+					<td>字段名称/值</td>
+					<td>描述</td>
+					<td>备注</td>
+				</tr>
+				<tr>
+					<td rowspan="4">Imm8[1:0]</td>
+					<td>RC=0</td>
+					<td>舍入到最接近的偶数</td>
+					<td rowspan="4">如果 Imm8[2] = 1</td>
+				</tr>
+				<tr>
+					<td>RC=1</td>
+					<td>向下舍入</td>
+				</tr>
+				<tr>
+					<td>RC=2</td>
+					<td>向上舍入</td>
+				</tr>
+				<tr>
+					<td>RC=3</td>
+					<td>截断</td>
+				</tr>
+				<tr>
+					<td rowspan="2">Imm8[2]</td>
+					<td>MS1=0</td>
+					<td>使用 MXCSR.RC 进行舍入</td>
+					<td></td>
+				</tr>
+				<tr>
+					<td>MS1=1</td>
+					<td>使用 Imm8[1:0] 进行舍入</td>
+					<td>忽略 MXCSR.RC</td>
+				</tr>
+				<tr>
+					<td rowspan="2">Imm8[3]</td>
+					<td>SAE=0</td>
+					<td>使用 MXCSR 异常掩码设置</td>
+					<td></td>
+				</tr>
+				<tr>
+					<td>SAE=1</td>
+					<td>抑制所有异常报告</td>
+					<td>计算出的数值结果如同浮点异常被掩码一样。</td>
+				</tr>
+				<tr>
+					<td rowspan="2">Imm8[4]</td>
+					<td>MS2=0</td>
+					<td>使用 MXCSR.DAZ 和 MXCSR.FTZ</td>
+					<td></td>
+				</tr>
+				<tr>
+					<td>MS2=1</td>
+					<td>使用 Imm8[6:5] 控制 DAZ/FTZ 操作</td>
+					<td>忽略 MXCSR.DAZ 和 MXCSR.FTZ</td>
+				</tr>
+				<tr>
+					<td>Imm8[5]</td>
+					<td>DAZ</td>
+					<td>控制 DAZ</td>
+					<td>如果 MS2 = 1</td>
+				</tr>
+				<tr>
+					<td>Imm8[6]</td>
+					<td>FTZ</td>
+					<td>控制 FTZ</td>
+					<td>如果 MS2 = 1</td>
+				</tr>
+				<tr>
+					<td>Imm8[7]</td>
+					<td>MBZ</td>
+					<td>必须为零</td>
+					<td></td>
+				</tr>
+			</table>
+			<figcaption><a href='vfmaddrnd231pd.html#tbl-5-3'>表 5-3</a>. 立即数字节编码</figcaption>
+		</figure>
+		<p>编译器工具可以可选地支持互补助记符 VMADDRND321PD。在涉及 NAN 的情况下，互补助记符的行为受操作码/指令列中定义的指令助记符定义的约束。另请参阅第 2.3.1 节，“FMA 指令操作数顺序和算术行为”。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<p>在以下操作中，“+”和“*”符号表示使用无限精度输入和输出进行乘法和加法（无舍入）。</p>
+		<h3 id="vfmaddrnd231pd-dest--src2--src3--imm8">VFMADDRND231PD DEST, SRC2, SRC3, imm8<a class="anchor" href="#vfmaddrnd231pd-dest--src2--src3--imm8">¶</a></h3>
+		<pre>IF (VEX.128) THEN
+    MAXVL =2
+ELSEIF (VEX.256)
+    MAXVL = 4
+FI
+IF (imm8[3] = 1) THEN
+    Suppress_SIMD_Exception_Signaling_Reporting();
+FI
+For i = 0 to MAXVL-1 {
+    n = 64*i;
+    DEST[n+63:n]←RoundFPControl_Imm((SRC2[n+63:n]*SRC3[n+63:n] + DEST[n+63:n]), imm8)
+}
+IF (VEX.128) THEN
+DEST[255:128] ← 0
+FI
+IF (imm8[3] = 1) THEN
+    Resume_SIMD_Exception_Signaling_Reporting();
+FI
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VFMADDRND231PD __m128d _mm_fmaddround_pd (__m128d a, __m128d b, __m128d c, const int ctrl);
+</pre>
+		<pre>VFMADDRND231PD __m256d _mm256_fmaddround_pd (__m256d a, __m256d b, __m256d c, const int ctrl);
+</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>IF imm[3] = 1 Then</p>
+		<p>None</p>
+		<p>Else</p>
+		<p>Overflow, Underflow, Invalid, Precision, Denormal</p>
+		<p>FI</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>参见第 2 类异常条件。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

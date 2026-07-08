@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>PCMPGTB/PCMPGTW/PCMPGTD — 比较打包有符号整数是否大于</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>PCMPGTB/PCMPGTW/PCMPGTD — 比较打包有符号整数是否大于</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F 64 /r<sup>1</sup> PCMPGTB mm, mm/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>MMX</td>
+				<td>比较 mm 和 mm/m64 中的打包有符号字节整数是否大于。</td>
+			</tr>
+			<tr>
+				<td>66 0F 64 /r PCMPGTB xmm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>比较 xmm1 和 xmm2/m128 中的打包有符号字节整数是否大于。</td>
+			</tr>
+			<tr>
+				<td>NP 0F 65 /r<sup>1</sup> PCMPGTW mm, mm/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>MMX</td>
+				<td>比较 mm 和 mm/m64 中的打包有符号字整数是否大于。</td>
+			</tr>
+			<tr>
+				<td>66 0F 65 /r PCMPGTW xmm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>比较 xmm1 和 xmm2/m128 中的打包有符号字整数是否大于。</td>
+			</tr>
+			<tr>
+				<td>NP 0F 66 /r<sup>1</sup> PCMPGTD mm, mm/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>MMX</td>
+				<td>比较 mm 和 mm/m64 中的打包有符号双字整数是否大于。</td>
+			</tr>
+			<tr>
+				<td>66 0F 66 /r PCMPGTD xmm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>比较 xmm1 和 xmm2/m128 中的打包有符号双字整数是否大于。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F.WIG 64 /r VPCMPGTB xmm1, xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>比较 xmm2 和 xmm3/m128 中的打包有符号字节整数是否大于。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F.WIG 65 /r VPCMPGTW xmm1, xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>比较 xmm2 和 xmm3/m128 中的打包有符号字整数是否大于。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F.WIG 66 /r VPCMPGTD xmm1, xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>比较 xmm2 和 xmm3/m128 中的打包有符号双字整数是否大于。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F.WIG 64 /r VPCMPGTB ymm1, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>比较 ymm2 和 ymm3/m256 中的打包有符号字节整数是否大于。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F.WIG 65 /r VPCMPGTW ymm1, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>比较 ymm2 和 ymm3/m256 中的打包有符号字整数是否大于。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F.WIG 66 /r VPCMPGTD ymm1, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>比较 ymm2 和 ymm3/m256 中的打包有符号双字整数是否大于。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.W0 66 /r VPCMPGTD k1 {k2}, xmm2, xmm3/m128/m32bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>比较 int32 向量 xmm2 中的元素是否大于 int32 向量 xmm3/m128/m32bcst，并在写掩码下设置向量掩码 k1 以反映结果中每个元素的零/非零状态。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.W0 66 /r VPCMPGTD k1 {k2}, ymm2, ymm3/m256/m32bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>比较 int32 向量 ymm2 中的元素是否大于 int32 向量 ymm3/m256/m32bcst，并在写掩码下设置向量掩码 k1 以反映结果中每个元素的零/非零状态。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.W0 66 /r VPCMPGTD k1 {k2}, zmm2, zmm3/m512/m32bcst</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>比较 zmm2 和 zmm3/m512/m32bcst 中的 int32 元素是否大于，并在写掩码 k2 下根据比较结果设置目的寄存器 k1。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.WIG 64 /r VPCMPGTB k1 {k2}, xmm2, xmm3/m128</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>比较 xmm2 和 xmm3/m128 中的打包有符号字节整数是否大于，并在写掩码下设置向量掩码 k1 以反映结果中每个元素的零/非零状态。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.WIG 64 /r VPCMPGTB k1 {k2}, ymm2, ymm3/m256</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>比较 ymm2 和 ymm3/m256 中的打包有符号字节整数是否大于，并在写掩码下设置向量掩码 k1 以反映结果中每个元素的零/非零状态。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.WIG 64 /r VPCMPGTB k1 {k2}, zmm2, zmm3/m512</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512BW</td>
+				<td>比较 zmm2 和 zmm3/m512 中的打包有符号字节整数是否大于，并在写掩码下设置向量掩码 k1 以反映结果中每个元素的零/非零状态。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.WIG 65 /r VPCMPGTW k1 {k2}, xmm2, xmm3/m128</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>比较 xmm2 和 xmm3/m128 中的打包有符号字整数是否大于，并在写掩码下设置向量掩码 k1 以反映结果中每个元素的零/非零状态。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.WIG 65 /r VPCMPGTW k1 {k2}, ymm2, ymm3/m256</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>比较 ymm2 和 ymm3/m256 中的打包有符号字整数是否大于，并在写掩码下设置向量掩码 k1 以反映结果中每个元素的零/非零状态。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.WIG 65 /r VPCMPGTW k1 {k2}, zmm2, zmm3/m512</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512BW</td>
+				<td>比较 zmm2 和 zmm3/m512 中的打包有符号字整数是否大于，并在写掩码下设置向量掩码 k1 以反映结果中每个元素的零/非零状态。</td>
+			</tr>
+		</table>
+		<blockquote>
+			<p>1. 请参阅 Intel® 64 和 IA-32 架构软件开发人员手册第 2A 卷第 2.5 节“Intel® AVX 和 Intel® SSE 指令异常分类”中的注释，以及第 3B 卷第 23.25.3 节“对 MMX 寄存器操作的传统 SIMD 指令的异常条件”。</p>
+		</blockquote>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (r, w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>C</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>D</td>
+				<td>Full Mem</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>对目的操作数（第一个操作数）和源操作数（第二个操作数）中的打包字节、字或双字有符号整数进行 SIMD 有符号大于比较。如果目的操作数中的某个数据元素大于源操作数中的对应数据元素，则目的操作数中的对应数据元素设置为全 1；否则，设置为全 0。</p>
+		<p>PCMPGTB 指令比较目的操作数 and 源操作数中的对应有符号字节整数；PCMPGTW 指令比较目的操作数 and 源操作数中的对应有符号字整数；PCMPGTD 指令比较目的操作数 and 源操作数中的对应有符号双字整数。</p>
+		<p>在 64 位模式下且未使用 VEX/EVEX 编码时，使用 REX.R 形式的 REX 前缀允许此指令访问额外的寄存器（XMM8-XMM15）。</p>
+		<p>传统 SSE 指令：源操作数可以是 MMX 技术寄存器或 64 位内存位置。目的操作数可以是 MMX 技术寄存器。</p>
+		<p>128位传统 SSE 版本：第二个源操作数可以是 XMM 寄存器或 128 位内存位置。第一个源操作数和目的操作数是 XMM 寄存器。对应 YMM 目的寄存器的位（MAXVL-1:128）保持不变。</p>
+		<p>VEX.128 编码版本：第二个源操作数可以是 XMM 寄存器或 128 位内存位置。第一个源操作数和目的操作数是 XMM 寄存器。对应 YMM 寄存器的位（MAXVL-1:128）清零。</p>
+		<p>VEX.256 编码版本：第一个源操作数是 YMM 寄存器。第二个源操作数是 YMM 寄存器或 256 位内存位置。目的操作数是 YMM 寄存器。</p>
+		<p>EVEX 编码的 VPCMPGTD：第一个源操作数（第二个操作数）是 ZMM/YMM/XMM 寄存器。第二个源操作数可以是 ZMM/YMM/XMM 寄存器、512/256/128 位内存位置，或从 32 位内存位置广播的 512/256/128 位向量。目的操作数（第一个操作数）是根据写掩码 k2 更新的掩码寄存器。</p>
+		<p>EVEX 编码的 VPCMPGTB/W：第一个源操作数（第二个操作数）是 ZMM/YMM/XMM 寄存器。第二个源操作数可以是 ZMM/YMM/XMM 寄存器、512/256/128 位内存位置。目的操作数（第一个操作数）是根据写掩码 k2 更新的掩码寄存器。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="pcmpgtb--with-64-bit-operands-">PCMPGTB（使用 64 位操作数）<a class="anchor" href="#pcmpgtb--with-64-bit-operands-">¶</a></h3>
+		<pre>IF DEST[7:0] &gt; SRC[7:0]
+    THEN DEST[7:0) := FFH;
+    ELSE DEST[7:0] := 0; FI;
+(* Continue comparison of 2nd through 7th bytes in DEST and SRC *)
+IF DEST[63:56] &gt; SRC[63:56]
+    THEN DEST[63:56] := FFH;
+    ELSE DEST[63:56] := 0; FI;
+</pre>
+		<h3 id="compare_bytes_greater--src1--src2-">COMPARE_BYTES_GREATER (SRC1, SRC2)<a class="anchor" href="#compare_bytes_greater--src1--src2-">¶</a></h3>
+		<pre>    IF SRC1[7:0] &gt; SRC2[7:0]
+    THEN DEST[7:0] := FFH;
+    ELSE DEST[7:0] := 0; FI;
+(* Continue comparison of 2nd through 15th bytes in SRC1 and SRC2 *)
+    IF SRC1[127:120] &gt; SRC2[127:120]
+    THEN DEST[127:120] := FFH;
+    ELSE DEST[127:120] := 0; FI;
+</pre>
+		<h3 id="compare_words_greater--src1--src2-">COMPARE_WORDS_GREATER (SRC1, SRC2)<a class="anchor" href="#compare_words_greater--src1--src2-">¶</a></h3>
+		<pre>    IF SRC1[15:0] &gt; SRC2[15:0]
+    THEN DEST[15:0] := FFFFH;
+    ELSE DEST[15:0] := 0; FI;
+(* Continue comparison of 2nd through 7th 16-bit words in SRC1 and SRC2 *)
+    IF SRC1[127:112] &gt; SRC2[127:112]
+    THEN DEST[127:112] := FFFFH;
+    ELSE DEST[127:112] := 0; FI;
+</pre>
+		<h3 id="compare_dwords_greater--src1--src2-">COMPARE_DWORDS_GREATER (SRC1, SRC2)<a class="anchor" href="#compare_dwords_greater--src1--src2-">¶</a></h3>
+		<pre>    IF SRC1[31:0] &gt; SRC2[31:0]
+    THEN DEST[31:0] := FFFFFFFFH;
+    ELSE DEST[31:0] := 0; FI;
+(* Continue comparison of 2nd through 3rd 32-bit dwords in SRC1 and SRC2 *)
+    IF SRC1[127:96] &gt; SRC2[127:96]
+    THEN DEST[127:96] := FFFFFFFFH;
+    ELSE DEST[127:96] := 0; FI;
+</pre>
+		<h3 id="pcmpgtb--with-128-bit-operands-">PCMPGTB（使用 128 位操作数）<a class="anchor" href="#pcmpgtb--with-128-bit-operands-">¶</a></h3>
+		<pre>DEST[127:0] := COMPARE_BYTES_GREATER(DEST[127:0],SRC[127:0])
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+		<h3 id="vpcmpgtb--vex-128-encoded-version-">VPCMPGTB（VEX.128 编码版本）<a class="anchor" href="#vpcmpgtb--vex-128-encoded-version-">¶</a></h3>
+		<pre>DEST[127:0] := COMPARE_BYTES_GREATER(SRC1,SRC2)
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vpcmpgtb--vex-256-encoded-version-">VPCMPGTB（VEX.256 编码版本）<a class="anchor" href="#vpcmpgtb--vex-256-encoded-version-">¶</a></h3>
+		<pre>DEST[127:0] := COMPARE_BYTES_GREATER(SRC1[127:0],SRC2[127:0])
+DEST[255:128] := COMPARE_BYTES_GREATER(SRC1[255:128],SRC2[255:128])
+DEST[MAXVL-1:256] := 0
+</pre>
+		<h3 id="vpcmpgtb--evex-encoded-versions-">VPCMPGTB（EVEX 编码版本）<a class="anchor" href="#vpcmpgtb--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (16, 128), (32, 256), (64, 512)
+FOR j := 0 TO KL-1
+    i := j * 8
+    IF k2[j] OR *no writemask*
+        THEN
+            /* signed comparison */
+            CMP := SRC1[i+7:i] &gt; SRC2[i+7:i];
+            IF CMP = TRUE
+                THEN DEST[j] := 1;
+                ELSE DEST[j] := 0; FI;
+        ELSE DEST[j] := 0
+                    ; zeroing-masking onlyFI;
+    FI;
+ENDFOR
+DEST[MAX_KL-1:KL] := 0
+</pre>
+		<h3 id="pcmpgtw--with-64-bit-operands-">PCMPGTW（使用 64 位操作数）<a class="anchor" href="#pcmpgtw--with-64-bit-operands-">¶</a></h3>
+		<pre>IF DEST[15:0] &gt; SRC[15:0]
+    THEN DEST[15:0] := FFFFH;
+    ELSE DEST[15:0] := 0; FI;
+(* Continue comparison of 2nd and 3rd words in DEST and SRC *)
+IF DEST[63:48] &gt; SRC[63:48]
+    THEN DEST[63:48] := FFFFH;
+    ELSE DEST[63:48] := 0; FI;
+</pre>
+		<h3 id="pcmpgtw--with-128-bit-operands-">PCMPGTW（使用 128 位操作数）<a class="anchor" href="#pcmpgtw--with-128-bit-operands-">¶</a></h3>
+		<pre>DEST[127:0] := COMPARE_WORDS_GREATER(DEST[127:0],SRC[127:0])
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+		<h3 id="vpcmpgtw--vex-128-encoded-version-">VPCMPGTW（VEX.128 编码版本）<a class="anchor" href="#vpcmpgtw--vex-128-encoded-version-">¶</a></h3>
+		<pre>DEST[127:0] := COMPARE_WORDS_GREATER(SRC1,SRC2)
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vpcmpgtw--vex-256-encoded-version-">VPCMPGTW（VEX.256 编码版本）<a class="anchor" href="#vpcmpgtw--vex-256-encoded-version-">¶</a></h3>
+		<pre>DEST[127:0] := COMPARE_WORDS_GREATER(SRC1[127:0],SRC2[127:0])
+DEST[255:128] := COMPARE_WORDS_GREATER(SRC1[255:128],SRC2[255:128])
+DEST[MAXVL-1:256] := 0
+</pre>
+		<h3 id="vpcmpgtw--evex-encoded-versions-">VPCMPGTW（EVEX 编码版本）<a class="anchor" href="#vpcmpgtw--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (8, 128), (16, 256), (32, 512)
+FOR j := 0 TO KL-1
+    i := j * 16
+    IF k2[j] OR *no writemask*
+        THEN
+            /* signed comparison */
+            CMP := SRC1[i+15:i] &gt; SRC2[i+15:i];
+            IF CMP = TRUE
+                THEN DEST[j] := 1;
+                ELSE DEST[j] := 0; FI;
+        ELSE DEST[j] := 0
+                    ; zeroing-masking onlyFI;
+    FI;
+ENDFOR
+DEST[MAX_KL-1:KL] := 0
+</pre>
+		<h3 id="pcmpgtd--with-64-bit-operands-">PCMPGTD（使用 64 位操作数）<a class="anchor" href="#pcmpgtd--with-64-bit-operands-">¶</a></h3>
+		<pre>IF DEST[31:0] &gt; SRC[31:0]
+    THEN DEST[31:0] := FFFFFFFFH;
+    ELSE DEST[31:0] := 0; FI;
+IF DEST[63:32] &gt; SRC[63:32]
+    THEN DEST[63:32] := FFFFFFFFH;
+    ELSE DEST[63:32] := 0; FI;
+</pre>
+		<h3 id="pcmpgtd--with-128-bit-operands-">PCMPGTD（使用 128 位操作数）<a class="anchor" href="#pcmpgtd--with-128-bit-operands-">¶</a></h3>
+		<pre>DEST[127:0] := COMPARE_DWORDS_GREATER(DEST[127:0],SRC[127:0])
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+		<h3 id="vpcmpgtd--vex-128-encoded-version-">VPCMPGTD（VEX.128 编码版本）<a class="anchor" href="#vpcmpgtd--vex-128-encoded-version-">¶</a></h3>
+		<pre>DEST[127:0] := COMPARE_DWORDS_GREATER(SRC1,SRC2)
+DEST[MAXVL-1:128] := 0
+</pre>
+		<h3 id="vpcmpgtd--vex-256-encoded-version-">VPCMPGTD（VEX.256 编码版本）<a class="anchor" href="#vpcmpgtd--vex-256-encoded-version-">¶</a></h3>
+		<pre>DEST[127:0] := COMPARE_DWORDS_GREATER(SRC1[127:0],SRC2[127:0])
+DEST[255:128] := COMPARE_DWORDS_GREATER(SRC1[255:128],SRC2[255:128])
+DEST[MAXVL-1:256] := 0
+</pre>
+		<h3 id="vpcmpgtd--evex-encoded-versions-">VPCMPGTD（EVEX 编码版本）<a class="anchor" href="#vpcmpgtd--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 32
+    IF k2[j] OR *no writemask*
+                THEN
+                    /* signed comparison */
+                    IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                        THEN CMP := SRC1[i+31:i] &gt; SRC2[31:0];
+                        ELSE CMP := SRC1[i+31:i] &gt; SRC2[i+31:i];
+                    FI;
+                    IF CMP = TRUE
+                        THEN DEST[j] := 1;
+                        ELSE DEST[j] := 0; FI;
+                ELSE
+                        DEST[j] := 0
+                            ; zeroing-masking only
+        I
+            ;
+ENDFOR
+DEST[MAX_KL-1:KL] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalents">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalents">¶</a></h2>
+		<pre>VPCMPGTB __mmask64 _mm512_cmpgt_epi8_mask(__m512i a, __m512i b);</pre>
+		<pre>VPCMPGTB __mmask64 _mm512_mask_cmpgt_epi8_mask(__mmask64 k, __m512i a, __m512i b);</pre>
+		<pre>VPCMPGTB __mmask32 _mm256_cmpgt_epi8_mask(__m256i a, __m256i b);</pre>
+		<pre>VPCMPGTB __mmask32 _mm256_mask_cmpgt_epi8_mask(__mmask32 k, __m256i a, __m256i b);</pre>
+		<pre>VPCMPGTB __mmask16 _mm_cmpgt_epi8_mask(__m128i a, __m128i b);</pre>
+		<pre>VPCMPGTB __mmask16 _mm_mask_cmpgt_epi8_mask(__mmask16 k, __m128i a, __m128i b);</pre>
+		<pre>VPCMPGTD __mmask16 _mm512_cmpgt_epi32_mask(__m512i a, __m512i b);</pre>
+		<pre>VPCMPGTD __mmask16 _mm512_mask_cmpgt_epi32_mask(__mmask16 k, __m512i a, __m512i b);</pre>
+		<pre>VPCMPGTD __mmask8 _mm256_cmpgt_epi32_mask(__m256i a, __m256i b);</pre>
+		<pre>VPCMPGTD __mmask8 _mm256_mask_cmpgt_epi32_mask(__mmask8 k, __m256i a, __m256i b);</pre>
+		<pre>VPCMPGTD __mmask8 _mm_cmpgt_epi32_mask(__m128i a, __m128i b);</pre>
+		<pre>VPCMPGTD __mmask8 _mm_mask_cmpgt_epi32_mask(__mmask8 k, __m128i a, __m128i b);</pre>
+		<pre>VPCMPGTW __mmask32 _mm512_cmpgt_epi16_mask(__m512i a, __m512i b);</pre>
+		<pre>VPCMPGTW __mmask32 _mm512_mask_cmpgt_epi16_mask(__mmask32 k, __m512i a, __m512i b);</pre>
+		<pre>VPCMPGTW __mmask16 _mm256_cmpgt_epi16_mask(__m256i a, __m256i b);</pre>
+		<pre>VPCMPGTW __mmask16 _mm256_mask_cmpgt_epi16_mask(__mmask16 k, __m256i a, __m256i b);</pre>
+		<pre>VPCMPGTW __mmask8 _mm_cmpgt_epi16_mask(__m128i a, __m128i b);</pre>
+		<pre>VPCMPGTW __mmask8 _mm_mask_cmpgt_epi16_mask(__mmask8 k, __m128i a, __m128i b);</pre>
+		<pre>PCMPGTB __m64 _mm_cmpgt_pi8 (__m64 m1, __m64 m2)</pre>
+		<pre>PCMPGTW __m64 _mm_cmpgt_pi16 (__m64 m1, __m64 m2)</pre>
+		<pre>PCMPGTD __m64 _mm_cmpgt_pi32 (__m64 m1, __m64 m2)</pre>
+		<pre>(V)PCMPGTB __m128i _mm_cmpgt_epi8 ( __m128i a, __m128i b)</pre>
+		<pre>(V)PCMPGTW __m128i _mm_cmpgt_epi16 ( __m128i a, __m128i b)</pre>
+		<pre>(V)DCMPGTD __m128i _mm_cmpgt_epi32 ( __m128i a, __m128i b)</pre>
+		<pre>VPCMPGTB __m256i _mm256_cmpgt_epi8 ( __m256i a, __m256i b)</pre>
+		<pre>VPCMPGTW __m256i _mm256_cmpgt_epi16 ( __m256i a, __m256i b)</pre>
+		<pre>VPCMPGTD __m256i _mm256_cmpgt_epi32 ( __m256i a, __m256i b)</pre>
+
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="numeric-exceptions">数值异常<a class="anchor" href="#numeric-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>非 EVEX 编码指令，请参阅表 2-21，“第 4 类异常条件”。</p>
+		<p>EVEX 编码的 VPCMPGTD，请参阅表 2-49 “第 E4 类异常条件”。</p>
+		<p>EVEX 编码的 VPCMPGTB/W，请参阅表 2-49 “第 E4 类异常条件” 中的异常类型 E4.nb。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

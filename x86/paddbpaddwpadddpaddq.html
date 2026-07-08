@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>PADDB/PADDW/PADDD/PADDQ — 打包整数相加</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>PADDB/PADDW/PADDD/PADDQ — 打包整数相加</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op / En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>NP 0F FC /r<sup>1</sup> PADDB mm, mm/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>MMX</td>
+				<td>将 mm/m64 和 mm 中的打包字节整数相加。</td>
+			</tr>
+			<tr>
+				<td>NP 0F FD /r<sup>1</sup> PADDW mm, mm/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>MMX</td>
+				<td>将 mm/m64 和 mm 中的打包字整数相加。</td>
+			</tr>
+			<tr>
+				<td>NP 0F FE /r<sup>1</sup> PADDD mm, mm/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>MMX</td>
+				<td>将 mm/m64 和 mm 中的打包双字整数相加。</td>
+			</tr>
+			<tr>
+				<td>NP 0F D4 /r<sup>1</sup> PADDQ mm, mm/m64</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>MMX</td>
+				<td>将 mm/m64 和 mm 中的打包四字整数相加。</td>
+			</tr>
+			<tr>
+				<td>66 0F FC /r PADDB xmm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>将 xmm2/m128 和 xmm1 中的打包字节整数相加。</td>
+			</tr>
+			<tr>
+				<td>66 0F FD /r PADDW xmm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>将 xmm2/m128 和 xmm1 中的打包字整数相加。</td>
+			</tr>
+			<tr>
+				<td>66 0F FE /r PADDD xmm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>将 xmm2/m128 和 xmm1 中的打包双字整数相加。</td>
+			</tr>
+			<tr>
+				<td>66 0F D4 /r PADDQ xmm1, xmm2/m128</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>SSE2</td>
+				<td>将 xmm2/m128 和 xmm1 中的打包四字整数相加。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F.WIG FC /r VPADDB xmm1, xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>将 xmm2 和 xmm3/m128 中的打包字节整数相加，并存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F.WIG FD /r VPADDW xmm1, xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>将 xmm2 和 xmm3/m128 中的打包字整数相加，并存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F.WIG FE /r VPADDD xmm1, xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>将 xmm2 和 xmm3/m128 中的打包双字整数相加，并存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.128.66.0F.WIG D4 /r VPADDQ xmm1, xmm2, xmm3/m128</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX</td>
+				<td>将 xmm2 和 xmm3/m128 中的打包四字整数相加，并存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F.WIG FC /r VPADDB ymm1, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>将 ymm2 和 ymm3/m256 中的打包字节整数相加，并存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F.WIG FD /r VPADDW ymm1, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>将 ymm2 和 ymm3/m256 中的打包字整数相加，并存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F.WIG FE /r VPADDD ymm1, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>将 ymm2 和 ymm3/m256 中的打包双字整数相加，并存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>VEX.256.66.0F.WIG D4 /r VPADDQ ymm1, ymm2, ymm3/m256</td>
+				<td>B</td>
+				<td>V/V</td>
+				<td>AVX2</td>
+				<td>将 ymm2 和 ymm3/m256 中的打包四字整数相加，并存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.WIG FC /r VPADDB xmm1 {k1}{z}, xmm2, xmm3/m128</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>使用写掩码 k1，将 xmm2 和 xmm3/m128 中的打包字节整数相加，并存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.WIG FD /r VPADDW xmm1 {k1}{z}, xmm2, xmm3/m128</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>使用写掩码 k1，将 xmm2 和 xmm3/m128 中的打包字整数相加，并存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.W0 FE /r VPADDD xmm1 {k1}{z}, xmm2, xmm3/m128/m32bcst</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用写掩码 k1，将 xmm2 和 xmm3/m128/m32bcst 中的打包双字整数相加，并存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.128.66.0F.W1 D4 /r VPADDQ xmm1 {k1}{z}, xmm2, xmm3/m128/m64bcst</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用写掩码 k1，将 xmm2 和 xmm3/m128/m64bcst 中的打包四字整数相加，并存储在 xmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.WIG FC /r VPADDB ymm1 {k1}{z}, ymm2, ymm3/m256</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>使用写掩码 k1，将 ymm2 和 ymm3/m256 中的打包字节整数相加，并存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.WIG FD /r VPADDW ymm1 {k1}{z}, ymm2, ymm3/m256</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512BW</td>
+				<td>使用写掩码 k1，将 ymm2 和 ymm3/m256 中的打包字整数相加，并存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.W0 FE /r VPADDD ymm1 {k1}{z}, ymm2, ymm3/m256/m32bcst</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用写掩码 k1，将 ymm2 和 ymm3/m256/m32bcst 中的打包双字整数相加，并存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.256.66.0F.W1 D4 /r VPADDQ ymm1 {k1}{z}, ymm2, ymm3/m256/m64bcst</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512VL AVX512F</td>
+				<td>使用写掩码 k1，将 ymm2 和 ymm3/m256/m64bcst 中的打包四字整数相加，并存储在 ymm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.WIG FC /r VPADDB zmm1 {k1}{z}, zmm2, zmm3/m512</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512BW</td>
+				<td>使用写掩码 k1，将 zmm2 和 zmm3/m512 中的打包字节整数相加，并存储在 zmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.WIG FD /r VPADDW zmm1 {k1}{z}, zmm2, zmm3/m512</td>
+				<td>C</td>
+				<td>V/V</td>
+				<td>AVX512BW</td>
+				<td>使用写掩码 k1，将 zmm2 和 zmm3/m512 中的打包字整数相加，并存储在 zmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.W0 FE /r VPADDD zmm1 {k1}{z}, zmm2, zmm3/m512/m32bcst</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用写掩码 k1，将 zmm2 和 zmm3/m512/m32bcst 中的打包双字整数相加，并存储在 zmm1 中。</td>
+			</tr>
+			<tr>
+				<td>EVEX.512.66.0F.W1 D4 /r VPADDQ zmm1 {k1}{z}, zmm2, zmm3/m512/m64bcst</td>
+				<td>D</td>
+				<td>V/V</td>
+				<td>AVX512F</td>
+				<td>使用写掩码 k1，将 zmm2 和 zmm3/m512/m64bcst 中的打包四字整数相加，并存储在 zmm1 中。</td>
+			</tr>
+		</table>
+		<blockquote>
+			<p>1. 请参阅 Intel® 64 和 IA-32 架构软件开发人员手册第 2A 卷第 2.5 节“Intel® AVX 和 Intel® SSE 指令异常分类”中的注释，以及第 3B 卷第 23.25.3 节“对 MMX 寄存器操作的传统 SIMD 指令的异常条件”。</p>
+		</blockquote>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:reg (r, w)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>B</td>
+				<td>N/A</td>
+				<td>ModRM:reg (w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>C</td>
+				<td>Full Mem</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+			<tr>
+				<td>D</td>
+				<td>Full</td>
+				<td>ModRM:reg (w)</td>
+				<td>EVEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>对源操作数（第二个操作数）和目的操作数（第一个操作数）的打包整数进行 SIMD 加法，并将打包整数结果存储在目的操作数中。有关 SIMD 操作的图示，请参阅 Intel® 64 和 IA-32 架构软件开发人员手册第 1 卷中的图 9-4。溢出通过回绕处理，如下文所述。</p>
+		<p>PADDB 和 VPADDB 指令将来自第一个源操作数和第二个源操作数的打包字节整数相加，并将打包整数结果存储在目的操作数中。当单个结果太大而无法用 8 位表示（溢出）时，结果将回绕，并且低 8 位写入目的操作数（即忽略进位）。</p>
+		<p>PADDW 和 VPADDW 指令将来自第一个源操作数和第二个源操作数的打包字整数相加，并将打包整数结果存储在目的操作数中。当单个结果太大而无法用 16 位表示（溢出）时，结果将回绕，并且低 16 位写入目的操作数（即忽略进位）。</p>
+		<p>PADDD 和 VPADDD 指令将来自第一个源操作数和第二个源操作数的打包双字整数相加，并将打包整数结果存储在目的操作数中。当单个结果太大而无法用 32 位表示（溢出）时，结果将回绕，并且低 32 位写入目的操作数（即忽略进位）。</p>
+		<p>PADDQ 和 VPADDQ 指令将来自第一个源操作数和第二个源操作数的打包四字整数相加，并将打包整数结果存储在目的操作数中。当四字结果太大而无法用 64 位表示（溢出）时，结果将回绕，并且低 64 位写入目的操作数（即忽略进位）。</p>
+		<p>注意，(V)PADDB、(V)PADDW、(V)PADDD 和 (V)PADDQ 指令可以对无符号或有符号（补码表示法）打包整数进行操作；然而，它不会在 EFLAGS 寄存器中设置位来指示溢出 and/or 进位。为了防止未检测到的溢出情况，软件必须控制所操作值的范围。</p>
+		<p>EVEX 编码的 VPADDD/Q：第一个源操作数是 ZMM/YMM/XMM 寄存器。第二个源操作数是 ZMM/YMM/XMM 寄存器、512/256/128 位内存位置或从 32/64 位内存位置广播的 512/256/128 位向量。目的操作数是根据写掩码更新的 ZMM/YMM/XMM 寄存器。</p>
+		<p>EVEX 编码的 VPADDB/W：第一个源操作数是 ZMM/YMM/XMM 寄存器。第二个源操作数是 ZMM/YMM/XMM 寄存器、512/256/128 位内存位置。目的操作数是根据写掩码更新的 ZMM/YMM/XMM 寄存器。</p>
+		<p>VEX.256 编码版本：第一个源操作数是 YMM 寄存器。第二个源操作数是 YMM 寄存器或 256 位内存位置。目的操作数是 YMM 寄存器。目的操作数的高位（MAXVL-1:256）清零。</p>
+		<p>VEX.128 编码版本：第一个源操作数是 XMM 寄存器。第二个源操作数是 XMM 寄存器或 128 位内存位置。目的操作数是 XMM 寄存器。对应 ZMM 寄存器目的操作数的高位（MAXVL-1:128）清零。</p>
+		<p>128位传统 SSE 版本：第一个源操作数是 XMM 寄存器。第二个操作数可以是 XMM 寄存器或 128 位内存位置。目的操作数与第一个源 XMM 寄存器相同，且对应 ZMM 寄存器目的操作数的高位（MAXVL-1:128）保持不变。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<h3 id="paddb--with-64-bit-operands-">PADDB（使用 64 位操作数）<a class="anchor" href="#paddb--with-64-bit-operands-">¶</a></h3>
+		<pre>DEST[7:0] := DEST[7:0] + SRC[7:0];
+(* Repeat add operation for 2nd through 7th byte *)
+DEST[63:56] := DEST[63:56] + SRC[63:56];
+</pre>
+		<h3 id="paddw--with-64-bit-operands-">PADDW（使用 64 位操作数）<a class="anchor" href="#paddw--with-64-bit-operands-">¶</a></h3>
+		<pre>DEST[15:0] := DEST[15:0] + SRC[15:0];
+(* Repeat add operation for 2nd and 3th word *)
+DEST[63:48] := DEST[63:48] + SRC[63:48];
+</pre>
+		<h3 id="paddd--with-64-bit-operands-">PADDD（使用 64 位操作数）<a class="anchor" href="#paddd--with-64-bit-operands-">¶</a></h3>
+		<pre>DEST[31:0] := DEST[31:0] + SRC[31:0];
+DEST[63:32] := DEST[63:32] + SRC[63:32];
+</pre>
+		<h3 id="paddq--with-64-bit-operands-">PADDQ（使用 64 位操作数）<a class="anchor" href="#paddq--with-64-bit-operands-">¶</a></h3>
+		<pre>DEST[63:0] := DEST[63:0] + SRC[63:0];
+</pre>
+		<h3 id="paddb--legacy-sse-instruction-">PADDB（传统 SSE 指令）<a class="anchor" href="#paddb--legacy-sse-instruction-">¶</a></h3>
+		<pre>DEST[7:0] := DEST[7:0] + SRC[7:0];
+(* Repeat add operation for 2nd through 15th byte *)
+DEST[127:120] := DEST[127:120] + SRC[127:120];
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+		<h3 id="paddw--legacy-sse-instruction-">PADDW（传统 SSE 指令）<a class="anchor" href="#paddw--legacy-sse-instruction-">¶</a></h3>
+		<pre>DEST[15:0] := DEST[15:0] + SRC[15:0];
+(* Repeat add operation for 2nd through 7th word *)
+DEST[127:112] := DEST[127:112] + SRC[127:112];
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+		<h3 id="paddd--legacy-sse-instruction-">PADDD（传统 SSE 指令）<a class="anchor" href="#paddd--legacy-sse-instruction-">¶</a></h3>
+		<pre>DEST[31:0] := DEST[31:0] + SRC[31:0];
+(* Repeat add operation for 2nd and 3th doubleword *)
+DEST[127:96] := DEST[127:96] + SRC[127:96];
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+		<h3 id="paddq--legacy-sse-instruction-">PADDQ（传统 SSE 指令）<a class="anchor" href="#paddq--legacy-sse-instruction-">¶</a></h3>
+		<pre>DEST[63:0] := DEST[63:0] + SRC[63:0];
+DEST[127:64] := DEST[127:64] + SRC[127:64];
+DEST[MAXVL-1:128] (Unmodified)
+</pre>
+		<h3 id="vpaddb--vex-128-encoded-instruction-">VPADDB（VEX.128 编码指令）<a class="anchor" href="#vpaddb--vex-128-encoded-instruction-">¶</a></h3>
+		<pre>DEST[7:0] := SRC1[7:0] + SRC2[7:0];
+(* Repeat add operation for 2nd through 15th byte *)
+DEST[127:120] := SRC1[127:120] + SRC2[127:120];
+DEST[MAXVL-1:128] := 0;
+</pre>
+		<h3 id="vpaddw--vex-128-encoded-instruction-">VPADDW（VEX.128 编码指令）<a class="anchor" href="#vpaddw--vex-128-encoded-instruction-">¶</a></h3>
+		<pre>DEST[15:0] := SRC1[15:0] + SRC2[15:0];
+(* Repeat add operation for 2nd through 7th word *)
+DEST[127:112] := SRC1[127:112] + SRC2[127:112];
+DEST[MAXVL-1:128] := 0;
+</pre>
+		<h3 id="vpaddd--vex-128-encoded-instruction-">VPADDD（VEX.128 编码指令）<a class="anchor" href="#vpaddd--vex-128-encoded-instruction-">¶</a></h3>
+		<pre>DEST[31:0] := SRC1[31:0] + SRC2[31:0];
+(* Repeat add operation for 2nd and 3th doubleword *)
+DEST[127:96] := SRC1[127:96] + SRC2[127:96];
+DEST[MAXVL-1:128] := 0;
+</pre>
+		<h3 id="vpaddq--vex-128-encoded-instruction-">VPADDQ（VEX.128 编码指令）<a class="anchor" href="#vpaddq--vex-128-encoded-instruction-">¶</a></h3>
+		<pre>DEST[63:0] := SRC1[63:0] + SRC2[63:0];
+DEST[127:64] := SRC1[127:64] + SRC2[127:64];
+DEST[MAXVL-1:128] := 0;
+</pre>
+		<h3 id="vpaddb--vex-256-encoded-instruction-">VPADDB（VEX.256 编码指令）<a class="anchor" href="#vpaddb--vex-256-encoded-instruction-">¶</a></h3>
+		<pre>DEST[7:0] := SRC1[7:0] + SRC2[7:0];
+(* Repeat add operation for 2nd through 31th byte *)
+DEST[255:248] := SRC1[255:248] + SRC2[255:248];
+</pre>
+		<h3 id="vpaddw--vex-256-encoded-instruction-">VPADDW（VEX.256 编码指令）<a class="anchor" href="#vpaddw--vex-256-encoded-instruction-">¶</a></h3>
+		<pre>DEST[15:0] := SRC1[15:0] + SRC2[15:0];
+(* Repeat add operation for 2nd through 15th word *)
+DEST[255:240] := SRC1[255:240] + SRC2[255:240];
+</pre>
+		<h3 id="vpaddd--vex-256-encoded-instruction-">VPADDD（VEX.256 编码指令）<a class="anchor" href="#vpaddd--vex-256-encoded-instruction-">¶</a></h3>
+		<pre>DEST[31:0] := SRC1[31:0] + SRC2[31:0];
+(* Repeat add operation for 2nd and 7th doubleword *)
+DEST[255:224] := SRC1[255:224] + SRC2[255:224];
+</pre>
+		<h3 id="vpaddq--vex-256-encoded-instruction-">VPADDQ（VEX.256 编码指令）<a class="anchor" href="#vpaddq--vex-256-encoded-instruction-">¶</a></h3>
+		<pre>DEST[63:0] := SRC1[63:0] + SRC2[63:0];
+DEST[127:64] := SRC1[127:64] + SRC2[127:64];
+DEST[191:128] := SRC1[191:128] + SRC2[191:128];
+DEST[255:192] := SRC1[255:192] + SRC2[255:192];
+</pre>
+		<h3 id="vpaddb--evex-encoded-versions-">VPADDB（EVEX 编码版本）<a class="anchor" href="#vpaddb--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (16, 128), (32, 256), (64, 512)
+FOR j := 0 TO KL-1
+    i := j * 8
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+7:i] := SRC1[i+7:i] + SRC2[i+7:i]
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+7:i] remains unchanged*
+                ELSE *zeroing-masking*
+                        ; zeroing-masking
+                    DEST[i+7:i] = 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vpaddw--evex-encoded-versions-">VPADDW（EVEX 编码版本）<a class="anchor" href="#vpaddw--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (8, 128), (16, 256), (32, 512)
+FOR j := 0 TO KL-1
+    i := j * 16
+    IF k1[j] OR *no writemask*
+        THEN DEST[i+15:i] := SRC1[i+15:i] + SRC2[i+15:i]
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+15:i] remains unchanged*
+                ELSE *zeroing-masking*
+                        ; zeroing-masking
+                    DEST[i+15:i] = 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vpaddd--evex-encoded-versions-">VPADDD（EVEX 编码版本）<a class="anchor" href="#vpaddd--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (4, 128), (8, 256), (16, 512)
+FOR j := 0 TO KL-1
+    i := j * 32
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN DEST[i+31:i] := SRC1[i+31:i] + SRC2[31:0]
+                ELSE DEST[i+31:i] := SRC1[i+31:i] + SRC2[i+31:i]
+            FI;
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+31:i] remains unchanged*
+                ELSE *zeroing-masking*
+                        ; zeroing-masking
+                    DEST[i+31:i] := 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL-1:VL] := 0
+</pre>
+		<h3 id="vpaddq--evex-encoded-versions-">VPADDQ（EVEX 编码版本）<a class="anchor" href="#vpaddq--evex-encoded-versions-">¶</a></h3>
+		<pre>(KL, VL) = (2, 128), (4, 256), (8, 512)
+FOR j := 0 TO KL-1
+    i := j * 64
+    IF k1[j] OR *no writemask*
+        THEN
+            IF (EVEX.b = 1) AND (SRC2 *is memory*)
+                THEN DEST[i+63:i] := SRC1[i+63:i] + SRC2[63:0]
+                ELSE DEST[i+63:i] := SRC1[i+63:i] + SRC2[i+63:i]
+            FI;
+        ELSE
+            IF *merging-masking* ; merging-masking
+                THEN *DEST[i+63:i] remains unchanged*
+                ELSE *zeroing-masking*
+                        ; zeroing-masking
+                    DEST[i+63:i] := 0
+            FI
+    FI;
+ENDFOR;
+DEST[MAXVL-1:VL] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalents">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalents">¶</a></h2>
+		<pre>VPADDB__m512i _mm512_add_epi8 ( __m512i a, __m512i b)</pre>
+		<pre>VPADDW__m512i _mm512_add_epi16 ( __m512i a, __m512i b)</pre>
+		<pre>VPADDB__m512i _mm512_mask_add_epi8 ( __m512i s, __mmask64 m, __m512i a, __m512i b)</pre>
+		<pre>VPADDW__m512i _mm512_mask_add_epi16 ( __m512i s, __mmask32 m, __m512i a, __m512i b)</pre>
+		<pre>VPADDB__m512i _mm512_maskz_add_epi8 (__mmask64 m, __m512i a, __m512i b)</pre>
+		<pre>VPADDW__m512i _mm512_maskz_add_epi16 (__mmask32 m, __m512i a, __m512i b)</pre>
+		<pre>VPADDB__m256i _mm256_mask_add_epi8 (__m256i s, __mmask32 m, __m256i a, __m256i b)</pre>
+		<pre>VPADDW__m256i _mm256_mask_add_epi16 (__m256i s, __mmask16 m, __m256i a, __m256i b)</pre>
+		<pre>VPADDB__m256i _mm256_maskz_add_epi8 (__mmask32 m, __m256i a, __m256i b)</pre>
+		<pre>VPADDW__m256i _mm256_maskz_add_epi16 (__mmask16 m, __m256i a, __m256i b)</pre>
+		<pre>VPADDB__m128i _mm_mask_add_epi8 (__m128i s, __mmask16 m, __m128i a, __m128i b)</pre>
+		<pre>VPADDW__m128i _mm_mask_add_epi16 (__m128i s, __mmask8 m, __m128i a, __m128i b)</pre>
+		<pre>VPADDB__m128i _mm_maskz_add_epi8 (__mmask16 m, __m128i a, __m128i b)</pre>
+		<pre>VPADDW__m128i _mm_maskz_add_epi16 (__mmask8 m, __m128i a, __m128i b)</pre>
+		<pre>VPADDD __m512i _mm512_add_epi32( __m512i a, __m512i b);</pre>
+		<pre>VPADDD __m512i _mm512_mask_add_epi32(__m512i s, __mmask16 k, __m512i a, __m512i b);</pre>
+		<pre>VPADDD __m512i _mm512_maskz_add_epi32( __mmask16 k, __m512i a, __m512i b);</pre>
+		<pre>VPADDD __m256i _mm256_mask_add_epi32(__m256i s, __mmask8 k, __m256i a, __m256i b);</pre>
+		<pre>VPADDD __m256i _mm256_maskz_add_epi32( __mmask8 k, __m256i a, __m256i b);</pre>
+		<pre>VPADDD __m128i _mm_mask_add_epi32(__m128i s, __mmask8 k, __m128i a, __m128i b);</pre>
+		<pre>VPADDD __m128i _mm_maskz_add_epi32( __mmask8 k, __m128i a, __m128i b);</pre>
+		<pre>VPADDQ __m512i _mm512_add_epi64( __m512i a, __m512i b);</pre>
+		<pre>VPADDQ __m512i _mm512_mask_add_epi64(__m512i s, __mmask8 k, __m512i a, __m512i b);</pre>
+		<pre>VPADDQ __m512i _mm512_maskz_add_epi64( __mmask8 k, __m512i a, __m512i b);</pre>
+		<pre>VPADDQ __m256i _mm256_mask_add_epi64(__m256i s, __mmask8 k, __m256i a, __m256i b);</pre>
+		<pre>VPADDQ __m256i _mm256_maskz_add_epi64( __mmask8 k, __m512i a, __m512i b);</pre>
+		<pre>VPADDQ __m128i _mm_mask_add_epi64(__m128i s, __mmask8 k, __m128i a, __m128i b);</pre>
+		<pre>VPADDQ __m128i _mm_maskz_add_epi64( __mmask8 k, __m128i a, __m128i b);</pre>
+		<pre>PADDB __m128i _mm_add_epi8 (__m128i a,__m128i b );</pre>
+		<pre>PADDW __m128i _mm_add_epi16 ( __m128i a, __m128i b);</pre>
+		<pre>PADDD __m128i _mm_add_epi32 ( __m128i a, __m128i b);</pre>
+		<pre>PADDQ __m128i _mm_add_epi64 ( __m128i a, __m128i b);</pre>
+		<pre>VPADDB __m256i _mm256_add_epi8 (__m256ia,__m256i b );</pre>
+		<pre>VPADDW __m256i _mm256_add_epi16 ( __m256i a, __m256i b);</pre>
+		<pre>VPADDD __m256i _mm256_add_epi32 ( __m256i a, __m256i b);</pre>
+		<pre>VPADDQ __m256i _mm256_add_epi64 ( __m256i a, __m256i b);</pre>
+		<pre>PADDB __m64 _mm_add_pi8(__m64 m1, __m64 m2)</pre>
+		<pre>PADDW __m64 _mm_add_pi16(__m64 m1, __m64 m2)</pre>
+		<pre>PADDD __m64 _mm_add_pi32(__m64 m1, __m64 m2)</pre>
+		<pre>PADDQ __m64 _mm_add_si64(__m64 m1, __m64 m2)</pre>
+
+		<h2 class="exceptions" id="simd-floating-point-exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 class="exceptions" id="other-exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>非 EVEX 编码指令，请参阅表 2-21，“第 4 类异常条件”。</p>
+		<p>EVEX 编码的 VPADDD/Q，请参阅表 2-49 “第 E4 类异常条件”。</p>
+		<p>EVEX 编码的 VPADDB/W，请参阅表 2-49 “第 E4 类异常条件” 中的异常类型 E4.nb。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

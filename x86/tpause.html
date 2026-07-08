@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>TPAUSE — 定时暂停</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>TPAUSE — 定时暂停</h1>
+
+		<table>
+			<tr>
+				<th>操作码 / 指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 特征标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>66 0F AE /6 TPAUSE r32, &lt;edx&gt;, &lt;eax&gt;</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>WAITPKG</td>
+				<td>指示处理器进入与实现相关的优化状态，直到 TSC 达到 EDX:EAX 中的值。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<sup>1</sup><a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>N/A</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>TPAUSE 指示处理器进入与实现相关的优化状态。有两种这样的优化状态可供选择：轻量级功耗/性能优化状态，以及改进的功耗/性能优化状态。两者之间的选择由显式输入寄存器源操作数的 bit[0] 控制。</p>
+		<p>当 CPUID.7.0:ECX.WAITPKG[bit 5] 枚举为 1 时，TPAUSE 可用。TPAUSE 可以在任何特权级执行。该指令在非 64 位模式和 64 位模式下的操作相同。</p>
+		<p>与 PAUSE 不同，当在事务区域内使用时，TPAUSE 指令不会导致事务中止，这在《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷第 16 章“使用 Intel® 事务同步扩展进行编程”中有所描述。</p>
+		<blockquote>
+			<p>1. ModR/M 字节的 Mod 字段的值必须为 11B。</p>
+		</blockquote>
+		<p>输入寄存器包含处理器应进入的首选优化状态等信息，如下表所述。除 bit 0 以外的其他位均保留，如果为非零值，将导致 #GP 异常。</p>
+
+		<figure id="tbl-4-20">
+			<table>
+				<tr>
+					<th>位值</th>
+					<th>状态名称</th>
+					<th>唤醒时间</th>
+					<th>省电效果</th>
+					<th>其他好处</th>
+				</tr>
+				<tr>
+					<td>bit[0] = 0</td>
+					<td>C0.2</td>
+					<td>较慢</td>
+					<td>较大</td>
+					<td>提高同一内核上其他 SMT 线程的性能。</td>
+				</tr>
+				<tr>
+					<td>bit[0] = 1</td>
+					<td>C0.1</td>
+					<td>较快</td>
+					<td>较小</td>
+					<td>N/A</td>
+				</tr>
+				<tr>
+					<td>bits[31:1]</td>
+					<td>N/A</td>
+					<td>N/A</td>
+					<td>N/A</td>
+					<td>保留</td>
+				</tr>
+			</table>
+			<figcaption><a href='tpause.html#tbl-4-20'>表 4-20</a>. TPAUSE 输入寄存器位定义</figcaption>
+		</figure>
+
+		<p>当时间戳计数器达到或超过隐式 EDX:EAX 64 位输入值时，指令执行唤醒。</p>
+		<p>在执行 TPAUSE 指令之前，操作系统可以指定其允许处理器暂停运行的最大延迟。它可以通过向以下 32 位 MSR（MSR 索引为 E1H 的 IA32_UMWAIT_CONTROL）写入 TSC 份量值来实现：</p>
+		<ul>
+			<li>IA32_UMWAIT_CONTROL[31:2] — 确定处理器可以驻留在 C0.1 或 C0.2 中的最大时间（以 TSC 份量为单位）。零值表示没有最大时间。最大时间值是一个 32 位值，其中高 30 位来自此字段，低两位为零。</li>
+			<li>IA32_UMWAIT_CONTROL[1] — 保留。</li>
+			<li>IA32_UMWAIT_CONTROL[0] — 操作系统不允许 C0.2。值“1”表示所有 C0.2 请求都恢复为 C0.1。</li>
+		</ul>
+		<p>如果执行 TPAUSE 指令的处理器由于操作系统时间限制过期而唤醒，则指令设置 RFLAGS.CF；否则，清除该标志。</p>
+		<p>以下附加事件会导致处理器退出与实现相关的优化状态：向事务区域内的读取集范围进行存储写入、NMI 或 SMI、调试异常、机器检查异常、BINIT# 信号、INIT# 信号以及 RESET# 信号。</p>
+		<p>其他与实现相关的事件可能会导致处理器退出与实现相关的优化状态，从而继续执行紧跟在 TPAUSE 之后的指令。此外，外部中断会导致处理器退出与实现相关的优化状态，而不管可屏蔽中断是否被禁止 (EFLAGS.IF = 0)。应该注意的是，如果可屏蔽中断被禁止，执行将继续进行紧跟在 TPAUSE 之后的指令。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>os_deadline := TSC+(IA32_UMWAIT_CONTROL[31:2]&lt;&lt;2)
+instr_deadline := UINT64(EDX:EAX)
+IF os_deadline &lt; instr_deadline:
+    deadline := os_deadline
+    using_os_deadline := 1
+ELSE:
+    deadline := instr_deadline
+    using_os_deadline := 0
+WHILE TSC &lt; deadline:
+    implementation_dependent_optimized_state(Source register, deadline, IA32_UMWAIT_CONTROL[0])
+IF using_os_deadline AND TSC ≥ deadline:
+    RFLAGS.CF := 1
+ELSE:
+    RFLAGS.CF := 0
+RFLAGS.AF,PF,SF,ZF,OF := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>TPAUSE uint8_t _tpause(uint32_t control, uint64_t counter);
+</pre>
+
+		<h2 class="exceptions" id="numeric-exceptions">数值异常<a class="anchor" href="#numeric-exceptions">¶</a></h2>
+		<p>无。</p>
+
+		<h2 id="exceptions--all-operating-modes-">异常（所有运行模式）<a class="anchor" href="#exceptions--all-operating-modes-">¶</a></h2>
+		<p>#GP(0) 如果 src[31:1] != 0。</p>
+		<p>如果 CR4.TSD = 1 且 CPL != 0。</p>
+		<p>#UD 如果 CPUID.7.0:ECX.WAITPKG[bit 5] = 0。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>

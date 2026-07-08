@@ -1,206 +1,212 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
-<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<link rel="stylesheet" type="text/css" href="../style.css">
-	<title>SYSRET — 快速系统调用返回</title>
-</head>
-<body>
-	<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
-	<h1>SYSRET — 快速系统调用返回</h1>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>SYSRET — 从快速系统调用返回</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>SYSRET — 从快速系统调用返回</h1>
 
-	<table>
-		<tr>
-			<th>操作码</th>
-			<th>指令</th>
-			<th>Op/En</th>
-			<th>64位模式</th>
-			<th>兼容/传统模式</th>
-			<th>描述</th>
-		</tr>
-		<tr>
-			<td>0F 07</td>
-			<td>SYSRET</td>
-			<td>ZO</td>
-			<td>Valid</td>
-			<td>Invalid</td>
-			<td>从快速系统调用返回到兼容模式。</td>
-		</tr>
-		<tr>
-			<td>REX.W + 0F 07</td>
-			<td>SYSRET</td>
-			<td>ZO</td>
-			<td>Valid</td>
-			<td>Invalid</td>
-			<td>从快速系统调用返回到 64 位模式。</td>
-		</tr>
-	</table>
+		<table>
+			<tr>
+				<th>操作码</th>
+				<th>指令</th>
+				<th>Op/En</th>
+				<th>64位模式</th>
+				<th>兼容/传统模式</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>0F 07</td>
+				<td>SYSRET</td>
+				<td>ZO</td>
+				<td>Valid</td>
+				<td>Invalid</td>
+				<td>从快速系统调用返回到兼容模式。</td>
+			</tr>
+			<tr>
+				<td>REX.W + 0F 07</td>
+				<td>SYSRET</td>
+				<td>ZO</td>
+				<td>Valid</td>
+				<td>Invalid</td>
+				<td>从快速系统调用返回到 64 位模式。</td>
+			</tr>
+		</table>
 
-	<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
-	<table>
-		<tr>
-			<th>Op/En</th>
-			<th>操作数 1</th>
-			<th>操作数 2</th>
-			<th>操作数 3</th>
-			<th>操作数 4</th>
-		</tr>
-		<tr>
-			<td>ZO</td>
-			<td>N/A</td>
-			<td>N/A</td>
-			<td>N/A</td>
-			<td>N/A</td>
-		</tr>
-	</table>
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>ZO</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+				<td>N/A</td>
+			</tr>
+		</table>
 
-	<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
-	<p>SYSRET 是 SYSCALL 指令的配套指令。It returns from an OS system-call handler to user code at privilege level 3. It does so by loading RIP from RCX and loading RFLAGS from R11.<sup>1</sup>如果使用 64 位操作数大小，SYSRET 保持在 64 位模式下；否则，它进入兼容模式，仅加载寄存器的低 32 位。</p>
-	<p>SYSRET 用派生自 IA32_STAR MSR 的第 63:48 位的值加载 CS 和 SS 选择子。然而，CS 和 SS 描述符缓存<strong>不会</strong>从那些选择子引用的描述符（在 GDT 或 LDT 中）加载。相反，描述符缓存被加载为固定值。详情请参阅操作（Operation）部分。操作系统软件有责任确保这些选择子值引用的描述符（在 GDT 或 LDT 中）与加载到描述符缓存中的固定值相对应；SYSRET 指令并不保证这种对应关系。</p>
-	<p>SYSRET 指令不修改栈指针（ESP 或 RSP）。因此，软件需要切换到用户栈。操作系统可在执行 SYSRET 之前加载用户栈指针（如果在 SYSCALL 之后已保存）；或者，用户代码在从 SYSRET 接收到控制权之后加载栈指针（如果在 SYSCALL 之前已保存）。</p>
-	<p>如果操作系统在执行 SYSRET 之前加载栈指针，它必须确保在恢复栈指针与成功执行 SYSRET 之间传递的任何中断或异常处理程序不会配合用户栈被调用。它可以采用类似以下的方法来实现这一点：</p>
-	<ul>
-		<li>外部中断。操作系统可以通过在加载用户栈指针之前清除 EFLAGS.IF 来防止外部中断的传递。</li>
-		<li>不可屏蔽中断（NMI）。操作系统可以通过在 IDT 中对中断门 2 (NMI) 使用中断栈表（IST）机制来确保 NMI 处理程序以正确的栈被调用（请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 3A 卷第 6.14.5 节“中断栈表”）。</li>
-		<li>通用保护异常（#GP）。如果 RCX 的值不是规范形式，SYSRET 指令将产生 #GP(0)。操作系统可以使用以下一个或多个方法来处理这种可能性：
-			<ul>
-				<li>在执行 SYSRET 之前确认 RCX 的值是规范形式。</li>
-				<li>使用分页来确保 SYSCALL 指令永远不会将非规范值保存到 RCX 中。</li>
-				<li>在 IDT 中对中断门 13 (#GP) 使用 IST 机制。</li>
-			</ul>
-		</li>
-	</ul>
-	<p>当在特权级 3 启用阴影栈时，该指令用来自 IA32_PL3_SSP MSR 的值加载 SSP。有关额外的 CET 详细信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷第 6 章“过程调用、中断和异常”和第 17 章“控制流强制技术（CET）”。</p>
-	<blockquote>
-		<p>1. 不论 R11 的值如何，执行 SYSRET 后 RFLAGS 中的 RF 和 VM 标志始终为 0。此外，RFLAGS 中的所有保留位均保留其固定值。</p>
-	</blockquote>
-	<p><strong>指令顺序。</strong> 在早先指令完成执行之前，可能会从内存中获取 SYSRET 之后的指令，但是在 SYSRET 之前的所有指令都完成执行之前，它们将不会执行（即使是猜测性执行）（后续指令可能会在早先指令存储的数据变得全局可见之前执行）。</p>
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>SYSRET 是 SYSCALL 指令的伴侣指令。它从操作系统系统调用处理程序返回到特权级 3 的用户代码。它通过从 RCX 加载 RIP 并从 R11 加载 RFLAGS 来实现此目的。<sup>1</sup>当操作数大小为 64 位时，SYSRET 保持在 64 位模式；否则，它将进入兼容模式，并且仅加载寄存器的低 32 位。</p>
+		<p>SYSRET 使用来自 IA32_STAR MSR 63:48 位的值加载 CS 和 SS 选择子。然而，CS 和 SS 描述符缓存<strong>并不</strong>是从这些选择子引用的描述符（在 GDT 或 LDT 中）加载的。相反，描述符缓存被加载为固定值。详情请参阅“操作”部分。操作系统软件有责任确保这些选择子值引用的描述符（在 GDT 或 LDT 中）与加载到描述符缓存中的固定值相对应；SYSRET 指令不保证这种对应关系。</p>
+		<p>SYSRET 指令不修改栈指针（ESP 或 RSP）。出于这个原因，软件必须切换到用户栈。操作系统可以在执行 SYSRET 之前加载用户栈指针（如果在 SYSCALL 之后保存了它）；或者，用户代码可以在从 SYSRET 接收控制之后加载栈指针（如果在 SYSCALL 之前保存了它）。</p>
+		<p>如果操作系统在执行 SYSRET 之前加载了栈指针，则必须确保在恢复栈指针与成功执行 SYSRET 之间传递的任何中断或异常的处理程序不会被用户栈调用。它可以使用以下方法来做到这一点：</p>
+		<ul>
+			<li>外部中断。操作系统可以通过在加载用户栈指针之前清除 EFLAGS.IF 来防止传递外部中断。</li>
+			<li>不可屏蔽中断 (NMI)。操作系统可以通过在 IDT 中对门 2 (NMI) 使用中断栈表 (IST) 机制，来确保 NMI 处理程序使用正确的栈调用（请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 3A 卷第 6.14.5 节“中断栈表”）。</li>
+			<li>一般保护异常 (#GP)。如果 RCX 的值不是规范的，SYSRET 指令将产生 #GP(0) 异常。操作系统可以使用以下一个或多个方法来解决这种可能性：
+				<ul>
+					<li>在执行 SYSRET 之前确认 RCX 的值是规范的。</li>
+					<li>在执行 SYSRET 之前确认 RCX 的值是规范的。</li>
+					<li>使用分页机制以确保 SYSCALL 指令绝不会将非规范值保存到 RCX 中。</li>
+					<li>使用分页机制以确保 SYSCALL 指令绝不会将非规范值保存到 RCX 中。</li>
+					<li>在 IDT 中对门 13 (#GP) 使用 IST 机制。</li>
+					<li>在 IDT 中对门 13 (#GP) 使用 IST 机制。</li>
+				</ul>
+			</li>
+		</ul>
+		<p>当在特权级 3 启用影子栈时，该指令将使用来自 IA32_PL3_SSP MSR 的值加载 SSP。有关额外的 CET 详细信息，请参阅《Intel® 64 和 IA-32 架构软件开发人员手册》第 1 卷第 6 章“过程调用、中断和异常”以及第 17 章“控制流执行技术 (CET)”。</p>
+		<blockquote>
+			<p>1. 无论 R11 的值如何，在执行 SYSRET 之后，RFLAGS 中的 RF 和 VM 标志始终为 0。此外，RFLAGS 中的所有保留位均保留固定值。</p>
+		</blockquote>
+		<p><strong>指令顺序。</strong>紧跟在 SYSRET 之后的指令可能会在较早的指令完成执行之前从内存中提取，但在 SYSRET 之前的所有指令完成执行之前，它们不会执行（即使是猜测性执行）（后面的指令可能会在较早指令存储的数据全局可见之前执行）。</p>
 
-	<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
-	<pre>IF (CS.L ≠ 1 ) or (IA32_EFER.LMA ≠ 1) or (IA32_EFER.SCE ≠ 1)
-(* Not in 64-Bit Mode or SYSCALL/SYSRET not enabled in IA32_EFER *)
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>IF (CS.L ≠ 1 ) or (IA32_EFER.LMA ≠ 1) or (IA32_EFER.SCE ≠ 1)
+(* 不在 64位模式或 IA32_EFER 中未启用 SYSCALL/SYSRET *)
     THEN #UD; FI;
 IF (CPL ≠ 0) THEN #GP(0); FI;
 IF (operand size is 64-bit)
-    THEN (* Return to 64-Bit Mode *)
+    THEN (* 返回到 64位模式 *)
         IF (RCX is not canonical) THEN #GP(0);
         RIP := RCX;
-    ELSE (* Return to Compatibility Mode *)
+    ELSE (* 返回到 兼容模式 *)
         RIP := ECX;
 FI;
 RFLAGS := (R11 &amp; 3C7FD7H) | 2; (*
-                Clear RF, VM, reserved bits; set bit 1 *)
+                清除 RF, VM, 保留位；设置位 1 *)
 IF (operand size is 64-bit)
     THEN CS.Selector := IA32_STAR[63:48]+16;
     ELSE CS.Selector := IA32_STAR[63:48];
 FI;
 CS.Selector := CS.Selector OR 3;
-            (* RPL forced to 3 *)
-(* Set rest of CS to a fixed value *)
+            (* RPL 强制为 3 *)
+(* 将 CS 的其余部分设置为固定值 *)
 CS.Base := 0;
-            (* Flat segment *)
+            (* 扁平段 *)
 CS.Limit := FFFFFH;
-            (* With 4-KByte granularity, implies a 4-GByte limit *)
+            (* 具有 4KB 粒度，意味着 4GB 界限 *)
 CS.Type := 11;
-            (* Execute/read code, accessed *)
+            (* 执行/读取代码，已访问 *)
 CS.S := 1;
 CS.DPL := 3;
 CS.P := 1;
 IF (operand size is 64-bit)
-    THEN (* Return to 64-Bit Mode *)
+    THEN (* 返回到 64位模式 *)
         CS.L := 1;
-            (* 64-bit code segment *)
+            (* 64位代码段 *)
         CS.D := 0;
-            (* Required if CS.L = 1 *)
-    ELSE (* Return to Compatibility Mode *)
+            (* 如果 CS.L = 1 则为必需 *)
+    ELSE (* 返回到 兼容模式 *)
         CS.L := 0;
-            (* Compatibility mode *)
+            (* 兼容模式 *)
         CS.D := 1;
-            (* 32-bit code segment *)
+            (* 32位代码段 *)
 FI;
 CS.G := 1;
-            (* 4-KByte granularity *)
+            (* 4KB 粒度 *)
 CPL := 3;
 IF ShadowStackEnabled(CPL)
     SSP := IA32_PL3_SSP;
 FI;
 SS.Selector := (IA32_STAR[63:48]+8) OR 3;
-            (* RPL forced to 3 *)
-(* Set rest of SS to a fixed value *)
+            (* RPL 强制为 3 *)
+(* 将 SS 的其余部分设置为固定值 *)
 SS.Base := 0;
-            (* Flat segment *)
+            (* 扁平段 *)
 SS.Limit := FFFFFH;
-            (* With 4-KByte granularity, implies a 4-GByte limit *)
+            (* 具有 4KB 粒度，意味着 4GB 界限 *)
 SS.Type := 3;
-            (* Read/write data, accessed *)
+            (* 读取/写入数据，已访问 *)
 SS.S := 1;
 SS.DPL := 3;
 SS.P := 1;
 SS.B := 1;
-            (* 32-bit stack segment*)
+            (* 32位栈段 *)
 SS.G := 1;
-            (* 4-KByte granularity *)
+            (* 4KB 粒度 *)
 </pre>
 
-	<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
-	<p>所有标志位。</p>
+		<h2 id="flags-affected">受影响的标志位<a class="anchor" href="#flags-affected">¶</a></h2>
+		<p>全部。</p>
 
-	<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
-	<table>
-		<tr>
-			<td>#UD</td>
-			<td>SYSRET 指令在保护模式下无法识别。</td>
-		</tr>
-	</table>
+		<h2 class="exceptions" id="protected-mode-exceptions">保护模式异常<a class="anchor" href="#protected-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>SYSRET 指令在保护模式下无法识别。</td>
+			</tr>
+		</table>
 
-	<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
-	<table>
-		<tr>
-			<td>#UD</td>
-			<td>SYSRET 指令在实地址模式下无法识别。</td>
-		</tr>
-	</table>
+		<h2 class="exceptions" id="real-address-mode-exceptions">实地址模式异常<a class="anchor" href="#real-address-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>SYSRET 指令在实地址模式下无法识别。</td>
+			</tr>
+		</table>
 
-	<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
-	<table>
-		<tr>
-			<td>#UD</td>
-			<td>SYSRET 指令在虚拟-8086 模式下无法识别。</td>
-		</tr>
-	</table>
+		<h2 class="exceptions" id="virtual-8086-mode-exceptions">虚拟-8086 模式异常<a class="anchor" href="#virtual-8086-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>SYSRET 指令在虚拟-8086 模式下无法识别。</td>
+			</tr>
+		</table>
 
-	<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
-	<table>
-		<tr>
-			<td>#UD</td>
-			<td>SYSRET 指令在兼容模式下无法识别。</td>
-		</tr>
-	</table>
+		<h2 class="exceptions" id="compatibility-mode-exceptions">兼容模式异常<a class="anchor" href="#compatibility-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td>#UD</td>
+				<td>SYSRET 指令在兼容模式下无法识别。</td>
+			</tr>
+		</table>
 
-	<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
-	<table>
-		<tr>
-			<td rowspan="2">#UD</td>
-			<td>如果 IA32_EFER.SCE = 0。</td>
-		</tr>
-		<tr>
-			<td>如果使用了 LOCK 前缀。</td>
-		</tr>
-		<tr>
-			<td rowspan="2">#GP(0)</td>
-			<td>如果 CPL != 0。</td>
-		</tr>
-		<tr>
-			<td>如果返回到 64 位模式且 RCX 包含非规范形式的地址。</td>
-		</tr>
-	</table>
+		<h2 class="exceptions" id="64-bit-mode-exceptions">64位模式异常<a class="anchor" href="#64-bit-mode-exceptions">¶</a></h2>
+		<table>
+			<tr>
+				<td rowspan="2">#UD</td>
+				<td>如果 IA32_EFER.SCE = 0。</td>
+			</tr>
+			<tr>
+				<td>如果使用了 LOCK 前缀。</td>
+			</tr>
+			<tr>
+				<td rowspan="2">#GP(0)</td>
+				<td>如果 CPL != 0。</td>
+			</tr>
+			<tr>
+				<td>如果返回目标是 64 位模式且 RCX 包含非规范地址。</td>
+			</tr>
+		</table>
 
-	<footer>
-		<p>
-			本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
-			不完<span style="opacity: 0.2">整</span>（inc<span style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
-			对于任何严肃的项目，请务必参考 <a href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel® 64 和 IA-32 架构软件开发人员手册</a>。
-		</p>
-	</footer>
-</body>
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
 </html>

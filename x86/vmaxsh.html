@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xmlns:x86="http://www.felixcloutier.com/x86">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="../style.css">
+		<title>VMAXSH — 返回标量 FP16 值的最大值</title>
+	</head>
+	<body>
+		<header><nav><ul><li><a href='../index.html'>首页</a></li><li>2023年12月</li></ul></nav></header>
+		<h1>VMAXSH — 返回标量 FP16 值的最大值</h1>
+
+		<table>
+			<tr>
+				<th>操作码/指令</th>
+				<th>Op/En</th>
+				<th>64/32位模式支持</th>
+				<th>CPUID 功能标志</th>
+				<th>描述</th>
+			</tr>
+			<tr>
+				<td>EVEX.LLIG.F3.MAP5.W0 5F /r VMAXSH xmm1{k1}{z}, xmm2, xmm3/m16 {sae}</td>
+				<td>A</td>
+				<td>V/V</td>
+				<td>AVX512-FP16</td>
+				<td>返回 xmm3/m16 与 xmm2 之间低位 FP16 值的最大值，并在写掩码 k1 下将结果存储在 xmm1 中。xmm2 的第 127:16 位复制到 xmm1[127:16] 中。</td>
+			</tr>
+		</table>
+
+		<h2 id="instruction-operand-encoding">指令操作数编码<a class="anchor" href="#instruction-operand-encoding">¶</a></h2>
+		<table>
+			<tr>
+				<th>Op/En</th>
+				<th>元组类型</th>
+				<th>操作数 1</th>
+				<th>操作数 2</th>
+				<th>操作数 3</th>
+				<th>操作数 4</th>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>Scalar</td>
+				<td>ModRM:reg (w)</td>
+				<td>VEX.vvvv (r)</td>
+				<td>ModRM:r/m (r)</td>
+				<td>N/A</td>
+			</tr>
+		</table>
+
+		<h2 id="description">描述<a class="anchor" href="#description">¶</a></h2>
+		<p>该指令对第一源操作数和第二源操作数中的低位打包 FP16 值进行比较，并将每对值中的最大值返回给目的操作数。</p>
+		<p>如果被比较的值都是 0.0（无论正负号），则返回第二操作数（源操作数）中的值。如果第二操作数中的值是 SNaN，则将 SNaN 原样转发到目的地（即不返回 SNaN 的 QNaN 版本）。</p>
+		<p>如果在此指令中只有一个值是 NaN（SNaN 或 QNaN），则将第二操作数（源操作数，可以是 NaN 或有效的浮点值）写入结果。如果需要返回 NaN 源操作数（无论是来自第一操作数还是第二操作数）来代替这种行为，可以使用一系列指令（例如比较，然后执行 AND、ANDN 和 OR）来模拟 VMAXSH 的操作。</p>
+		<p>目的操作数的第 127:16 位复制自第一源操作数中的对应位。目的操作数的第 MAXVL-1:128 位清零。目的操作数的低位 FP16 元素根据写掩码更新。</p>
+
+		<h2 id="operation">操作<a class="anchor" href="#operation">¶</a></h2>
+		<pre>def MAX(SRC1, SRC2):
+    IF (SRC1 = 0.0) and (SRC2 = 0.0):
+        DEST := SRC2
+    ELSE IF (SRC1 = NaN):
+        DEST := SRC2
+    ELSE IF (SRC2 = NaN):
+        DEST := SRC2
+    ELSE IF (SRC1 &gt; SRC2):
+        DEST := SRC1
+    ELSE:
+        DEST := SRC2
+</pre>
+		<h3 id="vmaxsh-dest--src1--src2">VMAXSH dest, src1, src2<a class="anchor" href="#vmaxsh-dest--src1--src2">¶</a></h3>
+		<pre>IF k1[0] OR *no writemask*:
+    DEST.fp16[0] := MAX(SRC1.fp16[0], SRC2.fp16[0])
+ELSE IF *zeroing*:
+    DEST.fp16[0] := 0
+// else dest.fp16[j] remains unchanged
+DEST[127:16] := SRC1[127:16]
+DEST[MAXVL-1:128] := 0
+</pre>
+
+		<h2 id="intel-c-c++-compiler-intrinsic-equivalent">Intel C/C++ 编译器等价内部函数<a class="anchor" href="#intel-c-c++-compiler-intrinsic-equivalent">¶</a></h2>
+		<pre>VMAXSH __m128h _mm_mask_max_round_sh (__m128h src, __mmask8 k, __m128h a, __m128h b, int sae);
+</pre>
+		<pre>VMAXSH __m128h _mm_maskz_max_round_sh (__mmask8 k, __m128h a, __m128h b, int sae);
+</pre>
+		<pre>VMAXSH __m128h _mm_max_round_sh (__m128h a, __m128h b, int sae);
+</pre>
+		<pre>VMAXSH __m128h _mm_mask_max_sh (__m128h src, __mmask8 k, __m128h a, __m128h b);
+</pre>
+		<pre>VMAXSH __m128h _mm_maskz_max_sh (__mmask8 k, __m128h a, __m128h b);
+</pre>
+		<pre>VMAXSH __m128h _mm_max_sh (__m128h a, __m128h b);
+</pre>
+
+		<h2 id="simd-floating-point-exceptions" class="exceptions">SIMD 浮点异常<a class="anchor" href="#simd-floating-point-exceptions">¶</a></h2>
+		<p>无效, 非规范化</p>
+
+		<h2 id="other-exceptions" class="exceptions">其他异常<a class="anchor" href="#other-exceptions">¶</a></h2>
+		<p>EVEX 编码指令，请参阅表 2-47，“第 E3 类异常条件”。</p>
+
+		<footer>
+			<p>
+				本<strong>非官方</strong>、经脚本机械拆分且未经人工校验的参考手册仅为方便阅读而提供，但它可能在各种明显或不明显的地方存在
+				不完<span style="opacity: 0.2">整</span>（inc<span
+					style="opacity: 0.2">omp</span>lete）或出<sub>错</sub>损<sub>坏</sub>（b<sub>r</sub>oke<sub>n</sub>）。
+				对于任何严肃的项目，请务必参考 <a
+					href="https://software.intel.com/en-us/download/intel-64-and-ia-32-architectures-sdm-combined-volumes-1-2a-2b-2c-2d-3a-3b-3c-3d-and-4">Intel®
+					64 和 IA-32 架构软件开发人员手册</a>。
+			</p>
+		</footer>
+	</body>
+</html>
